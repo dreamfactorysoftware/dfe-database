@@ -9,43 +9,33 @@
  * @email   <support@dreamfactory.com>
  * @license proprietary
  */
-namespace DreamFactory\Tools\Fabric\Eloquent\Models;
+namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Query\Builder;
+use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 
 /**
- * @property int   id
  * @property mixed lmod_date
  * @property mixed create_date
- * @method static Builder where( $column, $operator = null, $value = null, $boolean = 'and' )
  */
-class DeployModel extends Model
+class ServerType extends DeployModel
 {
-    //******************************************************************************
-    //* Constants
-    //******************************************************************************
-
-    /**
-     * @type string Override timestamp column
-     */
-    const UPDATED_AT = 'lmod_date';
-    /**
-     * @type string Override timestamp column
-     */
-    const CREATED_AT = 'create_date';
-
     //******************************************************************************
     //* Members
     //******************************************************************************
 
     /**
-     * @type string Our connection
+     * @type string The table name
      */
-    protected $connection = 'fabric-deploy';
-    /**
-     * @type bool
-     */
-    protected static $unguarded = true;
+    protected $table = 'server_type_t';
 
+    //******************************************************************************
+    //* Methods
+    //******************************************************************************
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function serverType()
+    {
+        return $this->belongsTo( __NAMESPACE__ . '\\Server', 'server_type_id' );
+    }
 }

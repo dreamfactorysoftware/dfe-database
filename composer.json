@@ -14,11 +14,16 @@
 		{
 			"type": "vcs",
 			"url": "git@bitbucket.org:dreamfactory/fabric-db.git"
+		},
+		{
+			"type": "vcs",
+			"url": "git@bitbucket.org:dreamfactory/fabric-common.git"
 		}
 	],
 	"require": {
 		"php": "~5.3",
 		"kisma/kisma": "~0.2",
+		"dreamfactory/fabric-common": "dev-develop as dev-master",
 		"illuminate/database": "~4.2"
 	},
 	"minimum-stability": "dev",

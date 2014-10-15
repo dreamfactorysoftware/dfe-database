@@ -1,20 +1,8 @@
 <?php
-/**
- * This file is part of the DreamFactory Fabric(tm) Tools Library
- *
- * Copyright 2014 DreamFactory Software, Inc. All Rights Reserved.
- *
- * Proprietary code, DO NOT DISTRIBUTE!
- *
- * @email   <support@dreamfactory.com>
- * @license proprietary
- */
-namespace DreamFactory\Tools\Fabric\Eloquent\Models\Deploy;
+namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
-use DreamFactory\Tools\Fabric\Eloquent\Models\DeployModel;
-use DreamFactory\Tools\Fabric\Enums\InstanceStates;
-use DreamFactory\Tools\Fabric\Exceptions\InstanceNotActivatedException;
-use DreamFactory\Tools\Fabric\Exceptions\InstanceUnlockedException;
+use DreamFactory\Library\Fabric\Common\Enums\OperationalStates;
+use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use Illuminate\Database\Query\Builder;
 
 /**
@@ -46,7 +34,7 @@ class Instance extends DeployModel
      */
     public function servers()
     {
-        return $this->hasMany( 'Server', 'server_id' );
+        return $this->hasMany( __NAMESPACE__ . '\\Server', 'server_id' );
     }
 
     /**
@@ -60,12 +48,12 @@ class Instance extends DeployModel
         /** @type Instance $_instance */
         $_instance = static::findOrFail( $id );
 
-        if ( InstanceStates::ACTIVATED != $_instance->platform_state_nbr )
+        if ( OperationalStates::ACTIVATED != $_instance->platform_state_nbr )
         {
-            throw new InstanceNotActivatedException( $id );
+            throw new \LogicException( 'Instance "' . $id . '" not activated.' );
         }
 
-        return $_instance->update( array('platform_state_nbr' => 0) );
+        return $_instance->update( array('platform_state_nbr' => OperationalStates::LOCKED) );
     }
 
     /**
@@ -79,12 +67,12 @@ class Instance extends DeployModel
         /** @type Instance $_instance */
         $_instance = static::findOrFail( $id );
 
-        if ( InstanceStates::LOCKED != $_instance->platform_state_nbr )
+        if ( OperationalStates::LOCKED != $_instance->platform_state_nbr )
         {
-            throw new InstanceUnlockedException( $id );
+            throw new \LogicException( 'Instance "' . $id . '" not locked.' );
         }
 
-        return $_instance->update( array('platform_state_nbr' => 1) );
+        return $_instance->update( array('platform_state_nbr' => OperationalStates::ACTIVATED) );
     }
 
     /**
@@ -186,6 +174,6 @@ class Instance extends DeployModel
      */
     public function user()
     {
-        return $this->belongsTo( 'DreamFactory\\Tools\\Fabric\\Eloquent\\Models\\Auth\\User' );
+        return $this->belongsTo( 'DreamFactory\\Library\\Fabric\\Database\\Models\\Auth\\User' );
     }
 }

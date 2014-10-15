@@ -1,17 +1,7 @@
 <?php
-/**
- * This file is part of the DreamFactory Fabric(tm) Tools Library
- *
- * Copyright 2014 DreamFactory Software, Inc. All Rights Reserved.
- *
- * Proprietary code, DO NOT DISTRIBUTE!
- *
- * @email   <support@dreamfactory.com>
- * @license proprietary
- */
-namespace DreamFactory\Tools\Fabric\Eloquent\Models\Deploy;
+namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
-use DreamFactory\Tools\Fabric\Eloquent\Models\DeployModel;
+use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 
 class Cluster extends DeployModel
 {
@@ -24,6 +14,10 @@ class Cluster extends DeployModel
      */
     protected $table = 'cluster_t';
 
+    //******************************************************************************
+    //* Methods
+    //******************************************************************************
+
     /**
      * Our instances relationship
      *
@@ -31,7 +25,7 @@ class Cluster extends DeployModel
      */
     public function servers()
     {
-        return $this->hasManyThrough( 'ClusterServerAsgn', 'cluster_id', 'server_id' );
+        return $this->hasManyThrough( __NAMESPACE__ . '\\ClusterServerAsgn', 'cluster_id', 'server_id' );
     }
 
 }

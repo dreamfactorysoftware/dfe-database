@@ -9,14 +9,14 @@
  * @email   <support@dreamfactory.com>
  * @license proprietary
  */
-namespace DreamFactory\Tools\Fabric\Eloquent\Models\Deploy;
+namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
-use DreamFactory\Tools\Fabric\Eloquent\Models\DeployModel;
+use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 
 /**
- * cluster_server_asgn_t
+ * server_t
  */
-class ClusterServer extends DeployModel
+class Server extends DeployModel
 {
     //******************************************************************************
     //* Members
@@ -25,7 +25,7 @@ class ClusterServer extends DeployModel
     /**
      * @type string The table name
      */
-    protected $table = 'cluster_server_asgn_t';
+    protected $table = 'server_t';
 
     //******************************************************************************
     //* Methods
@@ -34,16 +34,28 @@ class ClusterServer extends DeployModel
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function servers()
+    public function serverType()
     {
-        return $this->hasOne( 'Server' );
+        return $this->hasOne( __NAMESPACE__ . '\\ServerType', 'id', 'server_type_id' );
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * Our instances relationship
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function clusters()
     {
-        return $this->hasOne( 'Cluster', 'cluster_id' );
+        return $this->belongsToMany(
+            __NAMESPACE__ . '\\ClusterServer',
+            'cluster_server_asgn_t',
+            'server_id',
+            'cluster_id'
+        );
+    }
+
+    public function instances()
+    {
+        return $this->hasMany( __NAMESPACE__ . '\\Instance', 'id', 'server_id', 'instance_id' );
     }
 }
