@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/cache.git",
-                "reference": "f7a1d660c521461b835dc31af0f6c9836769e917"
+                "reference": "912e8a11ce3c75a630b225dd82aed83e00943ed5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/cache/zipball/f7a1d660c521461b835dc31af0f6c9836769e917",
-                "reference": "f7a1d660c521461b835dc31af0f6c9836769e917",
+                "url": "https://api.github.com/repos/doctrine/cache/zipball/912e8a11ce3c75a630b225dd82aed83e00943ed5",
+                "reference": "912e8a11ce3c75a630b225dd82aed83e00943ed5",
                 "shasum": ""
             },
             "require": {
@@ -73,7 +73,7 @@
                 "cache",
                 "caching"
             ],
-            "time": "2014-09-29 13:28:56"
+            "time": "2014-10-20 19:28:25"
         },
         {
             "name": "dreamfactory/fabric-common",
@@ -81,7 +81,7 @@
             "source": {
                 "type": "git",
                 "url": "git@bitbucket.org:dreamfactory/fabric-common.git",
-                "reference": "b8ef616da45b65d64e3dcd5a98c8d8ec6f5b1c99"
+                "reference": "f3ab9f88aa10479066362581fa118198951ff69a"
             },
             "require": {
                 "kisma/kisma": "~0.2",
@@ -118,7 +118,7 @@
                 "queue",
                 "utility"
             ],
-            "time": "2014-10-11 19:30:48"
+            "time": "2014-10-15 23:13:38"
         },
         {
             "name": "illuminate/container",
@@ -168,12 +168,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/database.git",
-                "reference": "6c0c0b5ec3dabead93915b3b318ee550ee5fc93d"
+                "reference": "520d9e97054214db88ea20502ee774b3dd22421e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/illuminate/database/zipball/6c0c0b5ec3dabead93915b3b318ee550ee5fc93d",
-                "reference": "6c0c0b5ec3dabead93915b3b318ee550ee5fc93d",
+                "url": "https://api.github.com/repos/illuminate/database/zipball/520d9e97054214db88ea20502ee774b3dd22421e",
+                "reference": "520d9e97054214db88ea20502ee774b3dd22421e",
                 "shasum": ""
             },
             "require": {
@@ -216,7 +216,7 @@
                 "orm",
                 "sql"
             ],
-            "time": "2014-10-05 21:05:53"
+            "time": "2014-10-16 14:32:18"
         },
         {
             "name": "illuminate/events",
@@ -315,12 +315,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/lucifurious/kisma.git",
-                "reference": "eea48a0189839a3e7b878b802d1837b4ea9d5241"
+                "reference": "ee40eb80fe453077398fe3e2b9dacdedfbba06a9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/lucifurious/kisma/zipball/eea48a0189839a3e7b878b802d1837b4ea9d5241",
-                "reference": "eea48a0189839a3e7b878b802d1837b4ea9d5241",
+                "url": "https://api.github.com/repos/lucifurious/kisma/zipball/ee40eb80fe453077398fe3e2b9dacdedfbba06a9",
+                "reference": "ee40eb80fe453077398fe3e2b9dacdedfbba06a9",
                 "shasum": ""
             },
             "require": {
@@ -331,7 +331,7 @@
                 "symfony/http-foundation": "~2.4"
             },
             "require-dev": {
-                "phpunit/phpunit": "~3.7"
+                "phpunit/phpunit": "@stable"
             },
             "type": "library",
             "extra": {
@@ -365,7 +365,7 @@
                 "php5",
                 "utility"
             ],
-            "time": "2014-10-05 22:12:45"
+            "time": "2014-10-23 00:22:25"
         },
         {
             "name": "monolog/monolog",
@@ -373,12 +373,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Seldaek/monolog.git",
-                "reference": "940cbe15abe36924e5693abb585215bb322686a7"
+                "reference": "d0a9acbad0643726453e901d9d49c14e13de9f86"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/940cbe15abe36924e5693abb585215bb322686a7",
-                "reference": "940cbe15abe36924e5693abb585215bb322686a7",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/d0a9acbad0643726453e901d9d49c14e13de9f86",
+                "reference": "d0a9acbad0643726453e901d9d49c14e13de9f86",
                 "shasum": ""
             },
             "require": {
@@ -437,7 +437,7 @@
                 "logging",
                 "psr-3"
             ],
-            "time": "2014-10-04 15:43:06"
+            "time": "2014-10-21 20:10:18"
         },
         {
             "name": "nesbot/carbon",
@@ -891,12 +891,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "ae6cefd7cc84586a5ef27e04bae11ee940ec63dc"
+                "reference": "38709dc22d519a3d1be46849868aa2ddf822bcf6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/ae6cefd7cc84586a5ef27e04bae11ee940ec63dc",
-                "reference": "ae6cefd7cc84586a5ef27e04bae11ee940ec63dc",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/38709dc22d519a3d1be46849868aa2ddf822bcf6",
+                "reference": "38709dc22d519a3d1be46849868aa2ddf822bcf6",
                 "shasum": ""
             },
             "require": {
@@ -956,7 +956,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2014-04-30 12:24:19"
+            "time": "2014-10-17 09:04:17"
         },
         {
             "name": "phpunit/phpunit-mock-objects",
