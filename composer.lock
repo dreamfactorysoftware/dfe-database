@@ -81,7 +81,7 @@
             "source": {
                 "type": "git",
                 "url": "git@bitbucket.org:dreamfactory/fabric-common.git",
-                "reference": "79fb115f821d76961cfd26ec6319e333e056c49c"
+                "reference": "b5879e4ecab6eec5eebb3176d526aad706a7299c"
             },
             "require": {
                 "kisma/kisma": "~0.2",
@@ -118,7 +118,7 @@
                 "queue",
                 "utility"
             ],
-            "time": "2014-10-23 19:11:05"
+            "time": "2014-10-24 00:10:38"
         },
         {
             "name": "illuminate/container",
@@ -593,12 +593,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/HttpFoundation.git",
-                "reference": "c24942a7ec2d8409d1f60d02c4460ca8317e885a"
+                "reference": "60555860e924e33aa09643b87b98ec31886acfa3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/HttpFoundation/zipball/c24942a7ec2d8409d1f60d02c4460ca8317e885a",
-                "reference": "c24942a7ec2d8409d1f60d02c4460ca8317e885a",
+                "url": "https://api.github.com/repos/symfony/HttpFoundation/zipball/60555860e924e33aa09643b87b98ec31886acfa3",
+                "reference": "60555860e924e33aa09643b87b98ec31886acfa3",
                 "shasum": ""
             },
             "require": {
@@ -637,7 +637,7 @@
             ],
             "description": "Symfony HttpFoundation Component",
             "homepage": "http://symfony.com",
-            "time": "2014-10-07 14:06:18"
+            "time": "2014-10-24 05:51:19"
         }
     ],
     "packages-dev": [
