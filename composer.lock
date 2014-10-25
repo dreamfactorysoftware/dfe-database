@@ -81,7 +81,7 @@
             "source": {
                 "type": "git",
                 "url": "git@bitbucket.org:dreamfactory/fabric-common.git",
-                "reference": "b5879e4ecab6eec5eebb3176d526aad706a7299c"
+                "reference": "ad0428a4eb2d406d5f808d7c90ae2506ebec3464"
             },
             "require": {
                 "kisma/kisma": "~0.2",
@@ -118,7 +118,7 @@
                 "queue",
                 "utility"
             ],
-            "time": "2014-10-24 00:10:38"
+            "time": "2014-10-25 05:09:07"
         },
         {
             "name": "illuminate/container",
