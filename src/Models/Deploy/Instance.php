@@ -2,7 +2,10 @@
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Library\Fabric\Common\Enums\OperationalStates;
+use DreamFactory\Library\Fabric\Database\Enums\DeactivateReasons;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use DreamFactory\Tools\Fabric\Exceptions\InstanceNotActivatedException;
+use DreamFactory\Tools\Fabric\Exceptions\InstanceUnlockedException;
 use Illuminate\Database\Query\Builder;
 
 /**
@@ -35,6 +38,38 @@ class Instance extends DeployModel
     public function servers()
     {
         return $this->hasMany( __NAMESPACE__ . '\\Server', 'server_id' );
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function dbServer()
+    {
+        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'db_server_id' );
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function appServer()
+    {
+        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'app_server_id' );
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function webServer()
+    {
+        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'web_server_id' );
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function user()
+    {
+        return $this->belongsTo( 'DreamFactory\\Library\\Fabric\\Database\\Models\\Auth\\User' );
     }
 
     /**
@@ -73,6 +108,35 @@ class Instance extends DeployModel
         }
 
         return $_instance->update( array('platform_state_nbr' => OperationalStates::ACTIVATED) );
+    }
+
+    /**
+     * @param array $schemaInfo
+     * @param int   $actionReason
+     *
+     * @return bool
+     */
+    public static function deactivate( array $schemaInfo, $actionReason = DeactivateReasons::NON_USE )
+    {
+        if ( null === ( $_row = Deactivation::instanceId( $schemaInfo['instance']->id )->first() ) )
+        {
+            //  Not found
+            $_row = new Deactivation();
+            $_row->user_id = $schemaInfo['instance']->user_id;
+            $_row->instance_id = $schemaInfo['instance']->instance_id;
+        }
+
+        if ( false === $actionReason )
+        {
+            //  Set activation date to 7 days from now.
+            $_row->activate_by_date = date( 'Y-m-d H-i-s', time() + ( 7 * 86400 ) );
+        }
+        else
+        {
+            $_row->action_reason_nbr = $actionReason;
+        }
+
+        return $_row->save();
     }
 
     /**
@@ -136,6 +200,17 @@ class Instance extends DeployModel
 
     /**
      * @param Builder $query
+     * @param string  $dbName
+     *
+     * @return Builder
+     */
+    public function scopeDatabaseName( $query, $dbName )
+    {
+        return $query->where( 'db_name_text', '=', $dbName );
+    }
+
+    /**
+     * @param Builder $query
      * @param string  $instanceName
      *
      * @return Builder
@@ -145,35 +220,4 @@ class Instance extends DeployModel
         return $query->where( 'instance_name_text', 'like', '%' . $instanceName . '%' );
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function dbServer()
-    {
-        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'db_server_id' );
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function appServer()
-    {
-        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'app_server_id' );
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function webServer()
-    {
-        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'web_server_id' );
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function user()
-    {
-        return $this->belongsTo( 'DreamFactory\\Library\\Fabric\\Database\\Models\\Auth\\User' );
-    }
 }

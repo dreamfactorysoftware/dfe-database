@@ -13,6 +13,8 @@ use Illuminate\Database\Query\Builder;
  * @property int    extend_count_nbr
  * @property int    user_notified_nbr
  * @property int    action_reason_nbr
+ *
+ * @method static Builder instanceId( int $instanceId )
  */
 class Deactivation extends DeployModel
 {
