@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "5ab243bb342f2202ddfdd8e71925b955",
+    "hash": "6ddd03bfbf95c43d6fc768e396bfda7d",
     "packages": [
         {
             "name": "doctrine/cache",
@@ -81,8 +81,14 @@
             "version": "dev-develop",
             "source": {
                 "type": "git",
-                "url": "git@bitbucket.org:dreamfactory/fabric-common.git",
-                "reference": "2efb37863d0f25cba713d6474a13699145fb18f9"
+                "url": "git@github.com:dreamfactorysoftware/fabric-common.git",
+                "reference": "2f23f5e7eb29a07f3da3f67d5e6e678dfdd630dc"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dreamfactorysoftware/fabric-common/zipball/2f23f5e7eb29a07f3da3f67d5e6e678dfdd630dc",
+                "reference": "2f23f5e7eb29a07f3da3f67d5e6e678dfdd630dc",
+                "shasum": ""
             },
             "require": {
                 "dreamfactory/php-utils": "~1.0",
@@ -119,7 +125,11 @@
                 "queue",
                 "utility"
             ],
-            "time": "2014-12-01 05:34:38"
+            "support": {
+                "source": "https://github.com/dreamfactorysoftware/fabric-common/tree/develop",
+                "issues": "https://github.com/dreamfactorysoftware/fabric-common/issues"
+            },
+            "time": "2014-12-05 18:35:26"
         },
         {
             "name": "dreamfactory/php-utils",

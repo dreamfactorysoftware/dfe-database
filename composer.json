@@ -13,11 +13,11 @@
 	"repositories": [
 		{
 			"type": "vcs",
-			"url": "git@bitbucket.org:dreamfactory/fabric-db.git"
+			"url": "git@github.com:dreamfactorysoftware/fabric-db.git"
 		},
 		{
 			"type": "vcs",
-			"url": "git@bitbucket.org:dreamfactory/fabric-common.git"
+			"url": "git@github.com:dreamfactorysoftware/fabric-common.git"
 		}
 	],
 	"require": {
