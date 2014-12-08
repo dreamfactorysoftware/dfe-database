@@ -3,9 +3,9 @@ namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Library\Fabric\Common\Enums\OperationalStates;
 use DreamFactory\Library\Fabric\Database\Enums\DeactivateReasons;
+use DreamFactory\Library\Fabric\Database\Exceptions\InstanceNotActivatedException;
+use DreamFactory\Library\Fabric\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
-use DreamFactory\Tools\Fabric\Exceptions\InstanceNotActivatedException;
-use DreamFactory\Tools\Fabric\Exceptions\InstanceUnlockedException;
 use Illuminate\Database\Query\Builder;
 
 /**
@@ -16,6 +16,8 @@ use Illuminate\Database\Query\Builder;
  * @property int ready_state_nbr
  *
  * @method static Builder instanceName( string $instanceName )
+ * @method static Builder withDbName( string $dbName )
+ * @method static Builder onDbServer( int $dbServerId )
  */
 class Instance extends DeployModel
 {
@@ -85,7 +87,7 @@ class Instance extends DeployModel
 
         if ( OperationalStates::ACTIVATED != $_instance->platform_state_nbr )
         {
-            throw new \LogicException( 'Instance "' . $id . '" not activated.' );
+            throw new InstanceNotActivatedException( 'Instance "' . $id . '" not activated.' );
         }
 
         return $_instance->update( array('platform_state_nbr' => OperationalStates::LOCKED) );
@@ -104,7 +106,7 @@ class Instance extends DeployModel
 
         if ( OperationalStates::LOCKED != $_instance->platform_state_nbr )
         {
-            throw new \LogicException( 'Instance "' . $id . '" not locked.' );
+            throw new InstanceUnlockedException( 'Instance "' . $id . '" not locked.' );
         }
 
         return $_instance->update( array('platform_state_nbr' => OperationalStates::ACTIVATED) );
@@ -123,7 +125,7 @@ class Instance extends DeployModel
             //  Not found
             $_row = new Deactivation();
             $_row->user_id = $schemaInfo['instance']->user_id;
-            $_row->instance_id = $schemaInfo['instance']->instance_id;
+            $_row->instance_id = $schemaInfo['instance']->id;
         }
 
         if ( false === $actionReason )
@@ -161,7 +163,7 @@ class Instance extends DeployModel
      *
      * @return Builder
      */
-    public function scopeOnDatabase( $query, $dbServerId )
+    public function scopeOnDbServer( $query, $dbServerId )
     {
         if ( !empty( $dbServerId ) )
         {
@@ -189,6 +191,22 @@ class Instance extends DeployModel
 
     /**
      * @param Builder $query
+     * @param string  $dbName The database name to query for
+     *
+     * @return Builder
+     */
+    public function scopeWithDbName( $query, $dbName )
+    {
+        if ( null !== $dbName )
+        {
+            return $query->where( 'db_name_text', '=', $dbName );
+        }
+
+        return $query;
+    }
+
+    /**
+     * @param Builder $query
      * @param string  $instanceName
      *
      * @return Builder
@@ -196,17 +214,6 @@ class Instance extends DeployModel
     public function scopeInstanceName( $query, $instanceName )
     {
         return $query->where( 'instance_name_text', '=', $instanceName );
-    }
-
-    /**
-     * @param Builder $query
-     * @param string  $dbName
-     *
-     * @return Builder
-     */
-    public function scopeDatabaseName( $query, $dbName )
-    {
-        return $query->where( 'db_name_text', '=', $dbName );
     }
 
     /**
