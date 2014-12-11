@@ -6,7 +6,7 @@ use DreamFactory\Library\Utility\Enums\FactoryEnum;
 /**
  * Various reasons an instance can be auto-deactivated
  */
-class DeactivateReasons extends FactoryEnum
+class DeactivationReasons extends FactoryEnum
 {
     //******************************************************************************
     //* Constants

@@ -2,7 +2,6 @@
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Library\Fabric\Common\Enums\OperationalStates;
-use DreamFactory\Library\Fabric\Database\Enums\DeactivateReasons;
 use DreamFactory\Library\Fabric\Database\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Library\Fabric\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
@@ -118,7 +117,7 @@ class Instance extends DeployModel
      *
      * @return bool
      */
-    public static function deactivate( array $schemaInfo, $actionReason = DeactivateReasons::NON_USE )
+    public static function deactivate( array $schemaInfo, $actionReason = DeactivationReasons::NON_USE )
     {
         if ( null === ( $_row = Deactivation::instanceId( $schemaInfo['instance']->id )->first() ) )
         {

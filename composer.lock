@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/cache.git",
-                "reference": "9354b720cc97db4a914ab5aa28dbaa822cb3d300"
+                "reference": "803a41469d948bc120a6c913399e8bfc8b5d9650"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/cache/zipball/9354b720cc97db4a914ab5aa28dbaa822cb3d300",
-                "reference": "9354b720cc97db4a914ab5aa28dbaa822cb3d300",
+                "url": "https://api.github.com/repos/doctrine/cache/zipball/803a41469d948bc120a6c913399e8bfc8b5d9650",
+                "reference": "803a41469d948bc120a6c913399e8bfc8b5d9650",
                 "shasum": ""
             },
             "require": {
@@ -74,7 +74,7 @@
                 "cache",
                 "caching"
             ],
-            "time": "2014-12-03 01:17:20"
+            "time": "2014-12-08 23:13:26"
         },
         {
             "name": "dreamfactory/fabric-common",
@@ -82,12 +82,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:dreamfactorysoftware/fabric-common.git",
-                "reference": "2f23f5e7eb29a07f3da3f67d5e6e678dfdd630dc"
+                "reference": "7cd46ef0d670d6d7976529153c022bf6e825f466"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dreamfactorysoftware/fabric-common/zipball/2f23f5e7eb29a07f3da3f67d5e6e678dfdd630dc",
-                "reference": "2f23f5e7eb29a07f3da3f67d5e6e678dfdd630dc",
+                "url": "https://api.github.com/repos/dreamfactorysoftware/fabric-common/zipball/7cd46ef0d670d6d7976529153c022bf6e825f466",
+                "reference": "7cd46ef0d670d6d7976529153c022bf6e825f466",
                 "shasum": ""
             },
             "require": {
@@ -129,7 +129,7 @@
                 "source": "https://github.com/dreamfactorysoftware/fabric-common/tree/develop",
                 "issues": "https://github.com/dreamfactorysoftware/fabric-common/issues"
             },
-            "time": "2014-12-05 18:35:26"
+            "time": "2014-12-11 01:42:42"
         },
         {
             "name": "dreamfactory/php-utils",
@@ -435,12 +435,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Seldaek/monolog.git",
-                "reference": "4119844a435f33a6e5cf94af5471732eb4d52883"
+                "reference": "3d2567a2f19566a93b6b4add76840266d5f6742d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/4119844a435f33a6e5cf94af5471732eb4d52883",
-                "reference": "4119844a435f33a6e5cf94af5471732eb4d52883",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/3d2567a2f19566a93b6b4add76840266d5f6742d",
+                "reference": "3d2567a2f19566a93b6b4add76840266d5f6742d",
                 "shasum": ""
             },
             "require": {
@@ -499,7 +499,7 @@
                 "logging",
                 "psr-3"
             ],
-            "time": "2014-12-05 12:46:13"
+            "time": "2014-12-06 18:16:08"
         },
         {
             "name": "nesbot/carbon",
@@ -597,12 +597,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/DependencyInjection.git",
-                "reference": "b2c6d47be0211429275f558f33a79d2ee807441b"
+                "reference": "c3779b6d6e2e84ecc2955725ab6b48205d14dcf6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/DependencyInjection/zipball/b2c6d47be0211429275f558f33a79d2ee807441b",
-                "reference": "b2c6d47be0211429275f558f33a79d2ee807441b",
+                "url": "https://api.github.com/repos/symfony/DependencyInjection/zipball/c3779b6d6e2e84ecc2955725ab6b48205d14dcf6",
+                "reference": "c3779b6d6e2e84ecc2955725ab6b48205d14dcf6",
                 "shasum": ""
             },
             "require": {
@@ -645,7 +645,7 @@
             ],
             "description": "Symfony DependencyInjection Component",
             "homepage": "http://symfony.com",
-            "time": "2014-12-03 09:37:29"
+            "time": "2014-12-08 08:44:04"
         },
         {
             "name": "symfony/event-dispatcher",
@@ -654,12 +654,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/EventDispatcher.git",
-                "reference": "f0180bb23a94c4259c1b85abc61b6af15d77c186"
+                "reference": "fb44a3acc6b9788106a2b91ab71b889ce313ac60"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/EventDispatcher/zipball/f0180bb23a94c4259c1b85abc61b6af15d77c186",
-                "reference": "f0180bb23a94c4259c1b85abc61b6af15d77c186",
+                "url": "https://api.github.com/repos/symfony/EventDispatcher/zipball/fb44a3acc6b9788106a2b91ab71b889ce313ac60",
+                "reference": "fb44a3acc6b9788106a2b91ab71b889ce313ac60",
                 "shasum": ""
             },
             "require": {
@@ -703,7 +703,7 @@
             ],
             "description": "Symfony EventDispatcher Component",
             "homepage": "http://symfony.com",
-            "time": "2014-12-02 20:19:50"
+            "time": "2014-12-08 08:43:57"
         },
         {
             "name": "symfony/http-foundation",
@@ -712,12 +712,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/HttpFoundation.git",
-                "reference": "406b34d3fe83bc3b5daed0cd5ee8317350845be2"
+                "reference": "adbfce9ff42e516c6c41f5493d75dc3332943a18"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/HttpFoundation/zipball/406b34d3fe83bc3b5daed0cd5ee8317350845be2",
-                "reference": "406b34d3fe83bc3b5daed0cd5ee8317350845be2",
+                "url": "https://api.github.com/repos/symfony/HttpFoundation/zipball/adbfce9ff42e516c6c41f5493d75dc3332943a18",
+                "reference": "adbfce9ff42e516c6c41f5493d75dc3332943a18",
                 "shasum": ""
             },
             "require": {
@@ -756,7 +756,7 @@
             ],
             "description": "Symfony HttpFoundation Component",
             "homepage": "http://symfony.com",
-            "time": "2014-12-02 20:19:50"
+            "time": "2014-12-08 08:43:57"
         }
     ],
     "packages-dev": [
@@ -1141,12 +1141,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/Yaml.git",
-                "reference": "610f01968f2cd731fdf59dfeae904ed930afc35f"
+                "reference": "a0913638efd5237ff700e92b8444b6a71278f1f6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/Yaml/zipball/610f01968f2cd731fdf59dfeae904ed930afc35f",
-                "reference": "610f01968f2cd731fdf59dfeae904ed930afc35f",
+                "url": "https://api.github.com/repos/symfony/Yaml/zipball/a0913638efd5237ff700e92b8444b6a71278f1f6",
+                "reference": "a0913638efd5237ff700e92b8444b6a71278f1f6",
                 "shasum": ""
             },
             "require": {
@@ -1179,7 +1179,7 @@
             ],
             "description": "Symfony Yaml Component",
             "homepage": "http://symfony.com",
-            "time": "2014-12-02 20:19:50"
+            "time": "2014-12-08 08:43:57"
         }
     ],
     "aliases": [
