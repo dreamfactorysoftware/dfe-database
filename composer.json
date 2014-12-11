@@ -24,6 +24,7 @@
 		"php": "~5.3",
 		"kisma/kisma": "~0.2",
 		"dreamfactory/fabric-common": "dev-develop as dev-master",
+        "dreamfactory/console-tools": "dev-develop as dev-master",
 		"illuminate/database": "~4.2"
 	},
 	"minimum-stability": "dev",
