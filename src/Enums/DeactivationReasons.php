@@ -32,4 +32,8 @@ class DeactivationReasons extends FactoryEnum
      * @type int The instance had an expiration date
      */
     const EXPIRED = 4;
+    /**
+     * @type int The instance was not provisioned properly
+     */
+    const INCOMPLETE_PROVISION = 5;
 }
