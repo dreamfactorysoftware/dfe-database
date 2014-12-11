@@ -11,6 +11,8 @@
  */
 namespace DreamFactory\Library\Fabric\Database\Exceptions;
 
+use DreamFactory\Library\Console\Exceptions\ConsoleException;
+
 /**
  * Thrown when an instance is unlocked
  */
