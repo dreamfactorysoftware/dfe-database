@@ -18,7 +18,6 @@
     "minimum-stability": "dev",
     "require":           {
         "dreamfactory/fabric-common": "dev-develop as dev-master",
-        "dreamfactory/console-tools": "dev-develop as dev-master",
         "illuminate/database":        "~4.2"
     },
     "require-dev":       {"phpunit/phpunit": "@stable"},

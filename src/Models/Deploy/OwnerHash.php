@@ -25,7 +25,7 @@ class OwnerHash extends DeployModel
      */
     public function owners()
     {
-        return $this->hasMany( 'DreamFactory\\Library\\Fabric\\Database\\Models\\Auth\\User', 'id', 'owner_id' );
+        return $this->hasMany( static::AUTH_NAMESPACE . '\\User', 'id', 'owner_id' );
     }
 
 }
