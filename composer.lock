@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:dreamfactorysoftware/fabric-common.git",
-                "reference": "cb39b1f9ae20cadf4635bf6efc353574b79110c2"
+                "reference": "8ce6744583195cba5451fe02acf37e2b923513af"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dreamfactorysoftware/fabric-common/zipball/cb39b1f9ae20cadf4635bf6efc353574b79110c2",
-                "reference": "cb39b1f9ae20cadf4635bf6efc353574b79110c2",
+                "url": "https://api.github.com/repos/dreamfactorysoftware/fabric-common/zipball/8ce6744583195cba5451fe02acf37e2b923513af",
+                "reference": "8ce6744583195cba5451fe02acf37e2b923513af",
                 "shasum": ""
             },
             "require": {
@@ -58,7 +58,7 @@
                 "source": "https://github.com/dreamfactorysoftware/fabric-common/tree/develop",
                 "issues": "https://github.com/dreamfactorysoftware/fabric-common/issues"
             },
-            "time": "2015-01-06 16:46:16"
+            "time": "2015-01-06 17:38:25"
         },
         {
             "name": "dreamfactory/php-utils",
@@ -66,12 +66,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/dreamfactorysoftware/php-utils.git",
-                "reference": "b9b0ebc2a02af1ad265ee5b28c1ed756e4cba001"
+                "reference": "39c125700726bb09781a5cc86b85cd7b542cc713"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dreamfactorysoftware/php-utils/zipball/b9b0ebc2a02af1ad265ee5b28c1ed756e4cba001",
-                "reference": "b9b0ebc2a02af1ad265ee5b28c1ed756e4cba001",
+                "url": "https://api.github.com/repos/dreamfactorysoftware/php-utils/zipball/39c125700726bb09781a5cc86b85cd7b542cc713",
+                "reference": "39c125700726bb09781a5cc86b85cd7b542cc713",
                 "shasum": ""
             },
             "require": {
@@ -109,7 +109,7 @@
                 "dreamfactory",
                 "utility"
             ],
-            "time": "2015-01-06 16:19:12"
+            "time": "2015-01-06 17:36:29"
         },
         {
             "name": "illuminate/container",
