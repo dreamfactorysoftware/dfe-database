@@ -23,11 +23,11 @@ class BaseModel extends Model
     /**
      * @type string The namespace of the auth models
      */
-    const AUTH_NAMESPACE = 'DreamFactory\\Enterprise\\Database\\Models\\Auth';
+    const AUTH_NAMESPACE = 'DreamFactory\\Library\\Fabric\\Database\\Models\\Auth';
     /**
      * @type string The namespace of the deployment models
      */
-    const DEPLOY_NAMESPACE = 'DreamFactory\\Enterprise\\Database\\Models\\Deploy';
+    const DEPLOY_NAMESPACE = 'DreamFactory\\Library\\Fabric\\Database\\Models\\Deploy';
     /**
      * @type string Override timestamp column
      */
