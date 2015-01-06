@@ -1,43 +1,26 @@
 {
-	"name": "dreamfactory/fabric-db",
-	"description": "DreamFactory Enterprise(tm) Database Library",
-	"homepage": "https://www.dreamfactory.com/",
-	"keywords": ["dreamfactory", "fabric", "utility", "database"],
-	"license": ["proprietary"],
-	"authors": [
-		{
-			"name": "Jerry Ablan",
-			"email": "jerryablan@dreamfactory.com"
-		}
-	],
-	"repositories": [
-		{
-			"type": "vcs",
-			"url": "git@bitbucket.org:dreamfactory/fabric-db.git"
-		},
-		{
-			"type": "vcs",
-			"url": "git@bitbucket.org:dreamfactory/fabric-common.git"
-		}
-	],
-	"require": {
-		"php": "~5.3",
-		"kisma/kisma": "~0.2",
-		"dreamfactory/fabric-common": "dev-develop as dev-master",
-		"illuminate/database": "~4.2"
-	},
-	"minimum-stability": "dev",
-	"require-dev": {
-		"phpunit/phpunit": "~3.7"
-	},
-	"extra": {
-		"branch-alias": {
-			"dev-develop": "1.0.x-dev"
-		}
-	},
-	"autoload": {
-		"psr-4": {
-			"DreamFactory\\Library\\Fabric\\Database\\": "src/"
-		}
-	}
+    "name":              "dreamfactory/fabric-db",
+    "description":       "DreamFactory Enterprise(tm) Database Library",
+    "homepage":          "https://www.dreamfactory.com/",
+    "keywords":          ["dreamfactory", "fabric", "utility", "database"],
+    "license":           ["proprietary"],
+    "authors":           [{"name": "Jerry Ablan", "email": "jerryablan@dreamfactory.com"}],
+    "repositories":      [
+        {
+            "type": "vcs",
+            "url":  "git@github.com:dreamfactorysoftware/fabric-db.git"
+        },
+        {
+            "type": "vcs",
+            "url":  "git@github.com:dreamfactorysoftware/fabric-common.git"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require":           {
+        "dreamfactory/fabric-common": "dev-develop as dev-master",
+        "illuminate/database":        "~4.2"
+    },
+    "require-dev":       {"phpunit/phpunit": "@stable"},
+    "autoload":          {"psr-4": {"DreamFactory\\Library\\Fabric\\Database\\": "src/"}},
+    "extra":             {"branch-alias": {"dev-develop": "1.0.x-dev"}}
 }
