@@ -1,7 +1,6 @@
 <?php
 namespace DreamFactory\Library\Fabric\Database\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 
 /**
@@ -11,21 +10,8 @@ use Illuminate\Database\Query\Builder;
  * @method static Builder where( $column, $operator = null, $value = null, $boolean = 'and' )
  * @method static Builder whereRaw( $clause, $params = array() )
  */
-class DeployModel extends Model
+class DeployModel extends BaseModel
 {
-    //******************************************************************************
-    //* Constants
-    //******************************************************************************
-
-    /**
-     * @type string Override timestamp column
-     */
-    const UPDATED_AT = 'lmod_date';
-    /**
-     * @type string Override timestamp column
-     */
-    const CREATED_AT = 'create_date';
-
     //******************************************************************************
     //* Members
     //******************************************************************************
@@ -34,9 +20,5 @@ class DeployModel extends Model
      * @type string Our connection
      */
     protected $connection = 'fabric-deploy';
-    /**
-     * @type bool
-     */
-    protected static $unguarded = true;
 
 }

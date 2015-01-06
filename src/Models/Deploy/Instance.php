@@ -2,9 +2,7 @@
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Library\Fabric\Common\Enums\OperationalStates;
-use DreamFactory\Library\Fabric\Database\Enums\DeactivationReasons;
-use DreamFactory\Library\Fabric\Database\Exceptions\InstanceNotActivatedException;
-use DreamFactory\Library\Fabric\Database\Exceptions\InstanceUnlockedException;
+use DreamFactory\Library\Fabric\Common\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use Illuminate\Database\Query\Builder;
 
@@ -71,7 +69,7 @@ class Instance extends DeployModel
      */
     public function user()
     {
-        return $this->belongsTo( 'DreamFactory\\Library\\Fabric\\Database\\Models\\Auth\\User' );
+        return $this->belongsTo( static::AUTH_NAMESPACE . '\\User' );
     }
 
     /**

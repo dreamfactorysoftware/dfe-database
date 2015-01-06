@@ -36,7 +36,7 @@ class Deactivation extends DeployModel
      */
     public function user()
     {
-        return $this->belongsTo( 'DreamFactory\\Library\\Fabric\\Database\\Models\\Auth\\User', 'user_id' );
+        return $this->belongsTo( static::AUTH_NAMESPACE . '\\User', 'user_id' );
     }
 
     /**

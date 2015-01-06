@@ -16,12 +16,12 @@
         }
     ],
     "minimum-stability": "dev",
-    "require-dev":       {"phpunit/phpunit": "~3.7"},
     "require":           {
         "dreamfactory/fabric-common": "dev-develop as dev-master",
         "dreamfactory/console-tools": "dev-develop as dev-master",
         "illuminate/database":        "~4.2"
     },
+    "require-dev":       {"phpunit/phpunit": "@stable"},
     "autoload":          {"psr-4": {"DreamFactory\\Library\\Fabric\\Database\\": "src/"}},
     "extra":             {"branch-alias": {"dev-develop": "1.0.x-dev"}}
 }

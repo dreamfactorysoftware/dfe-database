@@ -27,7 +27,7 @@ class User extends AuthModel
     public function instances()
     {
         return $this->hasMany(
-            'DreamFactory\\Library\\Fabric\\Database\\Models\\Deploy\\Instance',
+            static::DEPLOY_NAMESPACE . '\\Instance',
             'user_id',
             'id'
         );
@@ -39,7 +39,7 @@ class User extends AuthModel
     public function hashes()
     {
         return $this->belongsTo(
-            'DreamFactory\\Library\\Fabric\\Database\\Models\\Deploy\\OwnerHash',
+            static::DEPLOY_NAMESPACE . '\\OwnerHash',
             'owner_id',
             'id'
         );
