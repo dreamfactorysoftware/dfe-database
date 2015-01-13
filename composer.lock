@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:dreamfactorysoftware/fabric-common.git",
-                "reference": "9aae544e65523dc23ce480f4bce75e53fbe3d4a1"
+                "reference": "21e302b1b2bb7e2ae72fdd539562e7902af22948"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dreamfactorysoftware/fabric-common/zipball/9aae544e65523dc23ce480f4bce75e53fbe3d4a1",
-                "reference": "9aae544e65523dc23ce480f4bce75e53fbe3d4a1",
+                "url": "https://api.github.com/repos/dreamfactorysoftware/fabric-common/zipball/21e302b1b2bb7e2ae72fdd539562e7902af22948",
+                "reference": "21e302b1b2bb7e2ae72fdd539562e7902af22948",
                 "shasum": ""
             },
             "require": {
@@ -58,7 +58,7 @@
                 "source": "https://github.com/dreamfactorysoftware/fabric-common/tree/develop",
                 "issues": "https://github.com/dreamfactorysoftware/fabric-common/issues"
             },
-            "time": "2015-01-06 22:46:31"
+            "time": "2015-01-13 20:47:48"
         },
         {
             "name": "dreamfactory/php-utils",

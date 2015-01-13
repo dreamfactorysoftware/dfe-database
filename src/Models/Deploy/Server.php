@@ -46,7 +46,7 @@ class Server extends DeployModel
      */
     public function clusters()
     {
-        return $this->belongsToMany( __NAMESPACE__ . '\\Cluster' );
+        return $this->belongsToMany( __NAMESPACE__ . '\\Cluster', 'cluster_server_asgn_t' );
     }
 
     /**
@@ -56,6 +56,6 @@ class Server extends DeployModel
      */
     public function instances()
     {
-        return $this->hasMany( __NAMESPACE__ . '\\Instance' );
+        return $this->hasMany( __NAMESPACE__ . '\\Instance', 'instance_server_asgn_t' );
     }
 }
