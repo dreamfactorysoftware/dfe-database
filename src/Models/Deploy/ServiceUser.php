@@ -13,11 +13,7 @@ namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 
-/**
- * @property mixed lmod_date
- * @property mixed create_date
- */
-class ServerType extends DeployModel
+class ServiceUser extends DeployModel
 {
     //******************************************************************************
     //* Members
@@ -26,7 +22,7 @@ class ServerType extends DeployModel
     /**
      * @type string The table name
      */
-    protected $table = 'server_type_t';
+    protected $table = 'service_user_t';
 
     //******************************************************************************
     //* Methods
@@ -35,8 +31,8 @@ class ServerType extends DeployModel
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function serverType()
+    public function servers()
     {
-        return $this->belongsTo( __NAMESPACE__ . '\\Server', 'server_type_id' );
+        return $this->hasMany( __NAMESPACE__ . '\\Server', 'user_id' );
     }
 }

@@ -36,26 +36,26 @@ class Server extends DeployModel
      */
     public function serverType()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\ServerType', 'id', 'server_type_id' );
+        return $this->hasOne( __NAMESPACE__ . '\\ServerType' );
     }
 
     /**
-     * Our instances relationship
+     * Clusters in which I belong
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function clusters()
     {
-        return $this->belongsToMany(
-            __NAMESPACE__ . '\\ClusterServer',
-            'cluster_server_asgn_t',
-            'server_id',
-            'cluster_id'
-        );
+        return $this->belongsToMany( __NAMESPACE__ . '\\Cluster' );
     }
 
+    /**
+     * Instances on this server
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function instances()
     {
-        return $this->hasMany( __NAMESPACE__ . '\\Instance', 'id', 'server_id', 'instance_id' );
+        return $this->hasMany( __NAMESPACE__ . '\\Instance' );
     }
 }

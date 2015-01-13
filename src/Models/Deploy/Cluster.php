@@ -25,7 +25,12 @@ class Cluster extends DeployModel
      */
     public function servers()
     {
-        return $this->hasManyThrough( __NAMESPACE__ . '\\ClusterServerAsgn', 'cluster_id', 'server_id' );
+        return $this->belongsToMany( __NAMESPACE__ . '\\Server', 'cluster_server_asgn_t' );
+    }
+
+    public function user()
+    {
+        return $this->hasOne( __NAMESPACE__ . '\\ServiceUser', 'user_id' );
     }
 
 }
