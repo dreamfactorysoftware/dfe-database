@@ -1,6 +1,7 @@
 <?php
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
+
 class ClusterArchive extends Cluster
 {
     //******************************************************************************

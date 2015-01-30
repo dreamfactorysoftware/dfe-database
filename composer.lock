@@ -66,12 +66,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/dreamfactorysoftware/php-utils.git",
-                "reference": "58b8f8ed2d16cd60f38b00df5057a07160c8d580"
+                "reference": "e0d3d7e46d5ec519c388d2b5cbcd14eb599305ed"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dreamfactorysoftware/php-utils/zipball/58b8f8ed2d16cd60f38b00df5057a07160c8d580",
-                "reference": "58b8f8ed2d16cd60f38b00df5057a07160c8d580",
+                "url": "https://api.github.com/repos/dreamfactorysoftware/php-utils/zipball/e0d3d7e46d5ec519c388d2b5cbcd14eb599305ed",
+                "reference": "e0d3d7e46d5ec519c388d2b5cbcd14eb599305ed",
                 "shasum": ""
             },
             "require": {
@@ -109,7 +109,7 @@
                 "dreamfactory",
                 "utility"
             ],
-            "time": "2015-01-21 18:39:03"
+            "time": "2015-01-26 21:30:02"
         },
         {
             "name": "illuminate/container",
@@ -159,12 +159,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/database.git",
-                "reference": "bfca455365c2280f5dcf3190918e3d9a286ddac0"
+                "reference": "eabb5ad0db896339f821ef088ca2fd0d6972e137"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/illuminate/database/zipball/bfca455365c2280f5dcf3190918e3d9a286ddac0",
-                "reference": "bfca455365c2280f5dcf3190918e3d9a286ddac0",
+                "url": "https://api.github.com/repos/illuminate/database/zipball/eabb5ad0db896339f821ef088ca2fd0d6972e137",
+                "reference": "eabb5ad0db896339f821ef088ca2fd0d6972e137",
                 "shasum": ""
             },
             "require": {
@@ -207,7 +207,7 @@
                 "orm",
                 "sql"
             ],
-            "time": "2015-01-22 20:35:28"
+            "time": "2015-01-27 20:51:43"
         },
         {
             "name": "illuminate/events",
@@ -259,12 +259,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/support.git",
-                "reference": "67b1c50133a790bfe4bc02dab86d995cc4cd4da2"
+                "reference": "db61f3f6d507ce417ca993e1f93585db7efd8b12"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/illuminate/support/zipball/67b1c50133a790bfe4bc02dab86d995cc4cd4da2",
-                "reference": "67b1c50133a790bfe4bc02dab86d995cc4cd4da2",
+                "url": "https://api.github.com/repos/illuminate/support/zipball/db61f3f6d507ce417ca993e1f93585db7efd8b12",
+                "reference": "db61f3f6d507ce417ca993e1f93585db7efd8b12",
                 "shasum": ""
             },
             "require": {
@@ -298,7 +298,7 @@
                     "email": "taylorotwell@gmail.com"
                 }
             ],
-            "time": "2015-01-20 22:27:49"
+            "time": "2015-01-27 20:51:43"
         },
         {
             "name": "nesbot/carbon",
@@ -761,16 +761,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "4.4.4",
+            "version": "4.4.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "2047ae17f6e8cfd10fbde0b4535c97eb22d99cbe"
+                "reference": "2e8580deebb7d1ac92ac878595e6bffe01069c2a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/2047ae17f6e8cfd10fbde0b4535c97eb22d99cbe",
-                "reference": "2047ae17f6e8cfd10fbde0b4535c97eb22d99cbe",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/2e8580deebb7d1ac92ac878595e6bffe01069c2a",
+                "reference": "2e8580deebb7d1ac92ac878595e6bffe01069c2a",
                 "shasum": ""
             },
             "require": {
@@ -788,8 +788,9 @@
                 "sebastian/comparator": "~1.0",
                 "sebastian/diff": "~1.1",
                 "sebastian/environment": "~1.1",
-                "sebastian/exporter": "~1.0",
+                "sebastian/exporter": "~1.1",
                 "sebastian/global-state": "~1.0",
+                "sebastian/recursion-context": "~1.0",
                 "sebastian/version": "~1.0",
                 "symfony/yaml": "~2.0"
             },
@@ -828,7 +829,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2015-01-24 14:23:56"
+            "time": "2015-01-27 16:06:15"
         },
         {
             "name": "phpunit/phpunit-mock-objects",
@@ -1057,12 +1058,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/exporter.git",
-                "reference": "35ab8d385eef068186c83e23ae83c96b0288b3ee"
+                "reference": "84839970d05254c73cde183a721c7af13aede943"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/exporter/zipball/35ab8d385eef068186c83e23ae83c96b0288b3ee",
-                "reference": "35ab8d385eef068186c83e23ae83c96b0288b3ee",
+                "url": "https://api.github.com/repos/sebastianbergmann/exporter/zipball/84839970d05254c73cde183a721c7af13aede943",
+                "reference": "84839970d05254c73cde183a721c7af13aede943",
                 "shasum": ""
             },
             "require": {
@@ -1075,7 +1076,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.1.x-dev"
+                    "dev-master": "1.2.x-dev"
                 }
             },
             "autoload": {
@@ -1115,7 +1116,7 @@
                 "export",
                 "exporter"
             ],
-            "time": "2015-01-24 09:57:24"
+            "time": "2015-01-27 07:23:06"
         },
         {
             "name": "sebastian/global-state",

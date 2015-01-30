@@ -317,6 +317,9 @@
         <sorting-element type="RESERVED_WORD" id="function" />
         <sorting-element type="RESERVED_WORD" id="parameter" />
       </sorting>
+      <format>
+        <enforce-code-style-case value="true" />
+      </format>
     </code-completion-settings>
     <execution-engine-settings>
       <statement-execution>

@@ -5,6 +5,9 @@ use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 
 /**
  * cluster_server_asgn_t
+ *
+ * @property int cluster_id
+ * @property int server_id
  */
 class ClusterServer extends DeployModel
 {

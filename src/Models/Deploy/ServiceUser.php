@@ -13,6 +13,19 @@ namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 
+/**
+ * service_user_t
+ *
+ * @property string first_name_text
+ * @property string last_name_text
+ * @property string display_name_text
+ * @property string email_addr_text
+ * @property string password_text
+ * @property int    owner_id
+ * @property int    owner_type_nbr
+ * @property mixed  last_login_date
+ * @property string last_login_ip_text
+ */
 class ServiceUser extends DeployModel
 {
     //******************************************************************************
