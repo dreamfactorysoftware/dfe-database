@@ -1,6 +1,7 @@
 <?php
 namespace DreamFactory\Library\Fabric\Database\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 
@@ -50,10 +51,10 @@ use Illuminate\Database\Query\Builder;
  * @method static Builder havingRaw( $sql, array $bindings = array(), $boolean = 'and' )
  * @method static Builder orHavingRaw( $sql, array $bindings = array() )
  * @method static Builder orderBy( $column, $direction = 'asc' )
- * @method static Builder latest( $column = 'created_at' )
- * @method static Builder oldest( $column = 'created_at' )
+ * @method static Model latest( $column = 'created_at' )
+ * @method static Model oldest( $column = 'created_at' )
  * @method static Builder orderByRaw( $sql, $bindings = array() )
- * @method static Builder offset( $value )
+ * @method static Model offset( $value )
  * @method static Builder skip( $value )
  * @method static Builder limit( $value )
  * @method static Builder take( $value )
@@ -63,34 +64,32 @@ use Illuminate\Database\Query\Builder;
  * @method static Builder lock( $value = true )
  * @method static Builder lockForUpdate()
  * @method static Builder sharedLock()
- * @method static Builder toSql()
- * @method static Builder find( $id, $columns = array('*') )
- * @method static Builder pluck( $column )
- * @method static Builder first( $columns = array('*') )
- * @method static Builder get( $columns = array('*') )
- * @method static Builder getFresh( $columns = array('*') )
- * @method static Builder runSelect()
- * @method static Builder paginate( $perPage = 15, $columns = ['*'] )
- * @method static Builder simplePaginate( $perPage = 15, $columns = ['*'] )
- * @method static Builder getCountForPagination()
- * @method static Builder backupFieldsForCount()
- * @method static Builder restoreFieldsForCount()
- * @method static Builder chunk( $count, callable $callback )
- * @method static Builder lists( $column, $key = null )
- * @method static Builder getListSelect( $column, $key )
- * @method static Builder implode( $column, $glue = null )
- * @method static Builder exists()
- * @method static Builder count( $columns = '*' )
- * @method static Builder min( $column )
- * @method static Builder max( $column )
- * @method static Builder sum( $column )
- * @method static Builder avg( $column )
- * @method static Builder aggregate( $function, $columns = array('*') )
- * @method static Builder insert( array $values )
- * @method static Builder insertGetId( array $values, $sequence = null )
- * @method static Builder truncate()
- * @method static Builder mergeWheres( $wheres, $bindings )
- * @method static Builder cleanBindings( array $bindings )
+ * @method static string toSql()
+ * @method static Collection find( $id, $columns = array('*') )
+ * @method static Model pluck( $column )
+ * @method static Model first( $columns = array('*') )
+ * @method static Collection get( $columns = array('*') )
+ * @method static Collection getFresh( $columns = array('*') )
+ * @method static Collection runSelect()
+ * @method static Collection paginate( $perPage = 15, $columns = ['*'] )
+ * @method static Collection simplePaginate( $perPage = 15, $columns = ['*'] )
+ * @method static int getCountForPagination()
+ * @method static mixed backupFieldsForCount()
+ * @method static mixed restoreFieldsForCount()
+ * @method static mixed chunk( $count, callable $callback )
+ * @method static mixed lists( $column, $key = null )
+ * @method static mixed getListSelect( $column, $key )
+ * @method static string implode( $column, $glue = null )
+ * @method static mixed exists()
+ * @method static int count( $columns = '*' )
+ * @method static mixed min( $column )
+ * @method static mixed max( $column )
+ * @method static mixed sum( $column )
+ * @method static mixed avg( $column )
+ * @method static mixed aggregate( $function, $columns = array('*') )
+ * @method static mixed insert( array $values )
+ * @method static int insertGetId( array $values, $sequence = null )
+ * @method static mixed truncate()
  * @method static Builder raw( $value )
  */
 class BaseModel extends Model
@@ -128,5 +127,4 @@ class BaseModel extends Model
      * @type string Our connection
      */
     protected $connection = 'dfe-local';
-
-{
+}
