@@ -17,7 +17,7 @@
     ],
     "minimum-stability": "dev",
     "require":           {
-        "illuminate/database":          "5.0.*",
+        "illuminate/database":          "~5.0",
         "dreamfactory/fabric-common": "dev-develop as dev-master"
     },
     "require-dev": {
