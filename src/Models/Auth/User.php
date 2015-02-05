@@ -44,4 +44,13 @@ class User extends AuthModel
             'id'
         );
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function servers()
+    {
+        return $this->hasMany( __NAMESPACE__ . '\\Server', 'user_id' );
+    }
+
 }
