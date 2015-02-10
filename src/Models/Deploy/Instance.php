@@ -5,15 +5,63 @@ use DreamFactory\Library\Fabric\Common\Enums\DeactivationReasons;
 use DreamFactory\Library\Fabric\Common\Enums\OperationalStates;
 use DreamFactory\Library\Fabric\Common\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Library\Fabric\Common\Exceptions\InstanceUnlockedException;
+use DreamFactory\Library\Fabric\Database\Models\Auth\User;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use Illuminate\Database\Query\Builder;
 
 /**
  * instance_t
  *
- * @property int platform_state_nbr
- * @property int state_nbr
- * @property int ready_state_nbr
+ * @property integer            $user_id
+ * @property integer            $cluster_id
+ * @property integer            $vendor_id
+ * @property integer            $vendor_image_id
+ * @property integer            $vendor_credentials_id
+ * @property integer            $guest_location_nbr
+ * @property string             $instance_id_text
+ * @property int                $app_server_id
+ * @property int                $db_server_id
+ * @property int                $web_server_id
+ * @property string             $db_host_text
+ * @property int                $db_port_nbr
+ * @property string             $db_name_text
+ * @property string             $db_user_text
+ * @property string             $db_password_text
+ * @property string             $storage_id_text
+ * @property integer            $flavor_nbr
+ * @property string             $base_image_text
+ * @property string             $instance_name_text
+ * @property string             $region_text
+ * @property string             $availability_zone_text
+ * @property string             $security_group_text
+ * @property string             $ssh_key_text
+ * @property integer            $root_device_type_nbr
+ * @property string             $public_host_text
+ * @property string             $public_ip_text
+ * @property string             $private_host_text
+ * @property string             $private_ip_text
+ * @property string             $request_id_text
+ * @property string             $request_date
+ * @property integer            $deprovision_ind
+ * @property integer            $provision_ind
+ * @property integer            $trial_instance_ind
+ * @property integer            $state_nbr
+ * @property integer            $platform_state_nbr
+ * @property integer            $ready_state_nbr
+ * @property integer            $vendor_state_nbr
+ * @property string             $vendor_state_text
+ * @property integer            $environment_id
+ * @property integer            $activate_ind
+ * @property string             $start_date
+ * @property string             $end_date
+ * @property string             $terminate_date
+ *
+ * Relations:
+ *
+ * @property User               $user
+ * @property Server             $appServer
+ * @property Server             $dbServer
+ * @property Server             $webServer
  *
  * @method static Builder instanceName( string $instanceName )
  * @method static Builder withDbName( string $dbName )
@@ -225,6 +273,43 @@ class Instance extends DeployModel
     public function scopeLikeInstanceName( $query, $instanceName )
     {
         return $query->where( 'instance_name_text', 'like', '%' . $instanceName . '%' );
+    }
+
+    /**
+     * @return string
+     */
+    public function getStoragePath()
+    {
+        return str_ireplace( static::FABRIC_STORAGE_KEY, $this->storage_id_text, static::FABRIC_BASE_STORAGE_PATH );
+    }
+
+    /**
+     * @return string
+     */
+    public function getSnapshotPath()
+    {
+        //  Snapshots are global to the user
+        if ( $this->user )
+        {
+            return $this->user->getSnapshotPath();
+        }
+
+        throw new \RuntimeException( 'No user associated with this instance.' );
+    }
+
+    /**
+     * We want the private path of the instance to point to the user's area. Instances have no "private path" per se.
+     *
+     * @return mixed
+     */
+    public function getPrivatePath()
+    {
+        if ( $this->user )
+        {
+            return $this->user->getPrivatePath();
+        }
+
+        return parent::getPrivatePath();
     }
 
 }
