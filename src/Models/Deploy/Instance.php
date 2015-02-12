@@ -64,6 +64,7 @@ use Illuminate\Database\Query\Builder;
  * @property Server             $webServer
  *
  * @method static Builder instanceName( string $instanceName )
+ * @method static Builder byNameOrId( string $instanceNameOrId )
  * @method static Builder withDbName( string $dbName )
  * @method static Builder onDbServer( int $dbServerId )
  */
@@ -262,6 +263,20 @@ class Instance extends DeployModel
     public function scopeInstanceName( $query, $instanceName )
     {
         return $query->where( 'instance_name_text', '=', $instanceName );
+    }
+
+    /**
+     * @param Builder $query
+     * @param string  $instanceNameOrId
+     *
+     * @return Builder
+     */
+    public function scopeByNameOrId( $query, $instanceNameOrId )
+    {
+        return $query->whereRaw(
+            'instance_name_text = :instance_name_text OR instance_id_text = :instance_id_text',
+            array(':instance_name_text' => $instanceNameOrId, ':instance_id_text' => $instanceNameOrId)
+        );
     }
 
     /**
