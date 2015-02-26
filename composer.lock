@@ -228,12 +228,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:dreamfactorysoftware/fabric-common.git",
-                "reference": "36b9e5daff48f1f191350f06882fecbaca68c027"
+                "reference": "8494113555e547cef55c2edc26f78e50af1dc102"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dreamfactorysoftware/fabric-common/zipball/36b9e5daff48f1f191350f06882fecbaca68c027",
-                "reference": "36b9e5daff48f1f191350f06882fecbaca68c027",
+                "url": "https://api.github.com/repos/dreamfactorysoftware/fabric-common/zipball/8494113555e547cef55c2edc26f78e50af1dc102",
+                "reference": "8494113555e547cef55c2edc26f78e50af1dc102",
                 "shasum": ""
             },
             "require": {
@@ -274,7 +274,7 @@
                 "source": "https://github.com/dreamfactorysoftware/fabric-common/tree/develop",
                 "issues": "https://github.com/dreamfactorysoftware/fabric-common/issues"
             },
-            "time": "2015-02-11 21:16:54"
+            "time": "2015-02-26 21:48:31"
         },
         {
             "name": "dreamfactory/php-utils",
@@ -889,12 +889,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "3028bc808168c31912040d6b31539c51411f8372"
+                "reference": "d56ff5a351d43cb4d26589f2aff878ae7cf01ff1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/3028bc808168c31912040d6b31539c51411f8372",
-                "reference": "3028bc808168c31912040d6b31539c51411f8372",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/d56ff5a351d43cb4d26589f2aff878ae7cf01ff1",
+                "reference": "d56ff5a351d43cb4d26589f2aff878ae7cf01ff1",
                 "shasum": ""
             },
             "require": {
@@ -926,7 +926,7 @@
                 "parser",
                 "php"
             ],
-            "time": "2015-02-26 15:40:21"
+            "time": "2015-02-26 18:19:40"
         },
         {
             "name": "psr/log",

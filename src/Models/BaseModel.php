@@ -4,7 +4,6 @@ namespace DreamFactory\Library\Fabric\Database\Models;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Base class for DFE models
@@ -148,48 +147,5 @@ class BaseModel extends Model
      * @type string Our connection
      */
     protected $connection = 'dfe-local';
-
-    //******************************************************************************
-    //* Methods
-    //******************************************************************************
-
-    /**
-     * @return bool|string
-     */
-    public function getPrivatePath()
-    {
-        if ( $this->storage_id_text )
-        {
-            $_path = str_ireplace( static::FABRIC_STORAGE_KEY, $this->storage_id_text, static::FABRIC_INSTANCE_PRIVATE_PATH );
-
-            if ( is_dir( $_path ) )
-            {
-                return $_path;
-            }
-
-            Log::debug( 'Making private path: ' . $_path );
-
-            if ( false !== @mkdir( $_path, 0777, true ) )
-            {
-                return $_path;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @throws \RuntimeException
-     * @return string
-     */
-    public function getSnapshotPath()
-    {
-        if ( false === ( $_path = $this->getPrivatePath() ) )
-        {
-            throw new \RuntimeException( 'Unable to determine private path of ' . __CLASS__ );
-        }
-
-        return $_path . static::HOSTED_SNAPSHOT_PATH;
-    }
 
 }

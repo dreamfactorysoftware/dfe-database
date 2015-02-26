@@ -5,6 +5,7 @@ use DreamFactory\Library\Fabric\Common\Enums\DeactivationReasons;
 use DreamFactory\Library\Fabric\Common\Enums\OperationalStates;
 use DreamFactory\Library\Fabric\Common\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Library\Fabric\Common\Exceptions\InstanceUnlockedException;
+use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
 use DreamFactory\Library\Fabric\Database\Models\Auth\User;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use Illuminate\Database\Query\Builder;
@@ -303,13 +304,7 @@ class Instance extends DeployModel
      */
     public function getSnapshotPath()
     {
-        //  Snapshots are global to the user
-        if ( $this->user )
-        {
-            return $this->user->getSnapshotPath();
-        }
-
-        throw new \RuntimeException( 'No user associated with this instance.' );
+        return $this->getStoragePath() . DIRECTORY_SEPARATOR . '.private' . DIRECTORY_SEPARATOR . 'snapshots';
     }
 
     /**
@@ -319,12 +314,37 @@ class Instance extends DeployModel
      */
     public function getPrivatePath()
     {
-        if ( $this->user )
-        {
-            return $this->user->getPrivatePath();
-        }
+        return $this->getStoragePath() . DIRECTORY_SEPARATOR . '.private';
+    }
 
-        return parent::getPrivatePath();
+    public function checkStorageKey()
+    {
+        if ( empty( $this->storage_id_text ) )
+        {
+            $this->storage_id_text = UniqueId::generate( __CLASS__ );
+        }
+    }
+
+    /**
+     * Boot method to wire in our events
+     */
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(
+            function ( static $instance )
+            {
+                $instance->checkStorageKey();
+            }
+        );
+
+        static::updating(
+            function ( static $instance )
+            {
+                $instance->checkStorageKey();
+            }
+        );
     }
 
 }

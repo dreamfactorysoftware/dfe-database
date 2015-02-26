@@ -1,6 +1,7 @@
 <?php
 namespace DreamFactory\Library\Fabric\Database\Models\Auth;
 
+use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
 use DreamFactory\Library\Fabric\Database\Models\AuthModel;
 
 /**
@@ -82,6 +83,39 @@ class User extends AuthModel
     public function servers()
     {
         return $this->hasMany( __NAMESPACE__ . '\\Server', 'user_id' );
+    }
+
+    /**
+     * Check and assign if necessary a storage ID
+     */
+    public function checkStorageKey()
+    {
+        if ( empty( $this->storage_id_text ) )
+        {
+            $this->storage_id_text = UniqueId::generate( __CLASS__ );
+        }
+    }
+
+    /**
+     * Boot method to wire in our events
+     */
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(
+            function ( static $model )
+            {
+                $model->checkStorageKey();
+            }
+        );
+
+        static::updating(
+            function ( static $model )
+            {
+                $model->checkStorageKey();
+            }
+        );
     }
 
 }
