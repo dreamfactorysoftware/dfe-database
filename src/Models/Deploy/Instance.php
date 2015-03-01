@@ -5,6 +5,7 @@ use DreamFactory\Library\Fabric\Common\Enums\DeactivationReasons;
 use DreamFactory\Library\Fabric\Common\Enums\OperationalStates;
 use DreamFactory\Library\Fabric\Common\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Library\Fabric\Common\Exceptions\InstanceUnlockedException;
+use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
 use DreamFactory\Library\Fabric\Database\Models\Auth\User;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use Illuminate\Database\Query\Builder;
