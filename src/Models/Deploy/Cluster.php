@@ -34,7 +34,7 @@ class Cluster extends DeployModel
      */
     public function servers()
     {
-        return $this->belongsToMany( __NAMESPACE__ . '\\Server', 'cluster_server_asgn_t' );
+        return $this->hasManyThrough( __NAMESPACE__ . '\\ClusterServer', __NAMESPACE__ . '\\Server' );
     }
 
     /**
@@ -42,7 +42,7 @@ class Cluster extends DeployModel
      */
     public function user()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\ServiceUser', 'user_id' );
+        return $this->hasOne( __NAMESPACE__ . '\\ServiceUser' );
     }
 
 }

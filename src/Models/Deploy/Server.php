@@ -15,6 +15,11 @@ use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 
 /**
  * server_t
+ *
+ * @property int    $server_type_id
+ * @property string $server_id_text
+ * @property string $host_text
+ * @property string $config_text
  */
 class Server extends DeployModel
 {
@@ -46,7 +51,7 @@ class Server extends DeployModel
      */
     public function clusters()
     {
-        return $this->belongsToMany( __NAMESPACE__ . '\\Cluster', 'cluster_server_asgn_t' );
+        return $this->hasManyThrough( __NAMESPACE__ . '\\ClusterServer', __NAMESPACE__ . '\\Cluster' );
     }
 
     /**
@@ -56,6 +61,6 @@ class Server extends DeployModel
      */
     public function instances()
     {
-        return $this->hasMany( __NAMESPACE__ . '\\Instance', 'instance_server_asgn_t' );
+        return $this->hasManyThrough( __NAMESPACE__ . '\\InstanceServer', __NAMESPACE__ . '\\Instance' );
     }
 }

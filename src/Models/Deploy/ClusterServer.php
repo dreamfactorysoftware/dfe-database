@@ -37,6 +37,6 @@ class ClusterServer extends DeployModel
      */
     public function clusters()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\Cluster', 'cluster_id' );
+        return $this->hasOne( __NAMESPACE__ . '\\Cluster' );
     }
 }

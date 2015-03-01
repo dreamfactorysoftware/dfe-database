@@ -14,8 +14,8 @@ namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 
 /**
- * @property mixed lmod_date
- * @property mixed create_date
+ * @property string $type_name_text
+ * @property string $schema_text
  */
 class ServerType extends DeployModel
 {
@@ -33,10 +33,10 @@ class ServerType extends DeployModel
     //******************************************************************************
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
-    public function serverType()
+    public function servers()
     {
-        return $this->belongsTo( __NAMESPACE__ . '\\Server', 'server_type_id' );
+        return $this->belongsToMany( __NAMESPACE__ . '\\Server', 'server_type_id' );
     }
 }

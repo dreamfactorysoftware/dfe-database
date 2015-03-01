@@ -5,7 +5,6 @@ use DreamFactory\Library\Fabric\Common\Enums\DeactivationReasons;
 use DreamFactory\Library\Fabric\Common\Enums\OperationalStates;
 use DreamFactory\Library\Fabric\Common\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Library\Fabric\Common\Exceptions\InstanceUnlockedException;
-use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
 use DreamFactory\Library\Fabric\Database\Models\Auth\User;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use Illuminate\Database\Query\Builder;
@@ -89,31 +88,7 @@ class Instance extends DeployModel
      */
     public function servers()
     {
-        return $this->hasMany( __NAMESPACE__ . '\\Server', 'server_id' );
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function dbServer()
-    {
-        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'db_server_id' );
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function appServer()
-    {
-        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'app_server_id' );
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function webServer()
-    {
-        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'web_server_id' );
+        return $this->hasManyThrough( __NAMESPACE__ . '\\InstanceServer', __NAMESPACE__ . '\\Server' );
     }
 
     /**
@@ -140,7 +115,7 @@ class Instance extends DeployModel
             throw new InstanceNotActivatedException( 'Instance "' . $id . '" not activated.' );
         }
 
-        return $_instance->update( array('platform_state_nbr' => OperationalStates::LOCKED) );
+        return $_instance->update( ['platform_state_nbr' => OperationalStates::LOCKED] );
     }
 
     /**
@@ -159,7 +134,7 @@ class Instance extends DeployModel
             throw new InstanceUnlockedException( 'Instance "' . $id . '" not locked.' );
         }
 
-        return $_instance->update( array('platform_state_nbr' => OperationalStates::ACTIVATED) );
+        return $_instance->update( ['platform_state_nbr' => OperationalStates::ACTIVATED] );
     }
 
     /**
@@ -276,7 +251,7 @@ class Instance extends DeployModel
     {
         return $query->whereRaw(
             'instance_name_text = :instance_name_text OR instance_id_text = :instance_id_text',
-            array(':instance_name_text' => $instanceNameOrId, ':instance_id_text' => $instanceNameOrId)
+            [':instance_name_text' => $instanceNameOrId, ':instance_id_text' => $instanceNameOrId]
         );
     }
 
