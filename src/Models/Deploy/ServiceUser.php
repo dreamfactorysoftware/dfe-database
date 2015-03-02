@@ -48,4 +48,71 @@ class ServiceUser extends DeployModel
     {
         return $this->hasMany( __NAMESPACE__ . '\\Server', 'user_id' );
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function roles()
+    {
+        return $this->hasManyThrough( __NAMESPACE__ . '\\Role', __NAMESPACE__ . '\\UserRole', 'user_id', 'role_id' );
+    }
+
+    /**
+     * @param int $roleId
+     *
+     * @return bool True if user has role $roleId
+     */
+    public function hasRole( $roleId )
+    {
+        return 0 != UserRole::whereRaw( 'user_id = :user_id AND role_id = :role_id', [':user_id' => $this->id, ':role_id' => $roleId] )->count();
+    }
+
+    /**
+     * @param int|string|Role $roleId
+     *
+     * @return bool True if server removed from role
+     */
+    public function removeRole( $roleId )
+    {
+        $_role = ( $roleId instanceof Role ) ? $roleId : $this->_getRole( $roleId );
+
+        if ( $this->hasRole( $_role->id ) )
+        {
+            return
+                1 == UserRole::whereRaw(
+                    'role_id = :role_id AND user_id = :user_id',
+                    [':role_id' => $_role->id, ':user_id' => $this->id]
+                )->delete();
+        }
+
+        return false;
+    }
+
+    /**
+     * @param int|string $roleId
+     *
+     * @return bool
+     */
+    public function addRole( $roleId )
+    {
+        //  This will fail if $roleId is bogus
+        $this->removeRole( $_role = $this->_getRole( $roleId ) );
+
+        return 1 == UserRole::insert( ['role_id' => $_role->id, 'user_id' => $this->id] );
+    }
+
+    /**
+     * @param int|string $roleId
+     *
+     * @return Role
+     */
+    protected function _getRole( $roleId )
+    {
+        if ( null === ( $_role = Role::find( $roleId ) ) )
+        {
+            throw new \InvalidArgumentException( 'The role id "' . $roleId . '" is invalid.' );
+        }
+
+        return $_role;
+    }
 }

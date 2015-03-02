@@ -85,6 +85,30 @@ class Instance extends DeployModel
     //******************************************************************************
 
     /**
+     * Boot method to wire in our events
+     */
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(
+            function ( $instance )
+            {
+                /** @var Instance $instance */
+                $instance->checkStorageKey();
+            }
+        );
+
+        static::updating(
+            function ( $instance )
+            {
+                /** @var Instance $instance */
+                $instance->checkStorageKey();
+            }
+        );
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function servers()
@@ -293,6 +317,9 @@ class Instance extends DeployModel
         return $this->getStoragePath() . DIRECTORY_SEPARATOR . '.private';
     }
 
+    /**
+     * Ensures that a storage key has been assigned
+     */
     public function checkStorageKey()
     {
         if ( empty( $this->storage_id_text ) )
@@ -302,25 +329,68 @@ class Instance extends DeployModel
     }
 
     /**
-     * Boot method to wire in our events
+     * @param int|string|Server $serverId
+     *
+     * @return bool
      */
-    public static function boot()
+    public function removeFromServer( $serverId )
     {
-        parent::boot();
+        $_server = ( $serverId instanceof Server ) ? $serverId : $this->_getServer( $serverId );
 
-        static::creating(
-            function ( $instance )
-            {
-                $instance->checkStorageKey();
-            }
-        );
+        //  Do we belong to a server?
+        if ( $this->belongsToServer( $_server->id ) )
+        {
+            return 1 == InstanceServer::where( 'server_id', '=', $_server->id )->where( 'instance_id', '=', $this->id )->delete();
+        }
 
-        static::updating(
-            function ( $instance )
-            {
-                $instance->checkStorageKey();
-            }
-        );
+        //  Not currently assigned...
+        return false;
+    }
+
+    /**
+     * @param int|string $serverId
+     *
+     * @return bool
+     */
+    public function addToServer( $serverId )
+    {
+        //  This will fail if $serverId is bogus
+        $this->removeFromServer( $_server = $this->_getServer( $serverId ) );
+
+        return 1 == InstanceServer::insert( ['server_id' => $_server->id, 'instance_id' => $this->id] );
+    }
+
+    /**
+     * @param int|string $serverId
+     *
+     * @return bool True if this instance
+     */
+    public function belongsToServer( $serverId )
+    {
+        $_server = $this->_getServer( $serverId );
+
+        return 0 != InstanceServer::whereRaw(
+            'server_id = :server_id AND instance_id = :instance_id',
+            [
+                ':server_id'   => $_server->id,
+                ':instance_id' => $this->id
+            ]
+        )->count();
+    }
+
+    /**
+     * @param int|string $serverId
+     *
+     * @return Server
+     */
+    protected function _getServer( $serverId )
+    {
+        if ( null === ( $_server = Server::byNameOrId( $serverId )->first() ) )
+        {
+            throw new \InvalidArgumentException( 'The server id "' . $serverId . '" is invalid.' );
+        }
+
+        return $_server;
     }
 
 }

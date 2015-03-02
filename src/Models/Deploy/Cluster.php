@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
  * @property string cluster_id_text
  * @property string subdomain_text
  *
- * @package DreamFactory\Library\Fabric\Database\Models\Deploy
+ * @method static Builder byNameOrId( string $clusterNameOrId )
  */
 class Cluster extends DeployModel
 {

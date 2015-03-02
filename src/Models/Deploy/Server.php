@@ -12,6 +12,7 @@
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * server_t
@@ -20,6 +21,8 @@ use DreamFactory\Library\Fabric\Database\Models\DeployModel;
  * @property string $server_id_text
  * @property string $host_text
  * @property string $config_text
+ *
+ * @method static Builder byNameOrId( string $nameOrId )
  */
 class Server extends DeployModel
 {
@@ -45,13 +48,16 @@ class Server extends DeployModel
     }
 
     /**
-     * Clusters in which I belong
+     * Cluster in which I belong
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
-    public function clusters()
+    public function cluster()
     {
-        return $this->hasManyThrough( __NAMESPACE__ . '\\ClusterServer', __NAMESPACE__ . '\\Cluster', 'cluster_id', 'server_id' );
+        return Cluster::whereRaw(
+            'id IN (SELECT csa.cluster_id FROM cluster_server_asgn_t csa WHERE csa.server_id = :server_id)',
+            array(':server_id' => $this->id)
+        )->first();
     }
 
     /**
@@ -74,4 +80,85 @@ class Server extends DeployModel
     {
         return $this->belongsTo( 'clusterServer', __NAMESPACE__ . '\\ClusterServer', 'cluster_id' );
     }
+
+    /**
+     * @param int|string|Cluster $clusterId
+     *
+     * @return bool True if server removed from cluster
+     */
+    public function removeFromCluster( $clusterId )
+    {
+        $_cluster = ( $clusterId instanceof Cluster ) ? $clusterId : $this->_getCluster( $clusterId );
+
+        if ( $this->belongsToCluster( $_cluster->id ) )
+        {
+            return
+                1 == ClusterServer::where( 'cluster_id', '=', $_cluster->id )
+                    ->where( 'server_id', '=', $this->id )
+                    ->delete();
+        }
+
+        return false;
+    }
+
+    /**
+     * @param int|string $clusterId
+     *
+     * @return bool
+     */
+    public function addToCluster( $clusterId )
+    {
+        //  This will fail if $clusterId is bogus
+        $this->removeFromCluster( $_cluster = $this->_getCluster( $clusterId ) );
+
+        return 1 == ClusterServer::insert( ['cluster_id' => $_cluster->id, 'server_id' => $this->id] );
+    }
+
+    /**
+     * @param int|string $clusterId
+     *
+     * @return Cluster
+     */
+    protected function _getCluster( $clusterId )
+    {
+        if ( null === ( $_cluster = Cluster::byNameOrId( $clusterId )->first() ) )
+        {
+            throw new \InvalidArgumentException( 'The cluster id "' . $clusterId . '" is invalid.' );
+        }
+
+        return $_cluster;
+    }
+
+    /**
+     * @param int|string $clusterId
+     *
+     * @return bool True if this instance
+     */
+    public function belongsToCluster( $clusterId )
+    {
+        $_cluster = $this->_getCluster( $clusterId );
+
+        return 0 != ClusterServer::whereRaw(
+            'cluster_id = :cluster_id AND server_id = :server_id',
+            [
+                ':cluster_id' => $_cluster->id,
+                ':server_id'  => $this->id
+            ]
+        )->count();
+    }
+
+    /**
+     * @param Builder    $query
+     * @param string|int $nameOrId
+     *
+     * @return Builder
+     */
+    public function scopeByNameOrId( $query, $nameOrId )
+    {
+        return $query->whereRaw(
+            'server_id_text = :server_id_text OR id = :id',
+            [':server_id_text' => $nameOrId, ':id' => $nameOrId]
+        );
+    }
+
 }
