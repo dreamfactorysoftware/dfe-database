@@ -51,16 +51,27 @@ class Server extends DeployModel
      */
     public function clusters()
     {
-        return $this->hasManyThrough( __NAMESPACE__ . '\\ClusterServer', __NAMESPACE__ . '\\Cluster' );
+        return $this->hasManyThrough( __NAMESPACE__ . '\\ClusterServer', __NAMESPACE__ . '\\Cluster', 'cluster_id', 'server_id' );
     }
 
     /**
      * Instances on this server
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return array|static[]
      */
     public function instances()
     {
-        return $this->hasManyThrough( __NAMESPACE__ . '\\InstanceServer', __NAMESPACE__ . '\\Instance' );
+        return Instance::whereRaw(
+            'id IN (SELECT isa.instance_id FROM instance_server_asgn_t isa WHERE isa.instance_id = instance_t.id AND isa.server_id = :server_id)',
+            [':server_id', '=', $this->id]
+        )->get();
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function clusterServer()
+    {
+        return $this->belongsTo( 'clusterServer', __NAMESPACE__ . '\\ClusterServer', 'cluster_id' );
     }
 }

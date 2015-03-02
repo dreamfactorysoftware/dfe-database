@@ -89,7 +89,7 @@ class Instance extends DeployModel
      */
     public function servers()
     {
-        return $this->hasManyThrough( __NAMESPACE__ . '\\InstanceServer', __NAMESPACE__ . '\\Server' );
+        return $this->hasManyThrough( __NAMESPACE__ . '\\InstanceServer', __NAMESPACE__ . '\\Server', 'instance_id', 'server_id' );
     }
 
     /**
@@ -309,14 +309,14 @@ class Instance extends DeployModel
         parent::boot();
 
         static::creating(
-            function ( static $instance )
+            function ( $instance )
             {
                 $instance->checkStorageKey();
             }
         );
 
         static::updating(
-            function ( static $instance )
+            function ( $instance )
             {
                 $instance->checkStorageKey();
             }

@@ -104,14 +104,14 @@ class User extends AuthModel
         parent::boot();
 
         static::creating(
-            function ( static $model )
+            function ( User $model )
             {
                 $model->checkStorageKey();
             }
         );
 
         static::updating(
-            function ( static $model )
+            function ( User $model )
             {
                 $model->checkStorageKey();
             }

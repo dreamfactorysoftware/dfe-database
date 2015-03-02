@@ -2,6 +2,7 @@
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * cluster_t
@@ -30,11 +31,14 @@ class Cluster extends DeployModel
     /**
      * Our instances relationship
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     * @return mixed
      */
     public function servers()
     {
-        return $this->hasManyThrough( __NAMESPACE__ . '\\ClusterServer', __NAMESPACE__ . '\\Server' );
+        return Server::whereRaw(
+            'id IN ( SELECT csa.cluster_id FROM cluster_server_asgn_t csa WHERE csa.cluster_id  = :cluster_id )',
+            ['cluster_id' => $this->id]
+        )->get();
     }
 
     /**
@@ -43,6 +47,20 @@ class Cluster extends DeployModel
     public function user()
     {
         return $this->hasOne( __NAMESPACE__ . '\\ServiceUser' );
+    }
+
+    /**
+     * @param Builder    $query
+     * @param string|int $clusterNameOrId
+     *
+     * @return Builder
+     */
+    public function scopeByNameOrId( $query, $clusterNameOrId )
+    {
+        return $query->whereRaw(
+            'cluster_id_text = :cluster_id_text OR id = :id',
+            [':cluster_id_text' => $clusterNameOrId, ':id' => $clusterNameOrId]
+        );
     }
 
 }

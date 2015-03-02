@@ -27,16 +27,17 @@ class ClusterServer extends DeployModel
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function servers()
+    public function server()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\Server' );
+        return $this->hasOne( __NAMESPACE__ . '\\Server', 'server_id' );
     }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function clusters()
+    public function cluster()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\Cluster' );
+        return $this->hasOne( __NAMESPACE__ . '\\Cluster', 'cluster_id' );
     }
+
 }
