@@ -189,12 +189,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/dreamfactorysoftware/php-utils.git",
-                "reference": "0621fdadd4f78f259ff5ce5c88b4dee8ff7c3d3c"
+                "reference": "8fe9ba7be49010c8c605b97e42e753a5438f8603"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dreamfactorysoftware/php-utils/zipball/0621fdadd4f78f259ff5ce5c88b4dee8ff7c3d3c",
-                "reference": "0621fdadd4f78f259ff5ce5c88b4dee8ff7c3d3c",
+                "url": "https://api.github.com/repos/dreamfactorysoftware/php-utils/zipball/8fe9ba7be49010c8c605b97e42e753a5438f8603",
+                "reference": "8fe9ba7be49010c8c605b97e42e753a5438f8603",
                 "shasum": ""
             },
             "require": {
@@ -232,7 +232,7 @@
                 "dreamfactory",
                 "utility"
             ],
-            "time": "2015-02-26 03:08:14"
+            "time": "2015-03-02 21:48:10"
         },
         {
             "name": "illuminate/container",
@@ -323,12 +323,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/database.git",
-                "reference": "c3e4f396ed08017d630baa3cc29b4b82038d3b35"
+                "reference": "24686a86159bdb51330309383f8389a975ef7d54"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/illuminate/database/zipball/c3e4f396ed08017d630baa3cc29b4b82038d3b35",
-                "reference": "c3e4f396ed08017d630baa3cc29b4b82038d3b35",
+                "url": "https://api.github.com/repos/illuminate/database/zipball/24686a86159bdb51330309383f8389a975ef7d54",
+                "reference": "24686a86159bdb51330309383f8389a975ef7d54",
                 "shasum": ""
             },
             "require": {
@@ -372,7 +372,7 @@
                 "orm",
                 "sql"
             ],
-            "time": "2015-02-26 23:42:20"
+            "time": "2015-03-03 17:14:23"
         },
         {
             "name": "illuminate/support",
@@ -380,12 +380,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/support.git",
-                "reference": "3afff19e2f70c550b803c5d569fbb00e75191dbe"
+                "reference": "ab63304a86c57ccf45ef0cf6708b3030a013f876"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/illuminate/support/zipball/3afff19e2f70c550b803c5d569fbb00e75191dbe",
-                "reference": "3afff19e2f70c550b803c5d569fbb00e75191dbe",
+                "url": "https://api.github.com/repos/illuminate/support/zipball/ab63304a86c57ccf45ef0cf6708b3030a013f876",
+                "reference": "ab63304a86c57ccf45ef0cf6708b3030a013f876",
                 "shasum": ""
             },
             "require": {
@@ -423,20 +423,20 @@
                 }
             ],
             "description": "The Illuminate Support package.",
-            "time": "2015-02-26 23:42:20"
+            "time": "2015-03-03 17:14:23"
         },
         {
             "name": "nesbot/carbon",
-            "version": "1.14.0",
+            "version": "1.16.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/briannesbitt/Carbon.git",
-                "reference": "bb87460c995d97fe55b39e65f6ffb7f64b0a941e"
+                "reference": "9b7665041754eaa9bb2622349bc9adbc1cf61cb8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/briannesbitt/Carbon/zipball/bb87460c995d97fe55b39e65f6ffb7f64b0a941e",
-                "reference": "bb87460c995d97fe55b39e65f6ffb7f64b0a941e",
+                "url": "https://api.github.com/repos/briannesbitt/Carbon/zipball/9b7665041754eaa9bb2622349bc9adbc1cf61cb8",
+                "reference": "9b7665041754eaa9bb2622349bc9adbc1cf61cb8",
                 "shasum": ""
             },
             "require": {
@@ -463,13 +463,13 @@
                 }
             ],
             "description": "A simple API extension for DateTime.",
-            "homepage": "https://github.com/briannesbitt/Carbon",
+            "homepage": "http://carbon.nesbot.com",
             "keywords": [
                 "date",
                 "datetime",
                 "time"
             ],
-            "time": "2015-02-06 05:07:29"
+            "time": "2015-03-04 04:50:11"
         },
         {
             "name": "symfony/dependency-injection",
@@ -1071,12 +1071,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit-mock-objects.git",
-                "reference": "b752b41e3fead4feee99f3a2f2972cef517abb8b"
+                "reference": "37e984c0d004800c456658cb08580fdfd26d9c1d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit-mock-objects/zipball/b752b41e3fead4feee99f3a2f2972cef517abb8b",
-                "reference": "b752b41e3fead4feee99f3a2f2972cef517abb8b",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit-mock-objects/zipball/37e984c0d004800c456658cb08580fdfd26d9c1d",
+                "reference": "37e984c0d004800c456658cb08580fdfd26d9c1d",
                 "shasum": ""
             },
             "require": {
@@ -1118,7 +1118,7 @@
                 "mock",
                 "xunit"
             ],
-            "time": "2015-01-18 10:44:19"
+            "time": "2015-03-02 06:02:35"
         },
         {
             "name": "sebastian/comparator",
