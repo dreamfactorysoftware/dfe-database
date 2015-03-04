@@ -1,9 +1,9 @@
 <?php
 namespace DreamFactory\Library\Fabric\Database\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Query\Builder;
 
 /**
  * Base class for DFE models
@@ -13,7 +13,7 @@ use Illuminate\Database\Query\Builder;
  * @property mixed create_date
  *
  * @method static Builder where( $column, $operator = null, $value = null, $boolean = 'and' )
- * @method static Builder whereRaw( $clause, $params = array() )
+ * @method static Builder whereRaw( $clause, $params = [] )
  * @method static Builder join( $table, $one, $operator = null, $two = null, $type = 'inner', $where = false )
  * @method static Builder joinWhere( $table, $one, $operator, $two, $type = 'inner' )
  * @method static Builder leftJoin( $table, $first, $operator = null, $second = null )
@@ -21,7 +21,7 @@ use Illuminate\Database\Query\Builder;
  * @method static Builder rightJoin( $table, $first, $operator = null, $second = null )
  * @method static Builder rightJoinWhere( $table, $one, $operator, $two )
  * @method static Builder orWhere( $column, $operator = null, $value = null )
- * @method static Builder orWhereRaw( $sql, array $bindings = array() )
+ * @method static Builder orWhereRaw( $sql, array $bindings = [] )
  * @method static Builder whereBetween( $column, array $values, $boolean = 'and', $not = false )
  * @method static Builder orWhereBetween( $column, array $values )
  * @method static Builder whereNotBetween( $column, array $values, $boolean = 'and' )
@@ -48,13 +48,13 @@ use Illuminate\Database\Query\Builder;
  * @method static Builder groupBy()
  * @method static Builder having( $column, $operator = null, $value = null, $boolean = 'and' )
  * @method static Builder orHaving( $column, $operator = null, $value = null )
- * @method static Builder havingRaw( $sql, array $bindings = array(), $boolean = 'and' )
- * @method static Builder orHavingRaw( $sql, array $bindings = array() )
+ * @method static Builder havingRaw( $sql, array $bindings = [], $boolean = 'and' )
+ * @method static Builder orHavingRaw( $sql, array $bindings = [] )
  * @method static Builder orderBy( $column, $direction = 'asc' )
- * @method static Model latest( $column = 'created_at' )
- * @method static Model oldest( $column = 'created_at' )
- * @method static Builder orderByRaw( $sql, $bindings = array() )
- * @method static Model offset( $value )
+ * @method static Model   latest( $column = 'created_at' )
+ * @method static Model   oldest( $column = 'created_at' )
+ * @method static Builder orderByRaw( $sql, $bindings = [] )
+ * @method static Model   offset( $value )
  * @method static Builder skip( $value )
  * @method static Builder limit( $value )
  * @method static Builder take( $value )
@@ -64,12 +64,14 @@ use Illuminate\Database\Query\Builder;
  * @method static Builder lock( $value = true )
  * @method static Builder lockForUpdate()
  * @method static Builder sharedLock()
- * @method static string toSql()
- * @method static Collection find( $id, $columns = array('*') )
- * @method static Model pluck( $column )
- * @method static Model first( $columns = array('*') )
- * @method static Collection get( $columns = array('*') )
- * @method static Collection getFresh( $columns = array('*') )
+ * @method static string  toSql()
+ * @method static Collection find( $id, $columns = ['*'] )
+ * @method static Collection findOrFail( $id, $columns = ['*'] )
+ * @method static Model   pluck( $column )
+ * @method static Model   first( $columns = ['*'] )
+ * @method static Model   firstOrFail( $columns = ['*'] )
+ * @method static Collection get( $columns = ['*'] )
+ * @method static Collection getFresh( $columns = ['*'] )
  * @method static Collection runSelect()
  * @method static Collection paginate( $perPage = 15, $columns = ['*'] )
  * @method static Collection simplePaginate( $perPage = 15, $columns = ['*'] )
@@ -86,7 +88,7 @@ use Illuminate\Database\Query\Builder;
  * @method static mixed max( $column )
  * @method static mixed sum( $column )
  * @method static mixed avg( $column )
- * @method static mixed aggregate( $function, $columns = array('*') )
+ * @method static mixed aggregate( $function, $columns = ['*'] )
  * @method static mixed insert( array $values )
  * @method static int insertGetId( array $values, $sequence = null )
  * @method static mixed truncate()
