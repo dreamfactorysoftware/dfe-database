@@ -9,6 +9,7 @@ use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
 use DreamFactory\Library\Fabric\Database\Models\Auth\User;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\Log;
 
 /**
  * instance_t
@@ -72,6 +73,19 @@ use Illuminate\Database\Query\Builder;
 class Instance extends DeployModel
 {
     //******************************************************************************
+    //* Constants
+    //******************************************************************************
+
+    /**
+     * @type string
+     */
+    const CHARACTER_PATTERN = '/[^a-zA-Z0-9]/';
+    /**
+     * @type string
+     */
+    const HOST_NAME_PATTERN = "/^([a-zA-Z0-9])+$/";
+
+    //******************************************************************************
     //* Members
     //******************************************************************************
 
@@ -92,17 +106,16 @@ class Instance extends DeployModel
         parent::boot();
 
         static::creating(
-            function ( $instance )
+            function ( $instance /** @var Instance $instance */ )
             {
-                /** @var Instance $instance */
+                $instance->instance_name_text = $instance->sanitizeName( $instance->instance_name_text );
                 $instance->checkStorageKey();
             }
         );
 
         static::updating(
-            function ( $instance )
+            function ( $instance /** @var Instance $instance */ )
             {
-                /** @var Instance $instance */
                 $instance->checkStorageKey();
             }
         );
@@ -122,6 +135,20 @@ class Instance extends DeployModel
     public function user()
     {
         return $this->belongsTo( static::AUTH_NAMESPACE . '\\User' );
+    }
+
+    /**
+     * Update the operational state of this instance
+     *
+     * @param int $state
+     *
+     * @return bool|int
+     */
+    public function updateState( $state )
+    {
+        $this->state_nbr = $state;
+
+        return $this->update( ['state_nbr' => $state] );
     }
 
     /**
@@ -340,7 +367,11 @@ class Instance extends DeployModel
         //  Do we belong to a server?
         if ( $this->belongsToServer( $_server->id ) )
         {
-            return 1 == InstanceServer::where( 'server_id', '=', $_server->id )->where( 'instance_id', '=', $this->id )->delete();
+            return
+                1 == InstanceServer::whereRaw(
+                    'server_id = :server_id AND instance_id = :instance_id',
+                    array(':server_id' => $_server->id, ':instance_id' => $this->id)
+                )->delete();
         }
 
         //  Not currently assigned...
@@ -391,6 +422,65 @@ class Instance extends DeployModel
         }
 
         return $_server;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return bool|string Returns the sanitized name or FALSE if not available
+     */
+    public static function isNameAvailable( $name )
+    {
+        if ( false === ( $_sanitized = static::sanitizeName( $name ) ) )
+        {
+            return false;
+        }
+
+        return ( 0 == static::byNameOrId( $_sanitized )->count() ? $_sanitized : false );
+    }
+
+    /**
+     * Ensures the instance name meets quality standards
+     *
+     * @param string $name
+     *
+     * @return string
+     */
+    public static function sanitizeName( $name )
+    {
+        static $_unavailableNames = null;
+
+        //	This replaces any disallowed characters with dashes
+        $_clean = str_replace(
+            [' ', '_'],
+            '-',
+            trim( str_replace( '--', '-', preg_replace( static::CHARACTER_PATTERN, '-', $name ) ), ' -_' )
+        );
+
+        if ( null === $_unavailableNames && function_exists( 'config' ) )
+        {
+            $_unavailableNames = config( 'dfe.forbidden-names', array() );
+
+            if ( !is_array( $_unavailableNames ) || empty( $_unavailableNames ) )
+            {
+                $_unavailableNames = [];
+            }
+        }
+
+        if ( in_array( $_clean, $_unavailableNames ) )
+        {
+            Log::error( 'Attempt to register forbidden instance name: ' . $name . ' => ' . $_clean );
+
+            return false;
+        }
+
+        //	Check host name
+        if ( preg_match( static::HOST_NAME_PATTERN, $_clean ) )
+        {
+            Log::notice( 'Non-standard instance name "' . $_clean . '" being provisioned' );
+        }
+
+        return $_clean;
     }
 
 }
