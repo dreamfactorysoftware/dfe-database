@@ -13,7 +13,6 @@ namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use Illuminate\Auth\Authenticatable;
-use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 
@@ -36,7 +35,7 @@ class ServiceUser extends DeployModel implements AuthenticatableContract, CanRes
     //* Traits
     //******************************************************************************
 
-    use Authenticatable, CanResetPassword;
+    use Authenticatable;
 
     //******************************************************************************
     //* Members
@@ -148,4 +147,13 @@ class ServiceUser extends DeployModel implements AuthenticatableContract, CanRes
         return $this->password_text;
     }
 
+    /**
+     * Get the e-mail address where password reset links are sent.
+     *
+     * @return string
+     */
+    public function getEmailForPasswordReset()
+    {
+        return $this->email_addr_text;
+    }
 }
