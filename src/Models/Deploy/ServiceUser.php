@@ -12,6 +12,10 @@
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Auth\Passwords\CanResetPassword;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 
 /**
  * service_user_t
@@ -26,8 +30,14 @@ use DreamFactory\Library\Fabric\Database\Models\DeployModel;
  * @property mixed  last_login_date
  * @property string last_login_ip_text
  */
-class ServiceUser extends DeployModel
+class ServiceUser extends DeployModel implements AuthenticatableContract, CanResetPasswordContract
 {
+    //******************************************************************************
+    //* Traits
+    //******************************************************************************
+
+    use Authenticatable, CanResetPassword;
+
     //******************************************************************************
     //* Members
     //******************************************************************************
@@ -36,6 +46,18 @@ class ServiceUser extends DeployModel
      * @type string The table name
      */
     protected $table = 'service_user_t';
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = ['first_name_text', 'last_name_text', 'email_addr_text', 'password_text'];
+    /**
+     * The attributes excluded from the model's JSON form.
+     *
+     * @var array
+     */
+    protected $hidden = ['password_text', 'remember_token'];
 
     //******************************************************************************
     //* Methods
@@ -115,4 +137,15 @@ class ServiceUser extends DeployModel
 
         return $_role;
     }
+
+    /**
+     * Get the password for the user.
+     *
+     * @return string
+     */
+    public function getAuthPassword()
+    {
+        return $this->password_text;
+    }
+
 }

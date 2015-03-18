@@ -101,19 +101,19 @@ class BaseModel extends Model
     //*************************************************************************
 
     /**
-     * @var string
+     * @type string
      */
     const FABRIC_STORAGE_KEY = '%%STORAGE_KEY%%';
     /**
-     * @var string
+     * @type string
      */
     const FABRIC_BASE_STORAGE_PATH = '/data/storage/%%STORAGE_KEY%%';
     /**
-     * @var string
+     * @type string
      */
     const FABRIC_INSTANCE_PRIVATE_PATH = '/data/storage/%%STORAGE_KEY%%/.private';
     /**
-     * @var string
+     * @type string
      */
     const FABRIC_INSTANCE_SNAPSHOT_PATH = '/data/storage/%%STORAGE_KEY%%/.private/snapshots';
     /**
@@ -133,7 +133,7 @@ class BaseModel extends Model
      */
     const CREATED_AT = 'create_date';
     /**
-     * @var string
+     * @type string
      */
     const HOSTED_SNAPSHOT_PATH = '/snapshots';
 
