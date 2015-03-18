@@ -63,6 +63,34 @@ class ServiceUser extends DeployModel implements AuthenticatableContract, CanRes
     //******************************************************************************
 
     /**
+     * Boot method to wire in our events
+     */
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(
+            function ( ServiceUser $model )
+            {
+                if ( empty( $model->display_name_text ) )
+                {
+                    $model->display_name_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
+                }
+            }
+        );
+
+        static::updating(
+            function ( ServiceUser $model )
+            {
+                if ( empty( $model->display_name_text ) )
+                {
+                    $model->display_name_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
+                }
+            }
+        );
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function servers()

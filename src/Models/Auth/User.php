@@ -116,6 +116,11 @@ class User extends AuthModel implements AuthenticatableContract, CanResetPasswor
             function ( User $model )
             {
                 $model->checkStorageKey();
+
+                if ( empty( $model->display_name_text ) )
+                {
+                    $model->display_name_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
+                }
             }
         );
 
@@ -123,6 +128,11 @@ class User extends AuthModel implements AuthenticatableContract, CanResetPasswor
             function ( User $model )
             {
                 $model->checkStorageKey();
+
+                if ( empty( $model->display_name_text ) )
+                {
+                    $model->display_name_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
+                }
             }
         );
     }
