@@ -12,6 +12,9 @@
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 
 /**
  * service_user_t
@@ -27,8 +30,14 @@ use DreamFactory\Library\Fabric\Database\Models\DeployModel;
  * @property string last_login_ip_text
  * @property string remember_token
  */
-class ServiceUser extends DeployModel
+class ServiceUser extends DeployModel implements AuthenticatableContract, CanResetPasswordContract
 {
+    //******************************************************************************
+    //* Traits
+    //******************************************************************************
+
+    use Authenticatable;
+
     //******************************************************************************
     //* Members
     //******************************************************************************
@@ -37,10 +46,50 @@ class ServiceUser extends DeployModel
      * @type string The table name
      */
     protected $table = 'service_user_t';
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = ['first_name_text', 'last_name_text', 'email_addr_text', 'password_text'];
+    /**
+     * The attributes excluded from the model's JSON form.
+     *
+     * @var array
+     */
+    protected $hidden = ['password_text', 'remember_token'];
 
     //******************************************************************************
     //* Methods
     //******************************************************************************
+
+    /**
+     * Boot method to wire in our events
+     */
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(
+            function ( ServiceUser $model )
+            {
+                if ( empty( $model->display_name_text ) )
+                {
+                    $model->display_name_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
+                }
+            }
+        );
+
+        static::updating(
+            function ( ServiceUser $model )
+            {
+                if ( empty( $model->display_name_text ) )
+                {
+                    $model->display_name_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
+                }
+            }
+        );
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -115,5 +164,25 @@ class ServiceUser extends DeployModel
         }
 
         return $_role;
+    }
+
+    /**
+     * Get the password for the user.
+     *
+     * @return string
+     */
+    public function getAuthPassword()
+    {
+        return $this->password_text;
+    }
+
+    /**
+     * Get the e-mail address where password reset links are sent.
+     *
+     * @return string
+     */
+    public function getEmailForPasswordReset()
+    {
+        return $this->email_addr_text;
     }
 }

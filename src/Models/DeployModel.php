@@ -1,8 +1,6 @@
 <?php
 namespace DreamFactory\Library\Fabric\Database\Models;
 
-/**
- */
 class DeployModel extends BaseModel
 {
     //******************************************************************************

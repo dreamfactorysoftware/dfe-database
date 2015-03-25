@@ -3,6 +3,9 @@ namespace DreamFactory\Library\Fabric\Database\Models\Auth;
 
 use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
 use DreamFactory\Library\Fabric\Database\Models\AuthModel;
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 
 /**
  * user_t table
@@ -39,8 +42,14 @@ use DreamFactory\Library\Fabric\Database\Models\AuthModel;
  * @property int    activate_ind
  * @property string remember_token
  */
-class User extends AuthModel
+class User extends AuthModel implements AuthenticatableContract, CanResetPasswordContract
 {
+    //******************************************************************************
+    //* Traits
+    //******************************************************************************
+
+    use Authenticatable;
+
     //******************************************************************************
     //* Members
     //******************************************************************************
@@ -108,6 +117,11 @@ class User extends AuthModel
             function ( User $model )
             {
                 $model->checkStorageKey();
+
+                if ( empty( $model->display_name_text ) )
+                {
+                    $model->display_name_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
+                }
             }
         );
 
@@ -115,8 +129,32 @@ class User extends AuthModel
             function ( User $model )
             {
                 $model->checkStorageKey();
+
+                if ( empty( $model->display_name_text ) )
+                {
+                    $model->display_name_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
+                }
             }
         );
     }
 
+    /**
+     * Get the password for the user.
+     *
+     * @return string
+     */
+    public function getAuthPassword()
+    {
+        return $this->password_text;
+    }
+
+    /**
+     * Get the e-mail address where password reset links are sent.
+     *
+     * @return string
+     */
+    public function getEmailForPasswordReset()
+    {
+        return $this->email_addr_text;
+    }
 }

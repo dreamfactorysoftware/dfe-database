@@ -11,6 +11,7 @@
  */
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
+use DreamFactory\Enterprise\Services\Enums\ServerTypes;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -56,7 +57,7 @@ class Server extends DeployModel
     {
         return Cluster::whereRaw(
             'id IN (SELECT csa.cluster_id FROM cluster_server_asgn_t csa WHERE csa.server_id = :server_id)',
-            array(':server_id' => $this->id)
+            [':server_id' => $this->id]
         )->first();
     }
 
@@ -159,6 +160,55 @@ class Server extends DeployModel
             'server_id_text = :server_id_text OR id = :id',
             [':server_id_text' => $nameOrId, ':id' => $nameOrId]
         );
+    }
+
+    /**
+     * App servers only scope
+     *
+     * @param Builder $query
+     *
+     * @return Builder
+     */
+    public function scopeAppServers( $query )
+    {
+        return $this->scopeByType( $query, ServerTypes::APP );
+    }
+
+    /**
+     * Db servers only scope
+     *
+     * @param Builder $query
+     *
+     * @return Builder
+     */
+    public function scopeDbServers( $query )
+    {
+        return $this->scopeByType( $query, ServerTypes::DB );
+    }
+
+    /**
+     * Web servers only scope
+     *
+     * @param Builder $query
+     *
+     * @return Builder
+     */
+    public function scopeWebServers( $query )
+    {
+        return $this->scopeByType( $query, ServerTypes::WEB );
+    }
+
+    /**
+     * Limit results by server type
+     *
+     * @param Builder $query
+     * @param int     $typeId
+     *
+     * @return Builder
+     */
+    public function scopeByType( $query, $typeId )
+    {
+        return $query->where( 'server_type_id', '=', (int)$typeId );
     }
 
 }

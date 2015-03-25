@@ -1,28 +1,38 @@
 {
-    "name":              "dreamfactory/fabric-db",
-    "description":       "DreamFactory Enterprise(tm) Database Library",
-    "homepage":          "https://www.dreamfactory.com/",
-    "keywords":          ["dreamfactory", "fabric", "utility", "database"],
-    "license":           ["proprietary"],
-    "authors":           [{"name": "Jerry Ablan", "email": "jerryablan@dreamfactory.com"}],
-    "repositories":      [
-        {
-            "type": "vcs",
-            "url":  "git@github.com:dreamfactorysoftware/fabric-db.git"
-        },
-        {
-            "type": "vcs",
-            "url":  "git@github.com:dreamfactorysoftware/fabric-common.git"
-        }
-    ],
-    "minimum-stability": "dev",
-    "require":           {
-        "illuminate/database":          "~5.0",
-        "dreamfactory/fabric-common": "dev-develop as dev-master"
-    },
-    "require-dev": {
-        "phpunit/phpunit":            "@stable"
-    },
-    "autoload":          {"psr-4": {"DreamFactory\\Library\\Fabric\\Database\\": "src/"}},
-    "extra":             {"branch-alias": {"dev-develop": "1.0.x-dev"}}
+	"name":              "dreamfactory/fabric-db",
+	"description":       "DreamFactory Enterprise(tm) Database Library",
+	"homepage":          "https://www.dreamfactory.com/",
+	"keywords":          [
+		"dreamfactory",
+		"fabric",
+		"utility",
+		"database"
+	],
+	"license":           ["proprietary"],
+	"authors":           [
+		{
+			"name":  "Jerry Ablan",
+			"email": "jerryablan@dreamfactory.com"
+		}
+	],
+	"repositories":      [
+		{
+			"type": "vcs",
+			"url":  "git@github.com:dreamfactorysoftware/fabric-db.git"
+		},
+		{
+			"type": "vcs",
+			"url":  "git@github.com:dreamfactorysoftware/fabric-common.git"
+		}
+	],
+	"minimum-stability": "dev",
+	"require":           {
+		"laravel/framework":          "~5.0",
+		"dreamfactory/fabric-common": "dev-develop as dev-master"
+	},
+	"require-dev":       {
+		"phpunit/phpunit": "@stable"
+	},
+	"autoload":          {"psr-4": {"DreamFactory\\Library\\Fabric\\Database\\": "src/"}},
+	"extra":             {"branch-alias": {"dev-develop": "1.0.x-dev"}}
 }
