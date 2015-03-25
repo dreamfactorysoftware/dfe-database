@@ -37,6 +37,7 @@ use DreamFactory\Library\Fabric\Database\Models\AuthModel;
  * @property int    admin_ind
  * @property string storage_id_text
  * @property int    activate_ind
+ * @property string remember_token
  */
 class User extends AuthModel
 {

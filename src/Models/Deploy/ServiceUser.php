@@ -25,6 +25,7 @@ use DreamFactory\Library\Fabric\Database\Models\DeployModel;
  * @property int    owner_type_nbr
  * @property mixed  last_login_date
  * @property string last_login_ip_text
+ * @property string remember_token
  */
 class ServiceUser extends DeployModel
 {
