@@ -483,4 +483,28 @@ class Instance extends DeployModel
         return $_clean;
     }
 
+    /**
+      * Retrieves an instances' metadata
+      *
+      * @return array
+      */
+     public function getMetadata()
+     {
+         if ( !$this->user )
+         {
+             throw new \RuntimeException( 'The user for instance "' . $this->instance_id_text . '" was not found.' );
+         }
+ 
+         $_response = [
+             'instance-id'         => $this->id,
+             'cluster-id'          => $this->cluster_id,
+             'db-server-id'        => $this->db_server_id,
+             'app-server-id'       => $this->app_server_id,
+             'web-server-id'       => $this->web_server_id,
+             'owner-id'            => $this->user_id,
+             'owner-email-address' => $this->user->email_addr_text,
+         ];
+ 
+         return $_response;
+     }
 }
