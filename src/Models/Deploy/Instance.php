@@ -489,27 +489,48 @@ class Instance extends DeployModel
     }
 
     /**
-     * Retrieves an instances' metadata
+     * Retrieves an instances' metadata which is stored in the instance_data_text column
+     *
+     * @param bool $sync If true, the current information will be updated into the instance row
      *
      * @return array
      */
-    public function getMetadata()
+    public function getMetadata( $sync = true )
     {
         if ( !$this->user )
         {
             throw new \RuntimeException( 'The user for instance "' . $this->instance_id_text . '" was not found.' );
         }
 
-        $_response = [
-            'instance-id'         => $this->id,
-            'cluster-id'          => $this->cluster_id,
-            'db-server-id'        => $this->db_server_id,
-            'app-server-id'       => $this->app_server_id,
-            'web-server-id'       => $this->web_server_id,
-            'owner-id'            => $this->user_id,
-            'owner-email-address' => $this->user->email_addr_text,
-        ];
+        $_data = $this->instance_data_text;
 
-        return $_response;
+        if ( empty( $_data ) || !is_array( $_data ) )
+        {
+            $_data = [];
+        }
+
+        if ( !array_key_exists( 'metadata', $_data ) )
+        {
+            $_data['metadata'] = [];
+        }
+
+        $_data['metadata'] = array_merge(
+            $_data['metadata'],
+            [
+                'instance-id'         => $this->id,
+                'cluster-id'          => $this->cluster_id,
+                'db-server-id'        => $this->db_server_id,
+                'app-server-id'       => $this->app_server_id,
+                'web-server-id'       => $this->web_server_id,
+                'owner-id'            => $this->user_id,
+                'owner-email-address' => $this->user->email_addr_text,
+                'storage-key'         => $this->storage_id_text,
+                'owner-storage-key'   => $this->user->storage_id_text,
+            ]
+        );
+
+        $sync && $this->update( ['instance_data_text' => $_data] );
+
+        return $_data['metadata'];
     }
 }
