@@ -13,7 +13,7 @@ namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Enterprise\Services\Enums\ServerTypes;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder;
 
 /**
  * server_t
@@ -46,6 +46,14 @@ class Server extends DeployModel
     public function serverType()
     {
         return $this->hasOne( __NAMESPACE__ . '\\ServerType' );
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function mount()
+    {
+        return $this->hasOne( __NAMESPACE__ . '\\Mount' );
     }
 
     /**
@@ -149,8 +157,8 @@ class Server extends DeployModel
     }
 
     /**
-     * @param Builder    $query
-     * @param string|int $nameOrId
+     * @param \Illuminate\Database\Query\Builder $query
+     * @param string|int                         $nameOrId
      *
      * @return Builder
      */

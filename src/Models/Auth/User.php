@@ -58,6 +58,14 @@ class User extends AuthModel implements AuthenticatableContract, CanResetPasswor
      * @type string The table name
      */
     protected $table = 'user_t';
+    /** @inheritdoc */
+    protected $casts = [
+        'cluster_id'    => 'integer',
+        'app_server_id' => 'integer',
+        'db_server_id'  => 'integer',
+        'web_server_id' => 'integer',
+        'owner_id'      => 'integer',
+    ];
 
     //******************************************************************************
     //* Methods
