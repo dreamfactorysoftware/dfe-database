@@ -7,3 +7,4 @@ tests/log/
 phpunit.xml
 phpdoc.xml
 composer.lock
+
