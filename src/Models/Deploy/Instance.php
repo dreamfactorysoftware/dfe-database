@@ -9,6 +9,7 @@ use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
 use DreamFactory\Library\Fabric\Database\Models\Auth\User;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -96,7 +97,18 @@ class Instance extends DeployModel
     protected $table = 'instance_t';
     /** @inheritdoc */
     protected $casts = [
-        'instance_data_text' => 'array',
+        'instance_data_text'    => 'array',
+        'cluster_id'            => 'integer',
+        'db_server_id'          => 'integer',
+        'web_server_id'         => 'integer',
+        'app_server_id'         => 'integer',
+        'user_id'               => 'integer',
+        'vendor_id'             => 'integer',
+        'vendor_image_id'       => 'integer',
+        'vendor_credentials_id' => 'integer',
+        'state_nbr'             => 'integer',
+        'platform_state_nbr'    => 'integer',
+        'ready_state_nbr'       => 'integer',
     ];
 
     //******************************************************************************
@@ -532,5 +544,12 @@ class Instance extends DeployModel
         $sync && $this->update( ['instance_data_text' => $_data] );
 
         return $_data['metadata'];
+    }
+
+    /**
+     * @return Filesystem|\Illuminate\Contracts\Filesystem\Filesystem
+     */
+    public function getStorageMount()
+    {
     }
 }
