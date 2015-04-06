@@ -3,6 +3,7 @@ namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Library\Fabric\Common\Enums\DeactivationReasons;
 use DreamFactory\Library\Fabric\Common\Enums\OperationalStates;
+use DreamFactory\Library\Fabric\Common\Exceptions\InstanceException;
 use DreamFactory\Library\Fabric\Common\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Library\Fabric\Common\Exceptions\InstanceUnlockedException;
 use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
@@ -18,9 +19,6 @@ use Illuminate\Filesystem\Filesystem;
  *
  * @property integer            $user_id
  * @property integer            $cluster_id
- * @property integer            $vendor_id
- * @property integer            $vendor_image_id
- * @property integer            $vendor_credentials_id
  * @property integer            $guest_location_nbr
  * @property string             $instance_id_text
  * @property array              $instance_data_text
@@ -33,18 +31,6 @@ use Illuminate\Filesystem\Filesystem;
  * @property string             $db_user_text
  * @property string             $db_password_text
  * @property string             $storage_id_text
- * @property integer            $flavor_nbr
- * @property string             $base_image_text
- * @property string             $instance_name_text
- * @property string             $region_text
- * @property string             $availability_zone_text
- * @property string             $security_group_text
- * @property string             $ssh_key_text
- * @property integer            $root_device_type_nbr
- * @property string             $public_host_text
- * @property string             $public_ip_text
- * @property string             $private_host_text
- * @property string             $private_ip_text
  * @property string             $request_id_text
  * @property string             $request_date
  * @property integer            $deprovision_ind
@@ -53,8 +39,6 @@ use Illuminate\Filesystem\Filesystem;
  * @property integer            $state_nbr
  * @property integer            $platform_state_nbr
  * @property integer            $ready_state_nbr
- * @property integer            $vendor_state_nbr
- * @property string             $vendor_state_text
  * @property integer            $environment_id
  * @property integer            $activate_ind
  * @property string             $start_date
@@ -98,18 +82,15 @@ class Instance extends DeployModel
     protected $table = 'instance_t';
     /** @inheritdoc */
     protected $casts = [
-        'instance_data_text'    => 'array',
-        'cluster_id'            => 'integer',
-        'db_server_id'          => 'integer',
-        'web_server_id'         => 'integer',
-        'app_server_id'         => 'integer',
-        'user_id'               => 'integer',
-        'vendor_id'             => 'integer',
-        'vendor_image_id'       => 'integer',
-        'vendor_credentials_id' => 'integer',
-        'state_nbr'             => 'integer',
-        'platform_state_nbr'    => 'integer',
-        'ready_state_nbr'       => 'integer',
+        'instance_data_text' => 'array',
+        'cluster_id'         => 'integer',
+        'db_server_id'       => 'integer',
+        'web_server_id'      => 'integer',
+        'app_server_id'      => 'integer',
+        'user_id'            => 'integer',
+        'state_nbr'          => 'integer',
+        'platform_state_nbr' => 'integer',
+        'ready_state_nbr'    => 'integer',
     ];
 
     //******************************************************************************
@@ -128,6 +109,7 @@ class Instance extends DeployModel
             {
                 $instance->instance_name_text = $instance->sanitizeName( $instance->instance_name_text );
                 $instance->checkStorageKey();
+                $instance->mapStorage();
 
                 if ( empty( $instance->instance_data_text ) )
                 {
@@ -187,6 +169,14 @@ class Instance extends DeployModel
     public function user()
     {
         return $this->belongsTo( static::AUTH_NAMESPACE . '\\User' );
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function guest()
+    {
+        return $this->hasOne( __NAMESPACE__ . '\\InstanceGuest', 'id', 'instance_id' );
     }
 
     /**
@@ -346,16 +336,16 @@ class Instance extends DeployModel
     }
 
     /**
-     * @param Builder $query
-     * @param string  $instanceNameOrId
+     * @param Builder    $query
+     * @param int|string $instanceNameOrId
      *
      * @return Builder
      */
     public function scopeByNameOrId( $query, $instanceNameOrId )
     {
         return $query->whereRaw(
-            'instance_name_text = :instance_name_text OR instance_id_text = :instance_id_text',
-            [':instance_name_text' => $instanceNameOrId, ':instance_id_text' => $instanceNameOrId]
+            'instance_name_text = :instance_name_text OR instance_id_text = :instance_id_text or id = :id',
+            [':instance_name_text' => $instanceNameOrId, ':instance_id_text' => $instanceNameOrId, ':id' => $instanceNameOrId]
         );
     }
 
@@ -576,6 +566,7 @@ class Instance extends DeployModel
                 'owner-email-address' => $this->user->email_addr_text,
                 'storage-key'         => $this->storage_id_text,
                 'owner-storage-key'   => $this->user->storage_id_text,
+                'storage-map'         => $this->getStorageMap(),
             ]
         );
 
@@ -663,10 +654,12 @@ class Instance extends DeployModel
      */
     public function getStorageMount()
     {
-        /** @type Server $_server */
-        $_server = Server::findOrFail( $this->web_server_id );
+        if ( !$this->webServer )
+        {
+            throw new InstanceException( 'No configured web server for instance.' );
+        }
 
-        return $_server->mount->getFilesystem();
+        return $this->webServer->mount->getFilesystem();
     }
 
     /**

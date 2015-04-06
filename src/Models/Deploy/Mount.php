@@ -2,7 +2,7 @@
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
-use DreamFactory\Enterprise\Services\Providers\MountServiceProvider;
+use DreamFactory\Enterprise\Services\Facades\Mounter;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Query\Builder;
@@ -94,6 +94,6 @@ class Mount extends DeployModel
             return $_disk;
         }
 
-        return app( MountServiceProvider::IOC_NAME )->mount( $_disk );
+        return Mounter::mount( $_disk );
     }
 }
