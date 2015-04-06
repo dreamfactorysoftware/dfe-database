@@ -37,6 +37,12 @@ class Server extends DeployModel
      * @type string The table name
      */
     protected $table = 'server_t';
+    /** @inheritdoc */
+    protected $casts = [
+        'id'             => 'integer',
+        'server_type_id' => 'integer',
+        'mount_id'       => 'integer',
+    ];
 
     //******************************************************************************
     //* Methods
@@ -51,7 +57,7 @@ class Server extends DeployModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Mount
      */
     public function mount()
     {

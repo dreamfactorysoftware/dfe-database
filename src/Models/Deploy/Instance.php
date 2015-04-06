@@ -158,6 +158,30 @@ class Instance extends DeployModel
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function webServer()
+    {
+        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'web_server_id' );
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function dbServer()
+    {
+        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'db_server_id' );
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function appServer()
+    {
+        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'app_server_id' );
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user()
