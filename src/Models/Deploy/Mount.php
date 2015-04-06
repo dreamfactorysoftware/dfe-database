@@ -1,8 +1,12 @@
 <?php
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
+use DreamFactory\Enterprise\Common\Traits\EntityLookup;
+use DreamFactory\Enterprise\Services\Providers\MountServiceProvider;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Filesystem\Filesystem;
 
 /**
  * mount_t
@@ -15,6 +19,12 @@ use Illuminate\Database\Query\Builder;
  */
 class Mount extends DeployModel
 {
+    //******************************************************************************
+    //* Traits
+    //******************************************************************************
+
+    use EntityLookup;
+
     //******************************************************************************
     //* Members
     //******************************************************************************
@@ -35,8 +45,7 @@ class Mount extends DeployModel
      */
     public function server()
     {
-        return
-            $this->belongsTo( __NAMESPACE__ . '\\Server' );
+        return $this->belongsTo( __NAMESPACE__ . '\\Server', 'id', 'mount_id' );
     }
 
     /**
@@ -64,5 +73,27 @@ class Mount extends DeployModel
     {
         return
             Server::where( 'mount_id', $mountId )->count() > 0;
+    }
+
+    /**
+     * Returns this mount as a filesystem
+     *
+     * @param bool $nameOnly If true, the name of the disk is returned only
+     *
+     * @return string|Filesystem|\Illuminate\Contracts\Filesystem\Filesystem
+     */
+    public function getFilesystem( $nameOnly = false )
+    {
+        if ( null === ( $_disk = IfSet::get( $this->config_text, 'disk' ) ) )
+        {
+            throw new \RuntimeException( 'No "disk" configured for mount "' . $this->mount_id_text . '".' );
+        }
+
+        if ( $nameOnly )
+        {
+            return $_disk;
+        }
+
+        return app( MountServiceProvider::IOC_NAME )->mount( $_disk );
     }
 }

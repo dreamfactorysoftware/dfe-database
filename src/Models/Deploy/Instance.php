@@ -97,6 +97,10 @@ class Instance extends DeployModel
     /** @inheritdoc */
     protected $casts = [
         'instance_data_text' => 'array',
+        'cluster_id'         => 'integer',
+        'db_server_id'       => 'integer',
+        'app_server_id'      => 'integer',
+        'web_server_id'      => 'integer',
     ];
 
     //******************************************************************************
@@ -132,6 +136,30 @@ class Instance extends DeployModel
     public function servers()
     {
         return $this->hasManyThrough( __NAMESPACE__ . '\\InstanceServer', __NAMESPACE__ . '\\Server', 'instance_id', 'server_id' );
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function webServer()
+    {
+        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'web_server_id' );
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function dbServer()
+    {
+        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'db_server_id' );
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function appServer()
+    {
+        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'app_server_id' );
     }
 
     /**
@@ -532,5 +560,13 @@ class Instance extends DeployModel
         $sync && $this->update( ['instance_data_text' => $_data] );
 
         return $_data['metadata'];
+    }
+
+    /**
+     * Returns the instance's storage file system
+     */
+    public function getStorage()
+    {
+
     }
 }
