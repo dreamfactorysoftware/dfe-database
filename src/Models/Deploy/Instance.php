@@ -6,11 +6,12 @@ use DreamFactory\Library\Fabric\Common\Enums\OperationalStates;
 use DreamFactory\Library\Fabric\Common\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Library\Fabric\Common\Exceptions\InstanceUnlockedException;
 use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
+use DreamFactory\Library\Fabric\Database\Enums\GuestLocations;
 use DreamFactory\Library\Fabric\Database\Models\Auth\User;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Facades\Log;
 
 /**
  * instance_t
@@ -127,6 +128,11 @@ class Instance extends DeployModel
             {
                 $instance->instance_name_text = $instance->sanitizeName( $instance->instance_name_text );
                 $instance->checkStorageKey();
+
+                if ( empty( $instance->instance_data_text ) )
+                {
+                    $instance->instance_data_text = [];
+                }
             }
         );
 
@@ -134,6 +140,11 @@ class Instance extends DeployModel
             function ( $instance /** @var Instance $instance */ )
             {
                 $instance->checkStorageKey();
+
+                if ( empty( $instance->instance_data_text ) )
+                {
+                    $instance->instance_data_text = [];
+                }
             }
         );
     }
@@ -369,6 +380,7 @@ class Instance extends DeployModel
         if ( empty( $this->storage_id_text ) )
         {
             $this->storage_id_text = UniqueId::generate( __CLASS__ );
+            $this->mapStorage();
         }
     }
 
@@ -416,6 +428,8 @@ class Instance extends DeployModel
     public function belongsToServer( $serverId )
     {
         $_server = $this->_getServer( $serverId );
+
+        /** @noinspection PhpUndefinedMethodInspection */
 
         return 0 != InstanceServer::whereRaw(
             'server_id = :server_id AND instance_id = :instance_id',
@@ -486,7 +500,7 @@ class Instance extends DeployModel
 
         if ( in_array( $_clean, $_unavailableNames ) )
         {
-            Log::error( 'Attempt to register forbidden instance name: ' . $name . ' => ' . $_clean );
+            \Log::error( 'Attempt to register forbidden instance name: ' . $name . ' => ' . $_clean );
 
             return false;
         }
@@ -494,7 +508,7 @@ class Instance extends DeployModel
         //	Check host name
         if ( preg_match( static::HOST_NAME_PATTERN, $_clean ) )
         {
-            Log::notice( 'Non-standard instance name "' . $_clean . '" being provisioned' );
+            \Log::notice( 'Non-standard instance name "' . $_clean . '" being provisioned' );
         }
 
         return $_clean;
@@ -547,9 +561,104 @@ class Instance extends DeployModel
     }
 
     /**
+     * @return array
+     */
+    public function mapStorage()
+    {
+        if ( !isset( $this->instance_data_text ) || null === ( $_map = IfSet::get( $this->instance_data_text, 'storage-map' ) ) )
+        {
+            if ( empty( $this->instance_data_text ) )
+            {
+                $this->instance_data_text = [];
+            }
+
+            //  Non-hosted has no structure, just storage
+            if ( GuestLocations::LOCAL == $this->guest_location_nbr || 'localhost' == $this->db_host_text )
+            {
+                $_map = [
+                    'zone'      => null,
+                    'partition' => null,
+                    'root-hash' => null,
+                ];
+            }
+            else
+            {
+                $_rootHash = $this->user->getHash();
+                $_partition = substr( $_rootHash, 0, 2 );
+
+                $_zone = null;
+
+                switch ( config( 'dfe.provisioning.storage-zone-type' ) )
+                {
+                    case 'dynamic':
+                        switch ( $this->guest_location_nbr )
+                        {
+                            case GuestLocations::AMAZON_EC2:
+                            case GuestLocations::DFE_CLUSTER:
+                                if ( file_exists( '/usr/bin/ec2metadata' ) )
+                                {
+                                    $_zone = str_replace( 'availability-zone: ', null, `/usr/bin/ec2metadata | grep zone` );
+                                }
+                                break;
+                        }
+                        break;
+
+                    case 'static':
+                        $_zone = config( 'dfe.provisioning.static-zone-name' );
+                        break;
+                }
+
+                if ( empty( $_zone ) || empty( $_partition ) )
+                {
+                    throw new \RuntimeException( 'Zone and/or partition unknown. Cannot provision storage.' );
+                }
+
+                $_map = [
+                    'zone'      => $_zone,
+                    'partition' => $_partition,
+                    'root-hash' => $_rootHash,
+                ];
+            }
+
+            $this->instance_data_text = array_merge( $this->instance_data_text, ['storage-map' => $_map] );
+        }
+
+        return $_map;
+    }
+
+    /**
+     * @return array
+     */
+    public function getStorageMap()
+    {
+        return $this->mapStorage();
+    }
+
+    /**
      * @return Filesystem|\Illuminate\Contracts\Filesystem\Filesystem
      */
     public function getStorageMount()
     {
+        /** @type Server $_server */
+        $_server = Server::findOrFail( $this->web_server_id );
+
+        return $_server->mount->getFilesystem();
+    }
+
+    /**
+     * @param string $append If supplied, appended to path name
+     *
+     * @return string
+     */
+    public function getStorageBase( $append = null )
+    {
+        $_map = $this->getStorageMap();
+
+        $_base =
+            GuestLocations::LOCAL !== $this->guest_location_nbr
+                ? implode( DIRECTORY_SEPARATOR, [$_map['zone'], $_map['partition'], $_map['root-hash']] )
+                : storage_path();
+
+        return $_base . ( $append ? DIRECTORY_SEPARATOR . ltrim( $append, ' ' . DIRECTORY_SEPARATOR ) : $append );
     }
 }

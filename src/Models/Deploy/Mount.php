@@ -2,6 +2,7 @@
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Query\Builder;
 
 /**
@@ -64,5 +65,23 @@ class Mount extends DeployModel
     {
         return
             Server::where( 'mount_id', $mountId )->count() > 0;
+    }
+
+    /**
+     * Get the server's base storage mount as a filesystem
+     *
+     * @return \Illuminate\Contracts\Filesystem\Filesystem
+     */
+    public function getFilesystem()
+    {
+        $_disk = IfSet::get( $this->config_text, 'disk' );
+
+        if ( !is_string( $_disk ) )
+        {
+            \Config::set( 'filesystems.disks.' . $this->mount_id_text, $_disk );
+            $_disk = $this->mount_id_text;
+        }
+
+        return \Storage::disk( $_disk );
     }
 }

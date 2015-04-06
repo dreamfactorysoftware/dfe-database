@@ -23,6 +23,8 @@ use Illuminate\Database\Query\Builder;
  * @property string $host_text
  * @property string $config_text
  *
+ * @property Mount  $mount
+ *
  * @method static Builder byNameOrId( string $nameOrId )
  */
 class Server extends DeployModel
@@ -53,7 +55,7 @@ class Server extends DeployModel
      */
     public function mount()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\Mount' );
+        return $this->hasOne( __NAMESPACE__ . '\\Mount', 'id', 'mount_id' );
     }
 
     /**

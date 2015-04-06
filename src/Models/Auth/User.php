@@ -165,4 +165,19 @@ class User extends AuthModel implements AuthenticatableContract, CanResetPasswor
     {
         return $this->email_addr_text;
     }
+
+    /**
+     * Return the private storage area for this user
+     */
+    public function getStorageMount()
+    {
+    }
+
+    /**
+     * @return string The hashed storage key for this user
+     */
+    public function getHash()
+    {
+        return hash( config( 'dfe.hash-algorithm', 'sha256' ), $this->storage_id_text );
+    }
 }
