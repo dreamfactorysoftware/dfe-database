@@ -1,6 +1,8 @@
 <?php
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
+use DreamFactory\Enterprise\Console\Enums\ConsoleDefaults;
+use DreamFactory\Enterprise\Services\Utility\InstanceMetadata;
 use DreamFactory\Library\Fabric\Common\Enums\DeactivationReasons;
 use DreamFactory\Library\Fabric\Common\Enums\OperationalStates;
 use DreamFactory\Library\Fabric\Common\Exceptions\InstanceException;
@@ -12,7 +14,7 @@ use DreamFactory\Library\Fabric\Database\Models\Auth\User;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Query\Builder;
-use Illuminate\Filesystem\Filesystem;
+use Illuminate\Filesystem\FilesystemAdapter;
 
 /**
  * instance_t
@@ -531,11 +533,12 @@ class Instance extends DeployModel
     /**
      * Retrieves an instances' metadata which is stored in the instance_data_text column
      *
-     * @param bool $sync If true, the current information will be updated into the instance row
+     * @param bool   $sync If true, the current information will be updated into the instance row
+     * @param string $key  If specified, return only this metadata item, otherwise all
      *
      * @return array
      */
-    public function getMetadata( $sync = true )
+    public function getMetadata( $sync = true, $key = null )
     {
         if ( !$this->user )
         {
@@ -570,9 +573,9 @@ class Instance extends DeployModel
             ]
         );
 
-        $sync && $this->update( ['instance_data_text' => $_data] );
+        !$key && $sync && $this->update( ['instance_data_text' => $_data] );
 
-        return $_data['metadata'];
+        return $key ? IfSet::get( $_data['metadata'], $key ) : $_data['metadata'];
     }
 
     /**
@@ -650,16 +653,78 @@ class Instance extends DeployModel
     }
 
     /**
-     * @return Filesystem|\Illuminate\Contracts\Filesystem\Filesystem
+     * Returns the relative root directory of this instance's storage
+     *
+     * @param string $append
+     * @param string $tag
+     *
+     * @return FilesystemAdapter
      */
-    public function getStorageMount()
+    public function getRootStorageMount( $append = null, $tag = null )
     {
         if ( !$this->webServer )
         {
             throw new InstanceException( 'No configured web server for instance.' );
         }
 
-        return $this->webServer->mount->getFilesystem();
+        $_mount = $this->webServer->mount;
+
+        return $_mount->getFilesystem( $this->getStorageBase( $append ), $tag ?: 'root-storage-mount' );
+    }
+
+    /**
+     * Returns the relative root directory of this instance's storage
+     *
+     * @param string $append
+     * @param string $tag
+     *
+     * @return FilesystemAdapter
+     */
+    public function getSnapshotMount( $append = null, $tag = null )
+    {
+        return $this->getOwnerPrivateStorageMount(
+            config( 'dfe.provisioning.snapshot-path', ConsoleDefaults::SNAPSHOT_PATH_NAME )
+        );
+    }
+
+    /**
+     * @param string $append
+     * @param string $tag
+     *
+     * @return FilesystemAdapter
+     */
+    public function getStorageMount( $append = null, $tag = null )
+    {
+        return $this->getRootStorageMount(
+            $this->instance_id_text .
+            ( $append ? ltrim( $append, ' ' . DIRECTORY_SEPARATOR ) : null ),
+            ( $tag ?: 'storage-mount' )
+        );
+    }
+
+    /**
+     * @return FilesystemAdapter
+     */
+    public function getPrivateStorageMount()
+    {
+        return $this->getStorageMount(
+            config( 'dfe.provisioning.private-path-base', ConsoleDefaults::PRIVATE_PATH_NAME ),
+            'private-storage'
+        );
+    }
+
+    /**
+     * @param string $append
+     *
+     * @return FilesystemAdapter
+     */
+    public function getOwnerPrivateStorageMount( $append = null )
+    {
+        return $this->getRootStorageMount(
+            config( 'dfe.provisioning.private-path-base', ConsoleDefaults::PRIVATE_PATH_NAME ) .
+            ( $append ? DIRECTORY_SEPARATOR . ltrim( $append, ' ' . DIRECTORY_SEPARATOR ) : $append ),
+            'owner-private-storage'
+        );
     }
 
     /**
@@ -678,4 +743,15 @@ class Instance extends DeployModel
 
         return $_base . ( $append ? DIRECTORY_SEPARATOR . ltrim( $append, ' ' . DIRECTORY_SEPARATOR ) : $append );
     }
+
+    /**
+     * Returns an instance of InstanceMetadata
+     *
+     * @return array
+     */
+    public function getInstanceMetadata()
+    {
+        return InstanceMetadata::createFromInstance( $this );
+    }
+
 }

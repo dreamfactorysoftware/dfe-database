@@ -21,7 +21,7 @@ use Illuminate\Database\Query\Builder;
  * @property int    $server_type_id
  * @property string $server_id_text
  * @property string $host_text
- * @property string $config_text
+ * @property array  $config_text
  *
  * @property Mount  $mount
  *
@@ -42,6 +42,7 @@ class Server extends DeployModel
         'id'             => 'integer',
         'server_type_id' => 'integer',
         'mount_id'       => 'integer',
+        'config_text'    => 'array',
     ];
 
     //******************************************************************************

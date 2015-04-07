@@ -71,6 +71,7 @@ class Mount extends DeployModel
      */
     public function isInUse( $mountId )
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return
             Server::where( 'mount_id', $mountId )->count() > 0;
     }
@@ -78,11 +79,13 @@ class Mount extends DeployModel
     /**
      * Returns this mount as a filesystem
      *
-     * @param bool $nameOnly If true, the name of the disk is returned only
+     * @param string $path
+     * @param string $tag
+     * @param bool   $nameOnly If true, the name of the disk is returned only
      *
-     * @return string|Filesystem|\Illuminate\Contracts\Filesystem\Filesystem
+     * @return \Illuminate\Contracts\Filesystem\Filesystem|Filesystem|string
      */
-    public function getFilesystem( $nameOnly = false )
+    public function getFilesystem( $path = null, $tag = null, $nameOnly = false )
     {
         if ( null === ( $_disk = IfSet::get( $this->config_text, 'disk' ) ) )
         {
@@ -94,6 +97,26 @@ class Mount extends DeployModel
             return $_disk;
         }
 
-        return Mounter::mount( $_disk );
+        $tag = $tag ? $_disk . '.' . $tag : null;
+
+        if ( $tag && config( 'filesystems.disks.' . $tag ) )
+        {
+            return Mounter::mount( $_disk . '.' . $tag );
+        }
+
+        $_mount = Mounter::mount( $_disk, ['tag' => $tag] );
+
+        if ( $path )
+        {
+            /** @noinspection PhpUndefinedMethodInspection */
+            $path = ltrim( $path, ' ' . DIRECTORY_SEPARATOR );
+            $_prefix = str_replace( $path, null, rtrim( $_mount->getDriver()->getAdapter()->getPathPrefix(), ' ' . DIRECTORY_SEPARATOR ) );
+            $_newPrefix = $_prefix . DIRECTORY_SEPARATOR . ltrim( $path, ' ' . DIRECTORY_SEPARATOR );
+
+            /** @noinspection PhpUndefinedMethodInspection */
+            $_mount->getDriver()->getAdapter()->setPathPrefix( $_newPrefix );
+        }
+
+        return $_mount;
     }
 }
