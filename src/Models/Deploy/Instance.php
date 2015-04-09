@@ -82,6 +82,10 @@ class Instance extends DeployModel
      * @type string The table name
      */
     protected $table = 'instance_t';
+    /**
+     * @type string
+     */
+    protected $_privatePathName = ConsoleDefaults::PRIVATE_PATH_NAME;
     /** @inheritdoc */
     protected $casts = [
         'instance_data_text' => 'array',
@@ -98,6 +102,16 @@ class Instance extends DeployModel
     //******************************************************************************
     //* Methods
     //******************************************************************************
+
+    /**
+     * @param array $attributes
+     */
+    public function __construct( array $attributes = array() )
+    {
+        parent::__construct( $attributes );
+
+        $this->_privatePathName = config( 'dfe.provisioning.private-path-base', ConsoleDefaults::PRIVATE_PATH_NAME );
+    }
 
     /**
      * Boot method to wire in our events
@@ -367,6 +381,8 @@ class Instance extends DeployModel
      */
     public function getStoragePath()
     {
+        return $this->buildStoragePath( $this->instance_id_text );
+
         return str_ireplace( static::FABRIC_STORAGE_KEY, $this->storage_id_text, static::FABRIC_BASE_STORAGE_PATH );
     }
 
@@ -655,12 +671,12 @@ class Instance extends DeployModel
     /**
      * Returns the relative root directory of this instance's storage
      *
-     * @param string $append
+     * @param string $path
      * @param string $tag
      *
      * @return FilesystemAdapter
      */
-    public function getRootStorageMount( $append = null, $tag = null )
+    public function getRootStorageMount( $path = null, $tag = null )
     {
         if ( !$this->webServer )
         {
@@ -669,7 +685,7 @@ class Instance extends DeployModel
 
         $_mount = $this->webServer->mount;
 
-        return $_mount->getFilesystem( $this->getStorageBase( $append ), $tag ?: 'root-storage-mount' );
+        return $_mount->getFilesystem( $path ?: $this->buildStoragePath(), $tag ?: 'root-storage-mount' );
     }
 
     /**
@@ -682,9 +698,11 @@ class Instance extends DeployModel
      */
     public function getSnapshotMount( $append = null, $tag = null )
     {
-        return $this->getOwnerPrivateStorageMount(
+        $_path = $this->getOwnerPrivateStorageMount(
             config( 'dfe.provisioning.snapshot-path', ConsoleDefaults::SNAPSHOT_PATH_NAME )
         );
+
+        return $_path;
     }
 
     /**
@@ -695,11 +713,17 @@ class Instance extends DeployModel
      */
     public function getStorageMount( $append = null, $tag = null )
     {
-        return $this->getRootStorageMount(
+        $_path = $this->buildStoragePath(
             $this->instance_id_text .
-            ( $append ? ltrim( $append, ' ' . DIRECTORY_SEPARATOR ) : null ),
+            ( $append ? ltrim( $append, ' ' . DIRECTORY_SEPARATOR ) : null )
+        );
+
+        $_mount = $this->getRootStorageMount(
+            $_path,
             ( $tag ?: 'storage-mount' )
         );
+
+        return $_mount;
     }
 
     /**
@@ -707,10 +731,12 @@ class Instance extends DeployModel
      */
     public function getPrivateStorageMount()
     {
-        return $this->getStorageMount(
-            config( 'dfe.provisioning.private-path-base', ConsoleDefaults::PRIVATE_PATH_NAME ),
+        $_path = $this->getStorageMount(
+            $this->_privatePathName,
             'private-storage'
         );
+
+        return $_path;
     }
 
     /**
@@ -720,11 +746,12 @@ class Instance extends DeployModel
      */
     public function getOwnerPrivateStorageMount( $append = null )
     {
-        return $this->getRootStorageMount(
-            config( 'dfe.provisioning.private-path-base', ConsoleDefaults::PRIVATE_PATH_NAME ) .
-            ( $append ? DIRECTORY_SEPARATOR . ltrim( $append, ' ' . DIRECTORY_SEPARATOR ) : $append ),
-            'owner-private-storage'
-        );
+        $_path =
+            $this->_privatePathName . ( $append ? DIRECTORY_SEPARATOR . ltrim( $append, ' ' . DIRECTORY_SEPARATOR ) : $append );
+
+        $_mount = $this->getRootStorageMount( $_path, 'owner-private-storage' );
+
+        return $_mount;
     }
 
     /**
@@ -732,9 +759,14 @@ class Instance extends DeployModel
      *
      * @return string
      */
-    public function getStorageBase( $append = null )
+    public function buildStoragePath( $append = null )
     {
-        $_map = $this->getStorageMap();
+        static $_map;
+
+        if ( !$_map )
+        {
+            $_map = $this->getStorageMap();
+        }
 
         $_base =
             GuestLocations::LOCAL !== $this->guest_location_nbr
