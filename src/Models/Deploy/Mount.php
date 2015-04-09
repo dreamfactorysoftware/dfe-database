@@ -3,10 +3,10 @@ namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use DreamFactory\Enterprise\Services\Facades\Mounter;
+use DreamFactory\Library\Fabric\Database\Exceptions\MountException;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Query\Builder;
-use Illuminate\Filesystem\Filesystem;
 
 /**
  * mount_t
@@ -81,15 +81,31 @@ class Mount extends DeployModel
      *
      * @param string $path
      * @param string $tag
+     * @param array  $options
      * @param bool   $nameOnly If true, the name of the disk is returned only
      *
-     * @return \Illuminate\Contracts\Filesystem\Filesystem|Filesystem|string
+     * @return \Illuminate\Contracts\Filesystem\Filesystem|\Illuminate\Filesystem\Filesystem|string
+     * @throws \DreamFactory\Library\Fabric\Database\Exceptions\MountException
      */
-    public function getFilesystem( $path = null, $tag = null, $nameOnly = false )
+    public function getFilesystem( $path = null, $tag = null, $options = [], $nameOnly = false )
     {
         if ( null === ( $_disk = IfSet::get( $this->config_text, 'disk' ) ) )
         {
             throw new \RuntimeException( 'No "disk" configured for mount "' . $this->mount_id_text . '".' );
+        }
+
+        if ( is_array( $_disk ) )
+        {
+            $_config = $_disk;
+
+            if ( null === ( $_disk = IfSet::get( $_config, 'name' ) ) )
+            {
+                throw new MountException( 'Cannot mount dynamic file system when there is no "name" setting.' );
+            }
+
+            unset( $_config['name'] );
+
+            \Config::set( 'filesystems.disks.' . $_disk, $_config );
         }
 
         if ( $nameOnly )
@@ -97,26 +113,6 @@ class Mount extends DeployModel
             return $_disk;
         }
 
-        $tag = $tag ? $_disk . '.' . $tag : null;
-
-        if ( $tag && config( 'filesystems.disks.' . $tag ) )
-        {
-            return Mounter::mount( $_disk . '.' . $tag );
-        }
-
-        $_mount = Mounter::mount( $_disk, ['tag' => $tag] );
-
-        if ( $path )
-        {
-            /** @noinspection PhpUndefinedMethodInspection */
-            $path = ltrim( $path, ' ' . DIRECTORY_SEPARATOR );
-            $_prefix = str_replace( $path, null, rtrim( $_mount->getDriver()->getAdapter()->getPathPrefix(), ' ' . DIRECTORY_SEPARATOR ) );
-            $_newPrefix = $_prefix . DIRECTORY_SEPARATOR . ltrim( $path, ' ' . DIRECTORY_SEPARATOR );
-
-            /** @noinspection PhpUndefinedMethodInspection */
-            $_mount->getDriver()->getAdapter()->setPathPrefix( $_newPrefix );
-        }
-
-        return $_mount;
+        return Mounter::mount( $_disk, array_merge( $options, ['prefix' => $path, 'tag' => $tag] ) );
     }
 }

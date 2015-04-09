@@ -12,17 +12,13 @@ class GuestLocations extends FactoryEnum
     //*************************************************************************
 
     /**
-     * @type int DreamFactory Enterprise(tm) cluster
-     */
-    const DFE_CLUSTER = 1;
-    /**
-     * @type int DreamFactory Enterprise(tm) cluster
-     */
-    const RAVE_CLUSTER = 1;
-    /**
      * @type int Amazon EC2
      */
-    const AMAZON_EC2 = 2;
+    const AMAZON_EC2 = 1;
+    /**
+     * @type int DreamFactory Enterprise(tm) cluster
+     */
+    const DFE_CLUSTER = 2;
     /**
      * @type int Microsoft Azure
      */
@@ -48,8 +44,8 @@ class GuestLocations extends FactoryEnum
      * @type array
      */
     protected static $_tags = [
-        self::DFE_CLUSTER     => 'rave',
         self::AMAZON_EC2      => 'amazon',
+        self::DFE_CLUSTER     => 'rave',
         self::MICROSOFT_AZURE => 'azure',
         self::RACKSPACE_CLOUD => 'rackspace',
         self::OPENSTACK       => 'openstack',
