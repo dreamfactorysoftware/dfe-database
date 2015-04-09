@@ -110,7 +110,7 @@ class Instance extends DeployModel
     {
         parent::__construct( $attributes );
 
-        $this->_privatePathName = config( 'dfe.provisioning.private-path-base', ConsoleDefaults::PRIVATE_PATH_NAME );
+        $this->_privatePathName = config( 'dfe.provisioning.private-path-name', ConsoleDefaults::PRIVATE_PATH_NAME );
     }
 
     /**
