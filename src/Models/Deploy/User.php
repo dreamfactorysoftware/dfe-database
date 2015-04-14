@@ -1,13 +1,16 @@
 <?php
-namespace DreamFactory\Library\Fabric\Database\Models\Auth;
+namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
-use DreamFactory\Library\Fabric\Database\Models\AuthModel;
+use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 
 /**
+ * 2015-04-13 GHA: This model was moved to Deploy from Auth
+ *
+ *
  * user_t table
  *
  * @property int    drupal_id
@@ -41,10 +44,8 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
  * @property string storage_id_text
  * @property int    activate_ind
  * @property string remember_token
- *
- * @deprecated in lieu of Deploy\User model
  */
-class User extends AuthModel implements AuthenticatableContract, CanResetPasswordContract
+class User extends DeployModel implements AuthenticatableContract, CanResetPasswordContract
 {
     //******************************************************************************
     //* Traits
