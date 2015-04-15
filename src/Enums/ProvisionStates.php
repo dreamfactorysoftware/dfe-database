@@ -43,4 +43,8 @@ class ProvisionStates extends FactoryEnum
      * @var int
      */
     const DEPROVISIONING_ERROR = 14;
+    /**
+     * @type int
+     */
+    const UNKNOWN = -1;
 }
