@@ -3,7 +3,7 @@
 use DreamFactory\Library\Utility\Enums\FactoryEnum;
 
 /**
- * Provisioning constants
+ * Provisioner features
  */
 class ProvisionerFeatures extends FactoryEnum
 {
@@ -12,27 +12,40 @@ class ProvisionerFeatures extends FactoryEnum
     //*************************************************************************
 
     /**
-     * @var string
+     * @var int
      */
-    const VIRTUAL_MACHINES = 'vm';
+    const HOSTED_ENVIRONMENT = 0x0001;
     /**
-     * @var string
+     * @var int
      */
-    const BLOB_STORAGE = 'blob';
+    const DEDICATED_HARDWARE = 0x0002;
     /**
-     * @var string
+     * @var int
      */
-    const SQL_STORAGE = 'sql';
+    const BLOCK_STORAGE = 0x0004;
     /**
-     * @var string
+     * @var int
      */
-    const BLOCK_STORAGE = 'block';
+    const SQL_DATABASE = 0x0008;
     /**
-     * @var string
+     * @var int
      */
-    const SMTP = 'smtp';
+    const FILE_STORAGE = 0x0010;
     /**
-     * @var string
+     * @var int
      */
-    const DNS = 'dns';
+    const SMTP_MAIL = 0x0020;
+    /**
+     * @var int
+     */
+    const DNS = 0x0040;
+    /**
+     * @var int
+     */
+    const START_STOP = 0x0080;
+    /**
+     * @var int
+     */
+    const TERMINATION = 0x0100;
+
 }
