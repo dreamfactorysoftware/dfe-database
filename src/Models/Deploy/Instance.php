@@ -85,7 +85,7 @@ class Instance extends DeployModel
     /**
      * @type string
      */
-    protected $_privatePathName = ConsoleDefaults::PRIVATE_PATH_NAME;
+    protected $_privatePathName = '.private';
     /** @inheritdoc */
     protected $casts = [
         'instance_data_text' => 'array',
@@ -110,7 +110,7 @@ class Instance extends DeployModel
     {
         parent::__construct( $attributes );
 
-        $this->_privatePathName = config( 'dfe.provisioning.private-path-name', ConsoleDefaults::PRIVATE_PATH_NAME );
+        $this->_privatePathName = config( 'dfe.provisioning.private-path-name', '.private' );
     }
 
     /**
