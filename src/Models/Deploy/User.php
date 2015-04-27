@@ -18,7 +18,7 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
  * @property string api_token_text
  * @property string first_name_text
  * @property string last_name_text
- * @property string display_name_text
+ * @property string nickname_text
  * @property string email_addr_text
  * @property string password_text
  * @property string drupal_password_text
@@ -156,9 +156,9 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
             {
                 $model->checkStorageKey();
 
-                if ( empty( $model->display_name_text ) )
+                if ( empty( $model->nickname_text ) )
                 {
-                    $model->display_name_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
+                    $model->nickname_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
                 }
             }
         );
@@ -168,9 +168,9 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
             {
                 $model->checkStorageKey();
 
-                if ( empty( $model->display_name_text ) )
+                if ( empty( $model->nickname_text ) )
                 {
-                    $model->display_name_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
+                    $model->nickname_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
                 }
             }
         );

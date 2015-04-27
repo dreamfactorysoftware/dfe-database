@@ -21,7 +21,7 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
  *
  * @property string first_name_text
  * @property string last_name_text
- * @property string display_name_text
+ * @property string nickname_text
  * @property string email_addr_text
  * @property string password_text
  * @property int    owner_id
@@ -73,9 +73,9 @@ class ServiceUser extends DeployModel implements AuthenticatableContract, CanRes
         static::creating(
             function ( ServiceUser $model )
             {
-                if ( empty( $model->display_name_text ) )
+                if ( empty( $model->nickname_text ) )
                 {
-                    $model->display_name_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
+                    $model->nickname_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
                 }
             }
         );
@@ -83,9 +83,9 @@ class ServiceUser extends DeployModel implements AuthenticatableContract, CanRes
         static::updating(
             function ( ServiceUser $model )
             {
-                if ( empty( $model->display_name_text ) )
+                if ( empty( $model->nickname_text ) )
                 {
-                    $model->display_name_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
+                    $model->nickname_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
                 }
             }
         );
