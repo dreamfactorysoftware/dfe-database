@@ -538,6 +538,15 @@ class Instance extends DeployModel
             }
         }
 
+        //  Ensure non-admin user instances are prefixed
+        if ( 0 == \Auth::user()->admin_ind && null !== ( $_prefix = config( 'dfe.common.instance-prefix' ) ) )
+        {
+            if ( substr( $_clean, 0, strlen( $_prefix ) ) != $_prefix )
+            {
+                $_clean = $_prefix . $_clean;
+            }
+        }
+
         if ( in_array( $_clean, $_unavailableNames ) )
         {
             \Log::error( 'Attempt to register forbidden instance name: ' . $name . ' => ' . $_clean );

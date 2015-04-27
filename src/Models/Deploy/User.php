@@ -1,6 +1,7 @@
 <?php
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
+use DreamFactory\Enterprise\Common\Enums\AppKeyEntities;
 use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use Illuminate\Auth\Authenticatable;
@@ -73,6 +74,32 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
     //******************************************************************************
     //* Methods
     //******************************************************************************
+
+    /**
+     * @param string $appId   App ID keys to return, otherwise all
+     * @param int    $ownerId The owner of the key
+     *
+     * @return \Illuminate\Database\Eloquent\Collection|\Illuminate\Database\Eloquent\Model|null|static|static[]
+     */
+    public function getAppKey( $appId = AppKeyEntities::USER, $ownerId = null )
+    {
+        $ownerId = $ownerId ?: $this->id;
+
+        if ( empty( $appId ) )
+        {
+            return AppKey::where( 'owner_id', $ownerId )->all();
+        }
+
+        return AppKey::where( 'app_id_text', $appId )->where( 'owner_id', $ownerId )->first();
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function appKeys()
+    {
+        return $this->hasMany( static::DEPLOY_NAMESPACE . '\\AppKey', 'owner_id', 'id' );
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
