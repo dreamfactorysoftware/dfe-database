@@ -1,5 +1,4 @@
-<?php
-namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
+<?php namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Enterprise\Common\Enums\AppKeyEntities;
 use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
@@ -98,7 +97,7 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
      */
     public function appKeys()
     {
-        return $this->hasMany( static::DEPLOY_NAMESPACE . '\\AppKey', 'owner_id', 'id' );
+        return $this->hasMany( static::DEPLOY_NAMESPACE . '\\AppKey', 'owner_id' );
     }
 
     /**
@@ -106,11 +105,7 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
      */
     public function instances()
     {
-        return $this->hasMany(
-            static::DEPLOY_NAMESPACE . '\\Instance',
-            'user_id',
-            'id'
-        );
+        return $this->hasMany( static::DEPLOY_NAMESPACE . '\\Instance' );
     }
 
     /**
@@ -130,7 +125,7 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
      */
     public function servers()
     {
-        return $this->hasMany( __NAMESPACE__ . '\\Server', 'user_id' );
+        return $this->hasMany( __NAMESPACE__ . '\\Server' );
     }
 
     /**
@@ -194,13 +189,6 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
     public function getEmailForPasswordReset()
     {
         return $this->email_addr_text;
-    }
-
-    /**
-     * Return the private storage area for this user
-     */
-    public function getStorageMount()
-    {
     }
 
     /**

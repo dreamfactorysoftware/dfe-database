@@ -178,11 +178,11 @@ class Instance extends DeployModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
     public function user()
     {
-        return $this->belongsTo( static::DEPLOY_NAMESPACE . '\\User' );
+        return $this->hasOne( static::DEPLOY_NAMESPACE . '\\User', 'id', 'user_id' );
     }
 
     /**
