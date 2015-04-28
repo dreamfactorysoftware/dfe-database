@@ -686,6 +686,8 @@ class Instance extends DeployModel
                 /** @type User $_user */
                 try
                 {
+                    \Log::debug( 'Pulling user id "' . $this->user_id . '"' );
+
                     $_user = User::findOrFail( $this->user_id );
                     \Log::debug( 'user found' );
                 }
