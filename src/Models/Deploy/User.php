@@ -103,10 +103,10 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function instances()
-    {
-        return $this->hasMany( static::DEPLOY_NAMESPACE . '\\Instance' );
-    }
+//    public function instances()
+//    {
+//        return $this->hasMany( static::DEPLOY_NAMESPACE . '\\Instance' );
+//    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
