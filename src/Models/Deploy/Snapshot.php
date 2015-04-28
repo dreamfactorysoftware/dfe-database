@@ -33,7 +33,7 @@ class Snapshot extends DeployModel
     public function user()
     {
         return
-            $this->hasOne( static::AUTH_NAMESPACE . '\\User' );
+            $this->hasOne( static::DEPLOY_NAMESPACE . '\\User' );
     }
 
     /**

@@ -117,10 +117,6 @@ class BaseModel extends Model
      */
     const FABRIC_INSTANCE_SNAPSHOT_PATH = '/data/storage/%%STORAGE_KEY%%/.private/snapshots';
     /**
-     * @type string The namespace of the auth models
-     */
-    const AUTH_NAMESPACE = 'DreamFactory\\Library\\Fabric\\Database\\Models\\Auth';
-    /**
      * @type string The namespace of the deployment models
      */
     const DEPLOY_NAMESPACE = 'DreamFactory\\Library\\Fabric\\Database\\Models\\Deploy';

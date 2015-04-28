@@ -1,7 +1,6 @@
 <?php
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
-use DreamFactory\Enterprise\Console\Enums\ConsoleDefaults;
 use DreamFactory\Enterprise\Services\Facades\InstanceStorage;
 use DreamFactory\Enterprise\Services\Utility\InstanceMetadata;
 use DreamFactory\Library\Fabric\Common\Enums\DeactivationReasons;
@@ -10,7 +9,6 @@ use DreamFactory\Library\Fabric\Common\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Library\Fabric\Common\Exceptions\InstanceUnlockedException;
 use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
 use DreamFactory\Library\Fabric\Database\Enums\GuestLocations;
-use DreamFactory\Library\Fabric\Database\Models\Auth\User;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Query\Builder;
@@ -184,7 +182,7 @@ class Instance extends DeployModel
      */
     public function user()
     {
-        return $this->belongsTo( static::AUTH_NAMESPACE . '\\User' );
+        return $this->belongsTo( static::DEPLOY_NAMESPACE . '\\User' );
     }
 
     /**
@@ -514,12 +512,21 @@ class Instance extends DeployModel
      * Ensures the instance name meets quality standards
      *
      * @param string $name
+     * @param bool   $isAdmin
      *
      * @return string
      */
-    public static function sanitizeName( $name )
+    public static function sanitizeName( $name, $isAdmin = false )
     {
+        static $_sanitized = [];
         static $_unavailableNames = null;
+
+        if ( isset( $_sanitized[$name] ) )
+        {
+            \Log::debug( '>>> sanitize skipped' );
+
+            return $_sanitized[$name];
+        }
 
         //	This replaces any disallowed characters with dashes
         $_clean = str_replace(
@@ -528,6 +535,17 @@ class Instance extends DeployModel
             trim( str_replace( '--', '-', preg_replace( static::CHARACTER_PATTERN, '-', $name ) ), ' -_' )
         );
 
+        //  Ensure non-admin user instances are prefixed
+        $_prefix =
+            function_exists( 'config' )
+                ? config( 'dfe.common.instance-prefix' )
+                : 'dsp-';
+
+        if ( $_prefix != substr( $_clean, 0, strlen( $_prefix ) ) )
+        {
+            $_clean = trim( str_replace( '--', '-', $_prefix . $_clean ), ' -_' );
+        }
+
         if ( null === $_unavailableNames && function_exists( 'config' ) )
         {
             $_unavailableNames = config( 'dfe.forbidden-names', array() );
@@ -535,15 +553,6 @@ class Instance extends DeployModel
             if ( !is_array( $_unavailableNames ) || empty( $_unavailableNames ) )
             {
                 $_unavailableNames = [];
-            }
-        }
-
-        //  Ensure non-admin user instances are prefixed
-        if ( 0 == \Auth::user()->admin_ind && null !== ( $_prefix = config( 'dfe.common.instance-prefix' ) ) )
-        {
-            if ( substr( $_clean, 0, strlen( $_prefix ) ) != $_prefix )
-            {
-                $_clean = $_prefix . $_clean;
             }
         }
 
@@ -559,6 +568,11 @@ class Instance extends DeployModel
         {
             \Log::notice( 'Non-standard instance name "' . $_clean . '" being provisioned' );
         }
+
+        //  Cache it...
+        $_sanitized[$name] = $_clean;
+
+        \Log::debug( '>>> sanitized "' . $name . '" to "' . $_clean . '"' );
 
         return $_clean;
     }
@@ -669,7 +683,18 @@ class Instance extends DeployModel
             }
             else
             {
-                $_rootHash = $this->user->getHash();
+                /** @type User $_user */
+                try
+                {
+                    $_user = User::findOrFail( $this->user_id );
+                    \Log::debug( 'user found' );
+                }
+                catch ( \Exception $_ex )
+                {
+                    \Log::error( 'User not found' );
+                }
+
+                $_rootHash = hash( config( 'dfe.hash-algorithm', 'sha256' ), $_user->storage_id_text );
                 $_partition = substr( $_rootHash, 0, 2 );
 
                 $_zone = null;
