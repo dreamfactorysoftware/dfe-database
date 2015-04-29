@@ -32,11 +32,11 @@ class InstanceServer extends DeployModel
     //******************************************************************************
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
     public function instance()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\Instance' );
+        return $this->hasOne( __NAMESPACE__ . '\\Instance', 'id', 'instance_id' );
     }
 
     /**
@@ -44,7 +44,7 @@ class InstanceServer extends DeployModel
      */
     public function server()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\Server' );
+        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'server_id' );
     }
 
 }

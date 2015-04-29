@@ -29,7 +29,7 @@ class ClusterServer extends DeployModel
      */
     public function server()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\Server', 'server_id' );
+        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'server_id' );
     }
 
     /**
@@ -37,7 +37,7 @@ class ClusterServer extends DeployModel
      */
     public function cluster()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\Cluster', 'cluster_id' );
+        return $this->hasOne( __NAMESPACE__ . '\\Cluster', 'id', 'cluster_id' );
     }
 
 }

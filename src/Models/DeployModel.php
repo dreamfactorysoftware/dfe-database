@@ -10,6 +10,6 @@ class DeployModel extends BaseModel
     /**
      * @type string Our connection
      */
-    protected $connection = 'fabric-deploy';
+    protected $connection = 'dfe-local';
 
 }
