@@ -683,20 +683,14 @@ class Instance extends DeployModel
             }
             else
             {
-                /** @type User $_user */
-                try
-                {
-                    \Log::debug( 'Pulling user id "' . $this->user_id . '"' );
+                $_userKey = \DB::select( 'SELECT storage_id_text FROM user_t WHERE id = :id', [':id' => $this->user_id] );
 
-                    $_user = User::findOrFail( $this->user_id );
-                    \Log::debug( 'user found' );
-                }
-                catch ( \Exception $_ex )
+                if ( empty( $_userKey ) )
                 {
-                    \Log::error( 'User not found' );
+                    throw new \RuntimeException( 'Cannot locate owner record of instance.' );
                 }
 
-                $_rootHash = hash( config( 'dfe.hash-algorithm', 'sha256' ), $_user->storage_id_text );
+                $_rootHash = hash( config( 'dfe.hash-algorithm', 'sha256' ), $_userKey[0]->storage_id_text );
                 $_partition = substr( $_rootHash, 0, 2 );
 
                 $_zone = null;

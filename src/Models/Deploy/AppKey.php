@@ -50,7 +50,7 @@ class AppKey extends DeployModel
                     $row->app_id_text = '[entity:unknown]';
                 }
 
-                if ( null === ( $_key = config( 'dfe.client-hash-key', config( 'dashboard.client-hash-key' ) ) ) )
+                if ( null === ( $_key = config( 'dfe.server-secret', config( 'dashboard.server-secret' ) ) ) )
                 {
                     throw new \RuntimeException( 'Cannot find proper keys for application key creation. Please check your configuration.' );
                 }
