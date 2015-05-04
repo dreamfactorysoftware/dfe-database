@@ -673,7 +673,7 @@ class Instance extends DeployModel
             }
 
             //  Non-hosted has no structure, just storage
-            if ( GuestLocations::LOCAL == $this->guest_location_nbr || 'localhost' == $this->db_host_text )
+            if ( GuestLocations::LOCAL == $this->guest_location_nbr )
             {
                 $_map = [
                     'zone'      => null,
@@ -728,6 +728,7 @@ class Instance extends DeployModel
             }
 
             $this->instance_data_text = array_merge( $this->instance_data_text, ['storage-map' => $_map] );
+            \Log::debug( 'instance: storage map generated', $this->instance_data_text );
         }
 
         return $_map;
