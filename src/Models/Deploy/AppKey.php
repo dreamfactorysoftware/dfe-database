@@ -1,6 +1,7 @@
 <?php
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
+use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 
 /**
@@ -26,10 +27,10 @@ class AppKey extends DeployModel
     //* Members
     //******************************************************************************
 
-    /**
-     * @type string The table name
-     */
+    /** @inheritdoc */
     protected $table = 'app_key_t';
+    /** @inheritdoc */
+    protected $hidden = ['server_secret', 'client_secret'];
 
     //******************************************************************************
     //* Methods
@@ -45,18 +46,24 @@ class AppKey extends DeployModel
         static::creating(
             function ( $row )
             {
-                if ( empty( $row->app_id_text ) )
+                if ( empty( $row->key_class_text ) )
                 {
-                    $row->app_id_text = '[entity:unknown]';
+                    $row->key_class_text = AppKeyClasses::OTHER;
                 }
 
-                if ( null === ( $_key = config( 'dfe.server-secret', config( 'dashboard.server-secret' ) ) ) )
+                if ( null === ( $_key = config( 'dfe.console-key', config( 'dashboard.console-key' ) ) ) )
                 {
                     throw new \RuntimeException( 'Cannot find proper keys for application key creation. Please check your configuration.' );
                 }
 
-                $row->client_id = hash_hmac( 'sha256', str_random( 40 ), $_key );
-                $row->client_secret = hash_hmac( 'sha256', str_random( 40 ), $_key . $row->client_id );
+                $row->server_secret = $_key;
+
+                if ( empty( $row->client_id ) )
+                {
+                    $row->client_id = hash_hmac( config( 'dfe.signature-method', 'sha256' ), str_random( 40 ), $_key );
+                    $row->client_secret =
+                        hash_hmac( config( 'dfe.signature-method', 'sha256' ), str_random( 40 ), $_key . $row->client_id );
+                }
             }
         );
     }

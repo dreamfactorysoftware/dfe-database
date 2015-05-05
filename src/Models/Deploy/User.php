@@ -1,7 +1,8 @@
 <?php namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
-use DreamFactory\Enterprise\Common\Enums\AppKeyEntities;
+use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
+use DreamFactory\Library\Fabric\Database\Enums\OwnerTypes;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
@@ -75,21 +76,21 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
     //******************************************************************************
 
     /**
-     * @param string $appId   App ID keys to return, otherwise all
-     * @param int    $ownerId The owner of the key
+     * @param string $keyClass The key classes to return, otherwise all
+     * @param int    $ownerId  The owner of the key
      *
      * @return \Illuminate\Database\Eloquent\Collection|\Illuminate\Database\Eloquent\Model|null|static|static[]
      */
-    public function getAppKey( $appId = AppKeyEntities::USER, $ownerId = null )
+    public function getAppKey( $keyClass = AppKeyClasses::USER, $ownerId = null )
     {
         $ownerId = $ownerId ?: $this->id;
 
-        if ( empty( $appId ) )
+        if ( empty( $keyClass ) )
         {
             return AppKey::where( 'owner_id', $ownerId )->all();
         }
 
-        return AppKey::where( 'app_id_text', $appId )->where( 'owner_id', $ownerId )->first();
+        return AppKey::where( 'key_class_text', $keyClass )->where( 'owner_id', $ownerId )->first();
     }
 
     /**
@@ -99,14 +100,6 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
     {
         return $this->hasMany( static::DEPLOY_NAMESPACE . '\\AppKey', 'owner_id' );
     }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-//    public function instances()
-//    {
-//        return $this->hasMany( static::DEPLOY_NAMESPACE . '\\Instance' );
-//    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -155,6 +148,20 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
                 {
                     $model->nickname_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
                 }
+            }
+        );
+
+        static::created(
+            function ( User $user )
+            {
+                //  Generate keys for the user
+                AppKey::create(
+                    [
+                        'key_class_type' => AppKeyClasses::USER,
+                        'owner_id'       => $user->id,
+                        'owner_type_nbr' => OwnerTypes::USER,
+                    ]
+                );
             }
         );
 

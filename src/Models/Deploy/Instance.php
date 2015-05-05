@@ -1,6 +1,7 @@
 <?php
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
+use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Services\Facades\InstanceStorage;
 use DreamFactory\Enterprise\Services\Utility\InstanceMetadata;
 use DreamFactory\Library\Fabric\Common\Enums\DeactivationReasons;
@@ -9,6 +10,7 @@ use DreamFactory\Library\Fabric\Common\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Library\Fabric\Common\Exceptions\InstanceUnlockedException;
 use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
 use DreamFactory\Library\Fabric\Database\Enums\GuestLocations;
+use DreamFactory\Library\Fabric\Database\Enums\OwnerTypes;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Query\Builder;
@@ -129,6 +131,21 @@ class Instance extends DeployModel
                 {
                     $instance->instance_data_text = [];
                 }
+            }
+        );
+
+        static::created(
+            function ( $instance )
+            {
+                //  Generate keys for the user
+                AppKey::create(
+                    [
+                        'key_class_type' => AppKeyClasses::INSTANCE,
+                        'owner_id'       => $instance->id,
+                        'owner_type_nbr' => OwnerTypes::INSTANCE,
+                    ]
+                );
+
             }
         );
 
