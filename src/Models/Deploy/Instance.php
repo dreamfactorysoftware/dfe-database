@@ -163,6 +163,14 @@ class Instance extends DeployModel
     }
 
     /**
+     * @return Cluster
+     */
+    public function cluster()
+    {
+        return Cluster::findOrFail( $this->cluster_id );
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function servers()
@@ -817,4 +825,30 @@ class Instance extends DeployModel
         return InstanceMetadata::createFromInstance( $this );
     }
 
+    /**
+     * @return array
+     */
+    public function getInstanceDataTextAttribute()
+    {
+        if ( empty( $this->instance_data_text ) )
+        {
+            $this->setInstanceDataTextAttribute( [] );
+
+            return [];
+        }
+
+        return \Crypt::decrypt( $this->instance_data_text );
+    }
+
+    /**
+     * @param array $instance_data_text
+     *
+     * @return Instance
+     */
+    public function setInstanceDataTextAttribute( $instance_data_text )
+    {
+        $this->attributes['instance_data_text'] = \Crypt::encrypt( $this->instance_data_text );
+
+        return $this;
+    }
 }
