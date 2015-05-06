@@ -56,7 +56,7 @@ class AppKey extends DeployModel
                     $row->key_class_text = AppKeyClasses::OTHER;
                 }
 
-                if ( null === ( $_key = config( 'dfe.console-key', config( 'dashboard.console-key' ) ) ) )
+                if ( null === ( $_key = config( 'dfe.console-api-key', config( 'dashboard.console-api-key' ) ) ) )
                 {
                     throw new \RuntimeException( 'Cannot find proper keys for application key creation. Please check your configuration.' );
                 }
