@@ -2,6 +2,7 @@
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
+use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use DreamFactory\Enterprise\Services\Facades\InstanceStorage;
 use DreamFactory\Enterprise\Services\Utility\InstanceMetadata;
 use DreamFactory\Library\Fabric\Common\Enums\DeactivationReasons;
@@ -75,6 +76,12 @@ class Instance extends DeployModel
     const HOST_NAME_PATTERN = "/^([a-zA-Z0-9])+$/";
 
     //******************************************************************************
+    //* Traits
+    //******************************************************************************
+
+    use EntityLookup;
+
+    //******************************************************************************
     //* Members
     //******************************************************************************
 
@@ -140,7 +147,7 @@ class Instance extends DeployModel
                 //  Generate keys for the user
                 AppKey::create(
                     [
-                        'key_class_type' => AppKeyClasses::INSTANCE,
+                        'key_class_text' => AppKeyClasses::INSTANCE,
                         'owner_id'       => $instance->id,
                         'owner_type_nbr' => OwnerTypes::INSTANCE,
                     ]
@@ -629,25 +636,11 @@ class Instance extends DeployModel
             $_data['metadata'] = [];
         }
 
-        $_data['metadata'] = array_merge(
-            $_data['metadata'],
-            [
-                'instance-id'         => $this->instance_id_text,
-                'cluster-id'          => $this->cluster_id,
-                'db-server-id'        => $this->db_server_id,
-                'app-server-id'       => $this->app_server_id,
-                'web-server-id'       => $this->web_server_id,
-                'owner-id'            => $this->user_id,
-                'owner-email-address' => $this->user->email_addr_text,
-                'storage-key'         => $this->storage_id_text,
-                'owner-storage-key'   => $this->user->storage_id_text,
-                'storage-map'         => $this->getStorageMap(),
-            ]
-        );
+        $_data['metadata'] = array_merge( $_data['metadata'], $this->toArray(), ['storage-map' => $this->getStorageMap()] );
 
         !$key && $sync && $this->update( ['instance_data_text' => $_data] );
 
-        return $key ? IfSet::get( $_data['metadata'], $key ) : $_data['metadata'];
+        return $key ? IfSet::getDeep( $_data, 'metadata', $key ) : $_data['metadata'];
     }
 
     /**
@@ -823,32 +816,5 @@ class Instance extends DeployModel
     public function getInstanceMetadata()
     {
         return InstanceMetadata::createFromInstance( $this );
-    }
-
-    /**
-     * @return array
-     */
-    public function getInstanceDataTextAttribute()
-    {
-        if ( empty( $this->instance_data_text ) )
-        {
-            $this->setInstanceDataTextAttribute( [] );
-
-            return [];
-        }
-
-        return \Crypt::decrypt( $this->instance_data_text );
-    }
-
-    /**
-     * @param array $instance_data_text
-     *
-     * @return Instance
-     */
-    public function setInstanceDataTextAttribute( $instance_data_text )
-    {
-        $this->attributes['instance_data_text'] = \Crypt::encrypt( $this->instance_data_text );
-
-        return $this;
     }
 }

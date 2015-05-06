@@ -157,7 +157,7 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
                 //  Generate keys for the user
                 AppKey::create(
                     [
-                        'key_class_type' => AppKeyClasses::USER,
+                        'key_class_text' => AppKeyClasses::USER,
                         'owner_id'       => $user->id,
                         'owner_type_nbr' => OwnerTypes::USER,
                     ]
