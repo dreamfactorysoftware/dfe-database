@@ -16,7 +16,7 @@ use Illuminate\Database\Query\Builder;
  * @property string mount_id_text
  * @property string config_text
  *
- * @method static Builder byNameOrId( string $mountNameOrId )
+ * @method static \Illuminate\Database\Query\Builder byNameOrId( string $mountNameOrId )
  */
 class Mount extends DeployModel
 {

@@ -14,7 +14,7 @@ trait AuthorizedEntity
         static::created(
             function ( $model )
             {
-                AppKey::createKey( $model );
+                AppKey::createKeyFromEntity( $model );
             }
         );
 

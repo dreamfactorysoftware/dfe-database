@@ -44,6 +44,10 @@ class OwnerTypes extends FactoryEnum
      */
     const CLUSTER = 4;
     /**
+     * @type int users
+     */
+    const SERVICE_USER = 5;
+    /**
      * @type int console
      */
     const CONSOLE = 1000;
@@ -97,21 +101,25 @@ class OwnerTypes extends FactoryEnum
         }
 
         //  And the rest have models
+        //  @todo make more dynamic so new constants don't require new lookup switch cases
         switch ( $ownerType )
         {
-            case OwnerTypes::USER:
+            case static::USER:
                 return static::_lookupUser( $ownerId );
 
-            case OwnerTypes::MOUNT:
+            case static::SERVICE_USER:
+                return static::_lookupServiceUser( $ownerId );
+
+            case static::MOUNT:
                 return static::_lookupMount( $ownerId );
 
-            case OwnerTypes::INSTANCE:
+            case static::INSTANCE:
                 return static::_lookupInstance( $ownerId );
 
-            case OwnerTypes::SERVER:
+            case static::SERVER:
                 return static::_lookupServer( $ownerId );
 
-            case OwnerTypes::CLUSTER:
+            case static::CLUSTER:
                 return static::_lookupCluster( $ownerId );
         }
 
