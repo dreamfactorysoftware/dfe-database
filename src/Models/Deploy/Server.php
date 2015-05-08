@@ -39,15 +39,27 @@ class Server extends DeployModel
     protected $table = 'server_t';
     /** @inheritdoc */
     protected $casts = [
-        'id'             => 'integer',
+        'id' => 'integer',
         'server_type_id' => 'integer',
-        'mount_id'       => 'integer',
-        'config_text'    => 'array',
+        'mount_id' => 'integer',
+        'config_text' => 'array',
     ];
 
     //******************************************************************************
     //* Methods
     //******************************************************************************
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(
+            function ( Server $server )
+            {
+
+            }
+        );
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne

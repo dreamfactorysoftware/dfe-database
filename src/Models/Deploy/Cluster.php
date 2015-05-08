@@ -2,7 +2,8 @@
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
-use Illuminate\Database\Eloquent\Builder;
+use DreamFactory\Library\Fabric\Database\Traits\AuthorizedEntity;
+use Illuminate\Database\Query\Builder;
 
 /**
  * cluster_t
@@ -15,6 +16,12 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class Cluster extends DeployModel
 {
+    //******************************************************************************
+    //* Traits
+    //******************************************************************************
+
+    use AuthorizedEntity;
+
     //******************************************************************************
     //* Members
     //******************************************************************************

@@ -2,8 +2,8 @@
 
 use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
-use DreamFactory\Library\Fabric\Database\Enums\OwnerTypes;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use DreamFactory\Library\Fabric\Database\Traits\AuthorizedEntity;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
@@ -52,7 +52,7 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
     //* Traits
     //******************************************************************************
 
-    use Authenticatable;
+    use Authenticatable, AuthorizedEntity;
 
     //******************************************************************************
     //* Members
@@ -81,24 +81,9 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
      *
      * @return \Illuminate\Database\Eloquent\Collection|\Illuminate\Database\Eloquent\Model|null|static|static[]
      */
-    public function getAppKey( $keyClass = AppKeyClasses::USER, $ownerId = null )
+    public function getKeys( $keyClass = AppKeyClasses::USER, $ownerId = null )
     {
-        $ownerId = $ownerId ?: $this->id;
-
-        if ( empty( $keyClass ) )
-        {
-            return AppKey::where( 'owner_id', $ownerId )->all();
-        }
-
-        return AppKey::where( 'key_class_text', $keyClass )->where( 'owner_id', $ownerId )->first();
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function appKeys()
-    {
-        return $this->hasMany( static::DEPLOY_NAMESPACE . '\\AppKey', 'owner_id' );
+        return AppKey::byClass( $keyClass, $ownerId )->get();
     }
 
     /**
@@ -148,20 +133,6 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
                 {
                     $model->nickname_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
                 }
-            }
-        );
-
-        static::created(
-            function ( User $user )
-            {
-                //  Generate keys for the user
-                AppKey::create(
-                    [
-                        'key_class_text' => AppKeyClasses::USER,
-                        'owner_id'       => $user->id,
-                        'owner_type_nbr' => OwnerTypes::USER,
-                    ]
-                );
             }
         );
 

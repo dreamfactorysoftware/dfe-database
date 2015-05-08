@@ -12,6 +12,7 @@
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use DreamFactory\Library\Fabric\Database\Traits\AuthorizedEntity;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
@@ -36,7 +37,7 @@ class ServiceUser extends DeployModel implements AuthenticatableContract, CanRes
     //* Traits
     //******************************************************************************
 
-    use Authenticatable;
+    use Authenticatable, AuthorizedEntity;
 
     //******************************************************************************
     //* Members

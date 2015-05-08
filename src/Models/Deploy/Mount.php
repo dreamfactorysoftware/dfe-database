@@ -5,6 +5,7 @@ use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use DreamFactory\Enterprise\Services\Facades\Mounter;
 use DreamFactory\Library\Fabric\Database\Exceptions\MountException;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use DreamFactory\Library\Fabric\Database\Traits\AuthorizedEntity;
 use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Query\Builder;
 
@@ -23,7 +24,7 @@ class Mount extends DeployModel
     //* Traits
     //******************************************************************************
 
-    use EntityLookup;
+    use EntityLookup, AuthorizedEntity;
 
     //******************************************************************************
     //* Members
