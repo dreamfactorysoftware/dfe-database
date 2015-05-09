@@ -60,9 +60,9 @@ class AppKey extends DeployModel
 
                 if ( empty( $row->server_secret ) )
                 {
-                    if ( null === ( $_key = config( 'dfe.console-api-key' ) ) && null === ( $_key = config( 'dashboard.console-api-key' ) ) )
+                    if ( null === ( $_key = config( 'df-ops-client.console-api-key' ) ) )
                     {
-                        throw new \RuntimeException( 'Cannot find proper keys for application key creation. Please check your configuration.' );
+                        throw new \RuntimeException( 'Please ensure "dfe-ops-client" is installed and configured properly.' );
                     }
 
                     $row->server_secret = $_key;
