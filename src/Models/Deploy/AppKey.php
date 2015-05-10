@@ -280,4 +280,15 @@ class AppKey extends DeployModel
         return static::byClass( $keyClass, $ownerId )->get();
     }
 
+    /**
+     * @param int $ownerId
+     * @param int $ownerType
+     *
+     * @return AppKey|null
+     */
+    public static function mine( $ownerId, $ownerType )
+    {
+        return
+            static::byOwnerType( $ownerType )->byOwner( $ownerId )->firstOrFail();
+    }
 }

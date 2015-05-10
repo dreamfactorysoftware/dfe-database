@@ -5,11 +5,13 @@ use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use DreamFactory\Enterprise\Services\Facades\InstanceStorage;
 use DreamFactory\Enterprise\Services\Utility\InstanceMetadata;
 use DreamFactory\Library\Fabric\Common\Enums\DeactivationReasons;
+use DreamFactory\Library\Fabric\Common\Enums\EnterprisePaths;
 use DreamFactory\Library\Fabric\Common\Enums\OperationalStates;
 use DreamFactory\Library\Fabric\Common\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Library\Fabric\Common\Exceptions\InstanceUnlockedException;
 use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
 use DreamFactory\Library\Fabric\Database\Enums\GuestLocations;
+use DreamFactory\Library\Fabric\Database\Enums\OwnerTypes;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use DreamFactory\Library\Fabric\Database\Traits\AuthorizedEntity;
 use DreamFactory\Library\Utility\IfSet;
@@ -104,6 +106,10 @@ class Instance extends DeployModel
         'platform_state_nbr' => 'integer',
         'ready_state_nbr'    => 'integer',
     ];
+    /**
+     * @type array The template for metadata stored in
+     */
+    protected static $_metadataTemplate = ['storage-map' => [], 'paths' => [], 'db' => []];
 
     //******************************************************************************
     //* Methods
@@ -130,13 +136,9 @@ class Instance extends DeployModel
             function ( $instance /** @var Instance $instance */ )
             {
                 $instance->instance_name_text = $instance->sanitizeName( $instance->instance_name_text );
-                $instance->checkStorageKey();
-                $instance->getStorageMap();
 
-                if ( empty( $instance->instance_data_text ) )
-                {
-                    $instance->instance_data_text = [];
-                }
+                $instance->checkStorageKey();
+                $instance->refreshMetadata();
             }
         );
 
@@ -144,11 +146,7 @@ class Instance extends DeployModel
             function ( $instance /** @var Instance $instance */ )
             {
                 $instance->checkStorageKey();
-
-                if ( empty( $instance->instance_data_text ) )
-                {
-                    $instance->instance_data_text = [];
-                }
+                $instance->refreshMetadata();
             }
         );
     }
@@ -594,7 +592,7 @@ class Instance extends DeployModel
     }
 
     /**
-     * Retrieves an instances' metadata which is stored in the instance_data_text column
+     * Retrieves an instances' metadata which is stored in the instance_data_text column, filling in any missing values.
      *
      * @param bool   $sync If true, the current information will be updated into the instance row
      * @param string $key  If specified, return only this metadata item, otherwise all
@@ -603,28 +601,18 @@ class Instance extends DeployModel
      */
     public function getMetadata( $sync = true, $key = null )
     {
-        if ( !$this->user )
-        {
-            throw new \RuntimeException( 'The user for instance "' . $this->instance_id_text . '" was not found.' );
-        }
-
         $_data = $this->instance_data_text;
 
-        if ( empty( $_data ) || !is_array( $_data ) )
+        if ( !empty( $_data ) && is_array( $_data ) )
         {
-            $_data = [];
+            return $_data;
         }
 
-        if ( !array_key_exists( 'metadata', $_data ) )
-        {
-            $_data['metadata'] = [];
-        }
-
-        $_data['metadata'] = array_merge( $_data['metadata'], $this->toArray(), ['storage-map' => $this->getStorageMap()] );
+        $_data = static::_makeMetadata( $this );
 
         !$key && $sync && $this->update( ['instance_data_text' => $_data] );
 
-        return $key ? IfSet::getDeep( $_data, 'metadata', $key ) : $_data['metadata'];
+        return $key ? IfSet::get( $_data, $key ) : $_data;
     }
 
     /**
@@ -685,14 +673,30 @@ class Instance extends DeployModel
             }
             else
             {
-                $_userKey = \DB::select( 'SELECT storage_id_text FROM user_t WHERE id = :id', [':id' => $this->user_id] );
+                if ( $this->user )
+                {
+                    $_userKey = $this->user->storage_id_text;
+                }
+                else
+                {
+                    $_userKey = \DB::select(
+                        'SELECT storage_id_text FROM user_t WHERE id = :id',
+                        [':id' => $this->user_id]
+                    );
+
+                    if ( $_userKey )
+                    {
+                        $_userKey = $_userKey[0]->storage_id_text;
+                    }
+
+                }
 
                 if ( empty( $_userKey ) )
                 {
                     throw new \RuntimeException( 'Cannot locate owner record of instance.' );
                 }
 
-                $_rootHash = hash( config( 'dfe.hash-algorithm', 'sha256' ), $_userKey[0]->storage_id_text );
+                $_rootHash = hash( config( 'dfe.signature-method', 'sha256' ), $_userKey[0]->storage_id_text );
                 $_partition = substr( $_rootHash, 0, 2 );
 
                 $_zone = null;
@@ -752,12 +756,11 @@ class Instance extends DeployModel
     /**
      * Returns the relative root directory of this instance's storage
      *
-     * @param string $append
      * @param string $tag
      *
      * @return FilesystemAdapter
      */
-    public function getSnapshotMount( $append = null, $tag = null )
+    public function getSnapshotMount( $tag = null )
     {
         return InstanceStorage::getSnapshotMount( $this, $tag );
     }
@@ -800,5 +803,68 @@ class Instance extends DeployModel
     public function getInstanceMetadata()
     {
         return InstanceMetadata::createFromInstance( $this );
+    }
+
+    /**
+     * @param bool $save
+     *
+     * @return array|bool If $save is TRUE, instance row is saved and result returned. Otherwise, the freshened metadata is returned.
+     */
+    public function refreshMetadata( $save = false )
+    {
+        $this->instance_data_text = array_merge( $this->instance_data_text, static::_makeMetadata( $this ) );
+
+        return $save ? $this->save() : $this->instance_data_text;
+    }
+
+    /**
+     * @param Instance $instance
+     *
+     * @return array
+     */
+    protected static function _makeMetadata( Instance $instance )
+    {
+        $_key = AppKey::mine( $instance->user_id, OwnerTypes::USER );
+
+        return array_merge(
+            static::$_metadataTemplate,
+            [
+                'storage-map' => $instance->getStorageMap(),
+                'env'         => [
+                    'cluster-id'       => $instance->cluster ? $instance->cluster->cluster_id_text : $instance->cluster_id,
+                    'default-domain'   => config(
+                        'dfe.provisioning.default-domain',
+                        config( 'dashboard.default-domain', '.enterprise.dreamfactory.com' )
+                    ),
+                    'signature-method' => config( 'dfe.signature-method', config( 'dfe-ops-client.signature-method' ) ),
+                    'storage-root'     => EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH,
+                    'console-api-url'  => config( 'dfe.console-api-url', config( 'dfe-ops-client.console-api-url' ) ),
+                    'console-api-key'  => config( 'dfe.console-api-key', config( 'dfe-ops-client.console-api-key' ) ),
+                    'client-id'        => $_key->client_id,
+                    'client-secret'    => $_key->client_secret,
+                ],
+                'db'          => [
+                    $instance->instance_name_text => [
+                        'id'                    => $instance->dbServer ? $instance->dbServer->server_id_text : $instance->db_server_id,
+                        'host'                  => $instance->db_host_text,
+                        'port'                  => $instance->db_port_nbr,
+                        'username'              => $instance->db_user_text,
+                        'password'              => $instance->db_password_text,
+                        'driver'                => 'mysql',
+                        'default-database-name' => '',
+                        'database'              => $instance->db_name_text,
+                        'charset'               => 'utf8',
+                        'collation'             => 'utf8_unicode_ci',
+                        'prefix'                => '',
+                        'db-server-id'          => $instance->dbServer ? $instance->dbServer->server_id_text : $instance->db_server_id,
+                    ]
+                ],
+                'paths'       => [
+                    'private-path'       => $instance->instance_name_text . DIRECTORY_SEPARATOR . '.private',
+                    'owner-private-path' => '.private',
+                    'snapshot-path-name' => '.private' . DIRECTORY_SEPARATOR . 'snapshots'
+                ]
+            ]
+        );
     }
 }
