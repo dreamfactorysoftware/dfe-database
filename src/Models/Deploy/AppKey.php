@@ -60,7 +60,7 @@ class AppKey extends DeployModel
 
                 if ( empty( $row->server_secret ) )
                 {
-                    if ( null === ( $_key = config( 'df-ops-client.console-api-key' ) ) )
+                    if ( null === ( $_key = config( 'dfe-ops-client.console-api-key' ) ) )
                     {
                         throw new \RuntimeException( 'Please ensure "dfe-ops-client" is installed and configured properly.' );
                     }
@@ -68,11 +68,12 @@ class AppKey extends DeployModel
                     $row->server_secret = $_key;
                 }
 
-                if ( empty( $row->client_id ) )
+                if ( empty( $row->client_id ) || empty( $row->client_secret ) )
                 {
-                    $row->client_id = hash_hmac( config( 'dfe.signature-method', 'sha256' ), str_random( 40 ), $row->server_secret );
-                    $row->client_secret =
-                        hash_hmac( config( 'dfe.signature-method', 'sha256' ), str_random( 40 ), $row->server_secret . $row->client_id );
+                    $_algorithm = config( 'dfe-ops-client.signature-method', 'sha256' );
+
+                    $row->client_id = hash_hmac( $_algorithm, str_random( 40 ), $row->server_secret );
+                    $row->client_secret = hash_hmac( $_algorithm, str_random( 40 ), $row->server_secret . $row->client_id );
                 }
             }
         );
