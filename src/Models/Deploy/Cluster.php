@@ -3,6 +3,7 @@ namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use DreamFactory\Library\Fabric\Database\Traits\AuthorizedEntity;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder;
 
 /**
@@ -38,7 +39,7 @@ class Cluster extends DeployModel
     /**
      * Our instances relationship
      *
-     * @return mixed
+     * @return Collection
      */
     public function servers()
     {
@@ -53,7 +54,7 @@ class Cluster extends DeployModel
      */
     public function user()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\ServiceUser' );
+        return $this->hasOne( __NAMESPACE__ . '\\ServiceUser', 'id', 'id' );
     }
 
     /**

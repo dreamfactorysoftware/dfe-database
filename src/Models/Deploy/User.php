@@ -1,6 +1,7 @@
 <?php namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
+use DreamFactory\Library\Fabric\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use DreamFactory\Library\Fabric\Database\Traits\AuthorizedEntity;
@@ -64,11 +65,11 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
     protected $table = 'user_t';
     /** @inheritdoc */
     protected $casts = [
-        'cluster_id'    => 'integer',
+        'cluster_id' => 'integer',
         'app_server_id' => 'integer',
-        'db_server_id'  => 'integer',
+        'db_server_id' => 'integer',
         'web_server_id' => 'integer',
-        'owner_id'      => 'integer',
+        'owner_id' => 'integer',
     ];
 
     //******************************************************************************
@@ -91,19 +92,7 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
      */
     public function hashes()
     {
-        return $this->belongsTo(
-            static::DEPLOY_NAMESPACE . '\\OwnerHash',
-            'owner_id',
-            'id'
-        );
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function servers()
-    {
-        return $this->hasMany( __NAMESPACE__ . '\\Server' );
+        return $this->belongsTo( static::DEPLOY_NAMESPACE . '\\OwnerHash', 'id', 'owner_id' );
     }
 
     /**
@@ -174,6 +163,9 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
      */
     public function getHash()
     {
-        return hash( config( 'dfe.hash-algorithm', 'sha256' ), $this->storage_id_text );
+        return hash(
+            config( 'dfe.signature-method', config( 'dfe.signature-method', EnterpriseDefaults::DEFAULT_DATA_STORAGE_HASH ) ),
+            $this->storage_id_text
+        );
     }
 }

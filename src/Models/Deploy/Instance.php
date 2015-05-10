@@ -156,11 +156,11 @@ class Instance extends DeployModel
      */
     public function cluster()
     {
-        return Cluster::findOrFail( $this->cluster_id );
+        return $this->belongsTo( __NAMESPACE__ . '\\Cluster' );
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
      */
     public function servers()
     {
@@ -216,8 +216,6 @@ class Instance extends DeployModel
      */
     public function updateState( $state )
     {
-        $this->state_nbr = $state;
-
         return $this->update( ['state_nbr' => $state] );
     }
 
@@ -824,6 +822,7 @@ class Instance extends DeployModel
      */
     protected static function _makeMetadata( Instance $instance )
     {
+        \Log::debug( 'making metadata' );
         $_key = AppKey::mine( $instance->user_id, OwnerTypes::USER );
 
         return array_merge(

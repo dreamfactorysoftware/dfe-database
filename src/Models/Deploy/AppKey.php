@@ -84,7 +84,7 @@ class AppKey extends DeployModel
      */
     public function user()
     {
-        return $this->belongsTo( static::DEPLOY_NAMESPACE . '\\User', 'owner_id', 'id' );
+        return $this->belongsTo( static::DEPLOY_NAMESPACE . '\\User', 'id', 'owner_id' );
     }
 
     /**
@@ -107,14 +107,14 @@ class AppKey extends DeployModel
      */
     public function scopeByOwner( $query, $ownerId, $ownerType = null )
     {
-        $query = $query->where( 'owner_id', $ownerId );
+        $_query = $query->where( 'owner_id', $ownerId );
 
         if ( null !== $ownerType )
         {
-            $query = $query->where( 'owner_type_nbr', $ownerType );
+            $_query = $_query->where( 'owner_type_nbr', $ownerType );
         }
 
-        return $query;
+        return $_query;
     }
 
     /**
@@ -126,14 +126,14 @@ class AppKey extends DeployModel
      */
     public function scopeByClass( $query, $keyClass, $ownerId = null )
     {
-        $query = $query->where( 'key_class_text', $keyClass );
+        $_query = $query->where( 'key_class_text', $keyClass );
 
         if ( null !== $ownerId )
         {
-            $query = $query->where( 'owner_id', $ownerId );
+            $_query = $_query->where( 'owner_id', $ownerId );
         }
 
-        return $query;
+        return $_query;
     }
 
     /**
