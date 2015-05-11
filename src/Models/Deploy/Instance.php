@@ -694,7 +694,7 @@ class Instance extends DeployModel
                     throw new \RuntimeException( 'Cannot locate owner record of instance.' );
                 }
 
-                $_rootHash = hash( config( 'dfe.signature-method', 'sha256' ), $_userKey[0]->storage_id_text );
+                $_rootHash = hash( config( 'dfe.signature-method', 'sha256' ), $_userKey );
                 $_partition = substr( $_rootHash, 0, 2 );
 
                 $_zone = null;
