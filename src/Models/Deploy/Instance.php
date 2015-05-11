@@ -653,7 +653,7 @@ class Instance extends DeployModel
      */
     public function getStorageMap()
     {
-        $_map = IfSet::getDeep( $this->instance_data_text, 'storage-map' );
+        $_map = IfSet::get( $this->instance_data_text, 'storage-map' );
 
         if ( !isset( $this->instance_data_text ) || empty( $_map ) )
         {
