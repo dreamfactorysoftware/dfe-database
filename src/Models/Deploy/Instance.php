@@ -109,7 +109,7 @@ class Instance extends DeployModel
     /**
      * @type array The template for metadata stored in
      */
-    protected static $_metadataTemplate = ['storage-map' => [], 'paths' => [], 'db' => []];
+    protected static $_metadataTemplate = ['storage-map' => [], 'paths' => [], 'db' => [], 'env' => [],];
 
     //******************************************************************************
     //* Methods
@@ -653,7 +653,9 @@ class Instance extends DeployModel
      */
     public function getStorageMap()
     {
-        if ( !isset( $this->instance_data_text ) || null === ( $_map = IfSet::get( $this->instance_data_text, 'storage-map' ) ) )
+        $_map = IfSet::getDeep( $this->instance_data_text, 'storage-map' );
+
+        if ( !isset( $this->instance_data_text ) || empty( $_map ) )
         {
             if ( empty( $this->instance_data_text ) )
             {
@@ -822,7 +824,6 @@ class Instance extends DeployModel
      */
     protected static function _makeMetadata( Instance $instance )
     {
-        \Log::debug( 'making metadata' );
         $_key = AppKey::mine( $instance->user_id, OwnerTypes::USER );
 
         return array_merge(
