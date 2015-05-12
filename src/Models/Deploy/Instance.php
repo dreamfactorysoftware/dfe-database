@@ -653,15 +653,15 @@ class Instance extends DeployModel
      */
     public function getStorageMap()
     {
+        if ( empty( $this->instance_data_text ) )
+        {
+            $this->instance_data_text = [];
+        }
+
         $_map = IfSet::get( $this->instance_data_text, 'storage-map' );
 
-        if ( !isset( $this->instance_data_text ) || empty( $_map ) )
+        if ( empty( $this->instance_data_text ) || empty( $_map ) )
         {
-            if ( empty( $this->instance_data_text ) )
-            {
-                $this->instance_data_text = [];
-            }
-
             //  Non-hosted has no structure, just storage
             if ( GuestLocations::LOCAL == $this->guest_location_nbr )
             {
