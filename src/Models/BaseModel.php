@@ -1,9 +1,9 @@
 <?php
 namespace DreamFactory\Library\Fabric\Database\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder;
 
 /**
  * Base class for DFE models
