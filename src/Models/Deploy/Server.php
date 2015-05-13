@@ -12,6 +12,7 @@
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Enterprise\Services\Enums\ServerTypes;
+use DreamFactory\Library\Fabric\Database\Enums\OwnerTypes;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use Illuminate\Database\Query\Builder;
 
@@ -20,6 +21,7 @@ use Illuminate\Database\Query\Builder;
  *
  * @property int    $server_type_id
  * @property string $server_id_text
+ * @property int    $mount_id
  * @property string $host_text
  * @property array  $config_text
  *
@@ -39,34 +41,24 @@ class Server extends DeployModel
     protected $table = 'server_t';
     /** @inheritdoc */
     protected $casts = [
-        'id' => 'integer',
+        'id'             => 'integer',
         'server_type_id' => 'integer',
-        'mount_id' => 'integer',
-        'config_text' => 'array',
+        'mount_id'       => 'integer',
+        'config_text'    => 'array',
     ];
+    /** @inheritdoc */
+    protected $_assignmentOwnerType = OwnerTypes::CLUSTER;
 
     //******************************************************************************
     //* Methods
     //******************************************************************************
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(
-            function ( Server $server )
-            {
-
-            }
-        );
-    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
     public function serverType()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\ServerType' );
+        return $this->hasOne( __NAMESPACE__ . '\\ServerType', 'id', 'server_type_id' );
     }
 
     /**

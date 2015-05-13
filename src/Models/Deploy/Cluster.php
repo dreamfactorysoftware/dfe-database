@@ -1,6 +1,7 @@
 <?php
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
+use DreamFactory\Library\Fabric\Database\Enums\OwnerTypes;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use DreamFactory\Library\Fabric\Database\Traits\AuthorizedEntity;
 use Illuminate\Database\Eloquent\Collection;
@@ -31,6 +32,8 @@ class Cluster extends DeployModel
      * @type string The table name
      */
     protected $table = 'cluster_t';
+    /** @inheritdoc */
+    protected $_assignmentOwnerType = OwnerTypes::USER;
 
     //******************************************************************************
     //* Methods

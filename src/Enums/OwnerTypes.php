@@ -1,7 +1,13 @@
 <?php namespace DreamFactory\Library\Fabric\Database\Enums;
 
 use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
+use DreamFactory\Library\Fabric\Database\Models\Deploy\Cluster;
+use DreamFactory\Library\Fabric\Database\Models\Deploy\Instance;
+use DreamFactory\Library\Fabric\Database\Models\Deploy\Server;
+use DreamFactory\Library\Fabric\Database\Models\Deploy\User;
+use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use DreamFactory\Library\Utility\Enums\FactoryEnum;
+use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
@@ -72,7 +78,7 @@ class OwnerTypes extends FactoryEnum
      * @param int        $ownerId
      * @param int|string $ownerType String types will be converted to numeric equivalent
      *
-     * @return \DreamFactory\Library\Fabric\Database\Models\Deploy\Cluster|\DreamFactory\Library\Fabric\Database\Models\Deploy\Instance|\DreamFactory\Library\Fabric\Database\Models\Deploy\Server|\DreamFactory\Library\Fabric\Database\Models\Deploy\User
+     * @return DeployModel|Cluster|User|Instance|Server
      */
     public static function getOwner( $ownerId, &$ownerType )
     {
@@ -126,4 +132,78 @@ class OwnerTypes extends FactoryEnum
         throw new ModelNotFoundException( $_message );
     }
 
+    /**
+     * @param int  $type      The owner type
+     * @param bool $returnAll If true, the entire owner array is returned
+     *
+     * @return array|bool The array of info for all owners, a single owner, or FALSE if no ownership info
+     */
+    public static function getOwnerInfo( $type, $returnAll = true )
+    {
+        static $_result = [];
+
+        if ( !isset( $_result[$type] ) || empty( $_result[$type] ) )
+        {
+            $_result[$type] = [];
+
+            switch ( $type )
+            {
+                case static::USER:
+                    $_result[$type][static::USER] = [
+                        'associative-entity' => false,
+                        'owner-class'        => 'DreamFactory\\Library\\Fabric\\Database\\User',
+                        'owner-class-key'    => 'owner_id',
+                    ];
+                    break;
+
+                case static::SERVICE_USER:
+                    $_result[$type][static::SERVICE_USER] = [
+                        'associative-entity' => false,
+                        'owner-class'        => 'DreamFactory\\Library\\Fabric\\Database\\ServiceUser',
+                        'owner-class-key'    => 'owner_id',
+                    ];
+                    break;
+
+                case static::MOUNT:
+                    $_result[$type][static::SERVER] = [
+                        'associative-entity' => false,
+                        'owner-class'        => 'DreamFactory\\Library\\Fabric\\Database\\Server',
+                        'owner-class-key'    => 'mount_id',
+                    ];
+                    break;
+
+                case static::INSTANCE:
+                    $_result[$type][static::SERVER] = [
+                        'associative-entity' => 'instance_server_asgn_t',
+                        'owner-class'        => 'DreamFactory\\Library\\Fabric\\Database\\Server',
+                        'owner-class-key'    => 'server_id',
+                    ];
+
+                    $_result[$type][static::USER] = [
+                        'associative-entity' => false,
+                        'owner-class'        => 'DreamFactory\\Library\\Fabric\\Database\\User',
+                        'owner-class-key'    => 'user_id',
+                    ];
+                    break;
+
+                case static::SERVER:
+                    $_result[$type][static::CLUSTER] = [
+                        'associative-entity' => 'cluster_server_asgn_t',
+                        'owner-class'        => 'DreamFactory\\Library\\Fabric\\Database\\Cluster',
+                        'owner-class-key'    => 'server_id',
+                    ];
+                    break;
+
+                case static::CLUSTER:
+                    $_result[$type][static::USER] = [
+                        'associative-entity' => false,
+                        'owner-class'        => 'DreamFactory\\Library\\Fabric\\Database\\User',
+                        'owner-class-key'    => 'user_id',
+                    ];
+                    break;
+            }
+        }
+
+        return $returnAll ? $_result : IfSet::get( $_result, $type, false );
+    }
 }

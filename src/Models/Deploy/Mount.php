@@ -3,6 +3,7 @@ namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use DreamFactory\Enterprise\Services\Facades\Mounter;
+use DreamFactory\Library\Fabric\Database\Enums\OwnerTypes;
 use DreamFactory\Library\Fabric\Database\Exceptions\MountException;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use DreamFactory\Library\Fabric\Database\Traits\AuthorizedEntity;
@@ -36,6 +37,8 @@ class Mount extends DeployModel
     protected $casts = [
         'config_text' => 'array',
     ];
+    /** @inheritdoc */
+    protected $_assignmentOwnerType = OwnerTypes::SERVER;
 
     //******************************************************************************
     //* Methods
