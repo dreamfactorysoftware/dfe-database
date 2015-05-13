@@ -3,6 +3,7 @@
 use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Library\Fabric\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
+use DreamFactory\Library\Fabric\Database\Enums\OwnerTypes;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use DreamFactory\Library\Fabric\Database\Traits\AuthorizedEntity;
 use Illuminate\Auth\Authenticatable;
@@ -65,12 +66,14 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
     protected $table = 'user_t';
     /** @inheritdoc */
     protected $casts = [
-        'cluster_id' => 'integer',
+        'cluster_id'    => 'integer',
         'app_server_id' => 'integer',
-        'db_server_id' => 'integer',
+        'db_server_id'  => 'integer',
         'web_server_id' => 'integer',
-        'owner_id' => 'integer',
+        'owner_id'      => 'integer',
     ];
+    /** @inheritdoc */
+    protected static $_assignmentOwnerType = OwnerTypes::USER;
 
     //******************************************************************************
     //* Methods

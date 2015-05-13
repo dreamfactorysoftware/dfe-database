@@ -1,6 +1,7 @@
 <?php
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
+use DreamFactory\Library\Fabric\Database\Enums\OwnerTypes;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 
 /**
@@ -22,6 +23,8 @@ class Snapshot extends DeployModel
      * @type string The table name
      */
     protected $table = 'snapshot_t';
+    /** @inheritdoc */
+    protected static $_assignmentOwnerType = OwnerTypes::USER;
 
     //******************************************************************************
     //* Methods
@@ -33,7 +36,7 @@ class Snapshot extends DeployModel
     public function user()
     {
         return
-            $this->hasOne( static::DEPLOY_NAMESPACE . '\\User' );
+            $this->hasOne( static::DEPLOY_NAMESPACE . '\\User', 'id', 'user_id' );
     }
 
     /**
@@ -42,6 +45,6 @@ class Snapshot extends DeployModel
     public function instance()
     {
         return
-            $this->hasOne( static::DEPLOY_NAMESPACE . '\\Instance' );
+            $this->hasOne( static::DEPLOY_NAMESPACE . '\\Instance', 'id', 'instance_id' );
     }
 }

@@ -47,7 +47,7 @@ class Server extends DeployModel
         'config_text'    => 'array',
     ];
     /** @inheritdoc */
-    protected $_assignmentOwnerType = OwnerTypes::CLUSTER;
+    protected static $_assignmentOwnerType = OwnerTypes::CLUSTER;
 
     //******************************************************************************
     //* Methods

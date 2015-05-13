@@ -107,7 +107,7 @@ class Instance extends DeployModel
         'ready_state_nbr'    => 'integer',
     ];
     /** @inheritdoc */
-    protected $_assignmentOwnerType = OwnerTypes::SERVER;
+    protected static $_assignmentOwnerType = OwnerTypes::SERVER;
     /**
      * @type array The template for metadata stored in
      */

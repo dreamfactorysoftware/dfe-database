@@ -33,7 +33,7 @@ class Cluster extends DeployModel
      */
     protected $table = 'cluster_t';
     /** @inheritdoc */
-    protected $_assignmentOwnerType = OwnerTypes::USER;
+    protected static $_assignmentOwnerType = OwnerTypes::USER;
 
     //******************************************************************************
     //* Methods

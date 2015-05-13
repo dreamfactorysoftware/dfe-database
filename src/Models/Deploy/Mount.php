@@ -38,7 +38,7 @@ class Mount extends DeployModel
         'config_text' => 'array',
     ];
     /** @inheritdoc */
-    protected $_assignmentOwnerType = OwnerTypes::SERVER;
+    protected static $_assignmentOwnerType = OwnerTypes::SERVER;
 
     //******************************************************************************
     //* Methods

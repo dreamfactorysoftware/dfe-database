@@ -11,6 +11,7 @@
  */
 namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
 
+use DreamFactory\Library\Fabric\Database\Enums\OwnerTypes;
 use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 use DreamFactory\Library\Fabric\Database\Traits\AuthorizedEntity;
 use Illuminate\Auth\Authenticatable;
@@ -59,6 +60,8 @@ class ServiceUser extends DeployModel implements AuthenticatableContract, CanRes
      * @var array
      */
     protected $hidden = ['password_text', 'remember_token'];
+    /** @inheritdoc */
+    protected static $_assignmentOwnerType = OwnerTypes::SERVICE_USER;
 
     //******************************************************************************
     //* Methods
