@@ -1,14 +1,14 @@
 {
-    "name":              "dreamfactory/fabric-db",
+    "name":              "dreamfactory/dfe-database",
     "description":       "DreamFactory Enterprise(tm) Database Library",
     "homepage":          "https://www.dreamfactory.com/",
-    "keywords":          ["dreamfactory", "fabric", "utility", "database"],
+    "keywords":          ["dreamfactory", "dfe", "fabric", "utility", "database"],
     "license":           ["proprietary"],
     "authors":           [{"name": "Jerry Ablan", "email": "jerryablan@dreamfactory.com"}],
     "repositories":      [
         {
             "type": "vcs",
-            "url":  "git@github.com:dreamfactorysoftware/fabric-db.git"
+            "url":  "git@github.com:dreamfactorysoftware/dfe-database.git"
         },
         {
             "type": "vcs",
@@ -21,6 +21,6 @@
         "illuminate/database":        "~4.2"
     },
     "require-dev":       {"phpunit/phpunit": "@stable"},
-    "autoload":          {"psr-4": {"DreamFactory\\Library\\Fabric\\Database\\": "src/"}},
+    "autoload":          {"psr-4": {"DreamFactory\\Enterprise\\Database\\": "src/"}},
     "extra":             {"branch-alias": {"dev-develop": "1.0.x-dev"}}
 }
