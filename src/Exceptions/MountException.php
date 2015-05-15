@@ -1,4 +1,4 @@
-<?php namespace DreamFactory\Library\Fabric\Database\Exceptions;
+<?php namespace DreamFactory\Enterprise\Database\Exceptions;
 
 use Exception;
 

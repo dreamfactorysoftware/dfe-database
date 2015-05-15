@@ -1,7 +1,7 @@
-<?php namespace DreamFactory\Library\Fabric\Database\Traits;
+<?php namespace DreamFactory\Enterprise\Database\Traits;
 
-use DreamFactory\Library\Fabric\Database\Enums\OwnerTypes;
-use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
+use DreamFactory\Enterprise\Database\ModelsModel;
 use DreamFactory\Library\Utility\IfSet;
 
 trait AssignableEntity
@@ -145,7 +145,7 @@ trait AssignableEntity
         }
 
         $this->_assignableEntityOwnerType = $assignableEntityOwnerType;
-        $this->_ownerClass = 'DreamFactory\\Library\\Fabric\\Database\\Deploy\\' . OwnerTypes::prettyNameOf( $assignableEntityOwnerType );
+        $this->_ownerClass = 'DreamFactory\\Enterprise\\Database\\Deploy\\' . OwnerTypes::prettyNameOf( $assignableEntityOwnerType );
 
         return $this;
     }

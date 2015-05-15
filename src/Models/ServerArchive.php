@@ -9,7 +9,7 @@
  * @email   <support@dreamfactory.com>
  * @license proprietary
  */
-namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
+namespace DreamFactory\Enterprise\Database\Models;
 
 class ServerArchive extends Server
 {

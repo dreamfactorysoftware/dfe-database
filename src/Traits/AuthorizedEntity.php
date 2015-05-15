@@ -1,7 +1,7 @@
-<?php namespace DreamFactory\Library\Fabric\Database\Traits;
+<?php namespace DreamFactory\Enterprise\Database\Traits;
 
-use DreamFactory\Library\Fabric\Database\Models\Deploy\AppKey;
-use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use DreamFactory\Enterprise\Database\Models\AppKey;
+use DreamFactory\Enterprise\Database\ModelsModel;
 
 trait AuthorizedEntity
 {

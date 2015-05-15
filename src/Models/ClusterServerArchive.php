@@ -1,8 +1,10 @@
 <?php
-namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
+namespace DreamFactory\Enterprise\Database\Models;
 
-
-class ClusterArchive extends Cluster
+/**
+ * cluster_server_asgn_arch_t
+ */
+class ClusterServerArchive extends ClusterServer
 {
     //******************************************************************************
     //* Members
@@ -11,5 +13,6 @@ class ClusterArchive extends Cluster
     /**
      * @type string The table name
      */
-    protected $table = 'cluster_arch_t';
+    protected $table = 'cluster_server_asgn_arch_t';
+
 }

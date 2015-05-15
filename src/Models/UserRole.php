@@ -1,18 +1,15 @@
 <?php
-namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
+namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use DreamFactory\Enterprise\Database\ModelsModel;
 
 /**
- * route_hash_t
+ * user_role_asgn_t
  *
- * @property int    $type_nbr
- * @property int    $mount_id
- * @property string $hash_text
- * @property string $actual_path_text
- * @property string expireDate
+ * @property int    user_id
+ * @property int    role_id
  */
-class RouteHash extends DeployModel
+class UserRole extends DeployModel
 {
     //******************************************************************************
     //* Members
@@ -21,7 +18,7 @@ class RouteHash extends DeployModel
     /**
      * @type string The table name
      */
-    protected $table = 'route_hash_t';
+    protected $table = 'user_role_asgn_t';
 
     //******************************************************************************
     //* Methods
@@ -30,9 +27,17 @@ class RouteHash extends DeployModel
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function mount()
+    public function user()
     {
-        return
-            $this->hasOne( __NAMESPACE__ . '\\Mount' );
+        return $this->hasOne( __NAMESPACE__ . '\\ServiceUser', 'user_id' );
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function role()
+    {
+        return $this->hasOne( __NAMESPACE__ . '\\Role' );
+    }
+
 }

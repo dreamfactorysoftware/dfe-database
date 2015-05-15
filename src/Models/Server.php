@@ -9,11 +9,11 @@
  * @email   <support@dreamfactory.com>
  * @license proprietary
  */
-namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
+namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Services\Enums\ServerTypes;
-use DreamFactory\Library\Fabric\Database\Enums\OwnerTypes;
-use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
+use DreamFactory\Enterprise\Database\ModelsModel;
 use Illuminate\Database\Query\Builder;
 
 /**

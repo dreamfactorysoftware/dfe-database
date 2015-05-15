@@ -1,10 +1,10 @@
 <?php
-namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
+namespace DreamFactory\Enterprise\Database\Models;
 
 /**
- * instance_arch_t
+ * deactivation_arch_t
  */
-class InstanceArchive extends Instance
+class DeactivationArchive extends Deactivation
 {
     //******************************************************************************
     //* Members
@@ -13,6 +13,6 @@ class InstanceArchive extends Instance
     /**
      * @type string The table name
      */
-    protected $table = 'instance_arch_t';
+    protected $table = 'deactivation_arch_t';
 
 }

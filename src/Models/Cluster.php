@@ -1,9 +1,9 @@
 <?php
-namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
+namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Library\Fabric\Database\Enums\OwnerTypes;
-use DreamFactory\Library\Fabric\Database\Models\DeployModel;
-use DreamFactory\Library\Fabric\Database\Traits\AuthorizedEntity;
+use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
+use DreamFactory\Enterprise\Database\ModelsModel;
+use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder;
 

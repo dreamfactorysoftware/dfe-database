@@ -1,11 +1,11 @@
-<?php namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
+<?php namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Library\Fabric\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
-use DreamFactory\Library\Fabric\Database\Enums\OwnerTypes;
-use DreamFactory\Library\Fabric\Database\Models\DeployModel;
-use DreamFactory\Library\Fabric\Database\Traits\AuthorizedEntity;
+use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
+use DreamFactory\Enterprise\Database\ModelsModel;
+use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;

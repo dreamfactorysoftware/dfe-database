@@ -1,9 +1,8 @@
 <?php
-namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
+namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Library\Fabric\Database\Models\DeployModel;
 
-class Environment extends DeployModel
+class ClusterArchive extends Cluster
 {
     //******************************************************************************
     //* Members
@@ -12,6 +11,5 @@ class Environment extends DeployModel
     /**
      * @type string The table name
      */
-    protected $table = 'environment_t';
-
+    protected $table = 'cluster_arch_t';
 }

@@ -1,11 +1,10 @@
-<?php namespace DreamFactory\Library\Fabric\Database\Enums;
+<?php namespace DreamFactory\Enterprise\Database\Enums;
 
-use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
-use DreamFactory\Library\Fabric\Database\Models\Deploy\Cluster;
-use DreamFactory\Library\Fabric\Database\Models\Deploy\Instance;
-use DreamFactory\Library\Fabric\Database\Models\Deploy\Server;
-use DreamFactory\Library\Fabric\Database\Models\Deploy\User;
-use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use DreamFactory\Enterprise\Database\Models\Cluster;
+use DreamFactory\Enterprise\Database\Models\Instance;
+use DreamFactory\Enterprise\Database\Models\Server;
+use DreamFactory\Enterprise\Database\Models\User;
+use DreamFactory\Enterprise\Database\ModelsModel;
 use DreamFactory\Library\Utility\Enums\FactoryEnum;
 use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -151,7 +150,7 @@ class OwnerTypes extends FactoryEnum
                 case static::USER:
                     $_result[$type][static::USER] = [
                         'associative-entity' => false,
-                        'owner-class'        => 'DreamFactory\\Library\\Fabric\\Database\\User',
+                        'owner-class'        => 'DreamFactory\\Enterprise\\Database\\User',
                         'owner-class-key'    => 'owner_id',
                     ];
                     break;
@@ -159,7 +158,7 @@ class OwnerTypes extends FactoryEnum
                 case static::SERVICE_USER:
                     $_result[$type][static::SERVICE_USER] = [
                         'associative-entity' => false,
-                        'owner-class'        => 'DreamFactory\\Library\\Fabric\\Database\\ServiceUser',
+                        'owner-class'        => 'DreamFactory\\Enterprise\\Database\\ServiceUser',
                         'owner-class-key'    => 'owner_id',
                     ];
                     break;
@@ -167,7 +166,7 @@ class OwnerTypes extends FactoryEnum
                 case static::MOUNT:
                     $_result[$type][static::SERVER] = [
                         'associative-entity' => false,
-                        'owner-class'        => 'DreamFactory\\Library\\Fabric\\Database\\Server',
+                        'owner-class'        => 'DreamFactory\\Enterprise\\Database\\Server',
                         'owner-class-key'    => 'mount_id',
                     ];
                     break;
@@ -175,13 +174,13 @@ class OwnerTypes extends FactoryEnum
                 case static::INSTANCE:
                     $_result[$type][static::SERVER] = [
                         'associative-entity' => 'instance_server_asgn_t',
-                        'owner-class'        => 'DreamFactory\\Library\\Fabric\\Database\\Server',
+                        'owner-class'        => 'DreamFactory\\Enterprise\\Database\\Server',
                         'owner-class-key'    => 'server_id',
                     ];
 
                     $_result[$type][static::USER] = [
                         'associative-entity' => false,
-                        'owner-class'        => 'DreamFactory\\Library\\Fabric\\Database\\User',
+                        'owner-class'        => 'DreamFactory\\Enterprise\\Database\\User',
                         'owner-class-key'    => 'user_id',
                     ];
                     break;
@@ -189,7 +188,7 @@ class OwnerTypes extends FactoryEnum
                 case static::SERVER:
                     $_result[$type][static::CLUSTER] = [
                         'associative-entity' => 'cluster_server_asgn_t',
-                        'owner-class'        => 'DreamFactory\\Library\\Fabric\\Database\\Cluster',
+                        'owner-class'        => 'DreamFactory\\Enterprise\\Database\\Cluster',
                         'owner-class-key'    => 'server_id',
                     ];
                     break;
@@ -197,7 +196,7 @@ class OwnerTypes extends FactoryEnum
                 case static::CLUSTER:
                     $_result[$type][static::USER] = [
                         'associative-entity' => false,
-                        'owner-class'        => 'DreamFactory\\Library\\Fabric\\Database\\User',
+                        'owner-class'        => 'DreamFactory\\Enterprise\\Database\\User',
                         'owner-class-key'    => 'user_id',
                     ];
                     break;

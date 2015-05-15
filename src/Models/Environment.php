@@ -1,10 +1,9 @@
 <?php
-namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
+namespace DreamFactory\Enterprise\Database\Models;
 
-/**
- * deactivation_arch_t
- */
-class DeactivationArchive extends Deactivation
+use DreamFactory\Enterprise\Database\ModelsModel;
+
+class Environment extends DeployModel
 {
     //******************************************************************************
     //* Members
@@ -13,6 +12,6 @@ class DeactivationArchive extends Deactivation
     /**
      * @type string The table name
      */
-    protected $table = 'deactivation_arch_t';
+    protected $table = 'environment_t';
 
 }

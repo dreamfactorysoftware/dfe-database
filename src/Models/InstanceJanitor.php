@@ -1,15 +1,9 @@
 <?php
-namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
+namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use DreamFactory\Enterprise\Database\ModelsModel;
 
-/**
- * user_role_asgn_t
- *
- * @property int    user_id
- * @property int    role_id
- */
-class UserRole extends DeployModel
+class InstanceJanitor extends DeployModel
 {
     //******************************************************************************
     //* Members
@@ -18,26 +12,17 @@ class UserRole extends DeployModel
     /**
      * @type string The table name
      */
-    protected $table = 'user_role_asgn_t';
+    protected $table = 'instance_janitor_t';
 
     //******************************************************************************
     //* Methods
     //******************************************************************************
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user()
     {
         return $this->hasOne( __NAMESPACE__ . '\\ServiceUser', 'user_id' );
     }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function role()
-    {
-        return $this->hasOne( __NAMESPACE__ . '\\Role' );
-    }
-
 }

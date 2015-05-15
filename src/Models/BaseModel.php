@@ -1,5 +1,5 @@
 <?php
-namespace DreamFactory\Library\Fabric\Database\Models;
+namespace DreamFactory\Enterprise\Database\Models;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -119,7 +119,7 @@ class BaseModel extends Model
     /**
      * @type string The namespace of the deployment models
      */
-    const DEPLOY_NAMESPACE = 'DreamFactory\\Library\\Fabric\\Database\\Models\\Deploy';
+    const DEPLOY_NAMESPACE = __NAMESPACE__;
     /**
      * @type string Override timestamp column
      */

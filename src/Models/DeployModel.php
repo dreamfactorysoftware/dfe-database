@@ -1,7 +1,7 @@
 <?php
-namespace DreamFactory\Library\Fabric\Database\Models;
+namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Library\Fabric\Database\Enums\OwnerTypes;
+use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 
 class DeployModel extends BaseModel
 {

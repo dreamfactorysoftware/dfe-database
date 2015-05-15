@@ -1,9 +1,9 @@
 <?php
-namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
+namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use DreamFactory\Enterprise\Database\ModelsModel;
 
-class InstanceJanitor extends DeployModel
+class OwnerHash extends DeployModel
 {
     //******************************************************************************
     //* Members
@@ -12,17 +12,20 @@ class InstanceJanitor extends DeployModel
     /**
      * @type string The table name
      */
-    protected $table = 'instance_janitor_t';
+    protected $table = 'owner_hash_t';
 
     //******************************************************************************
     //* Methods
     //******************************************************************************
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * Our owners
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function user()
+    public function owners()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\ServiceUser', 'user_id' );
+        return $this->hasMany( static::DEPLOY_NAMESPACE . '\\User', 'id', 'owner_id' );
     }
+
 }

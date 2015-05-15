@@ -9,9 +9,9 @@
  * @email   <support@dreamfactory.com>
  * @license proprietary
  */
-namespace DreamFactory\Library\Fabric\Database\Models\Deploy;
+namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Library\Fabric\Database\Models\DeployModel;
+use DreamFactory\Enterprise\Database\ModelsModel;
 
 /**
  * @property string $type_name_text
