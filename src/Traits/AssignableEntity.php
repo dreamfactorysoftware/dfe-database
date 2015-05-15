@@ -1,7 +1,8 @@
 <?php namespace DreamFactory\Enterprise\Database\Traits;
 
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
-use DreamFactory\Enterprise\Database\ModelsModel;
+use DreamFactory\Enterprise\Database\Models\ClusterServer;
+use DreamFactory\Library\Fabric\Database\Models\BaseEnterpriseModel;
 use DreamFactory\Library\Utility\IfSet;
 
 trait AssignableEntity
@@ -14,6 +15,10 @@ trait AssignableEntity
      * @type array
      */
     protected static $_assignableEntityOwnerMap = false;
+    /**
+     * @type int
+     */
+    protected static $_assignableEntityOwnerType = null;
 
     //******************************************************************************
     //* Methods
@@ -21,9 +26,9 @@ trait AssignableEntity
 
     public static function boot()
     {
-        if ( !( get_called_class() instanceof DeployModel ) )
+        if ( !( get_called_class() instanceof BaseEnterpriseModel ) )
         {
-            throw new \RuntimeException( 'This trait may only be used by the "DeployModel" class and its descendants.' );
+            throw new \RuntimeException( 'This trait may only be used by the "BaseEnterpriseModel" class and its descendants.' );
         }
 
         /** @noinspection PhpUndefinedMethodInspection */
@@ -31,8 +36,8 @@ trait AssignableEntity
     }
 
     /**
-     * @param int|string|DeployModel $fromId
-     * @param int                    $fromType
+     * @param int|string|BaseEnterpriseModel $fromId
+     * @param int                            $fromType
      *
      * @return bool True if removed from servitude
      */
@@ -64,7 +69,12 @@ trait AssignableEntity
         {
             static
 
-            $_owner = ( $fromId instanceof DeployModel ) ? $fromId : OwnerTypes::getOwner( $fromId, $fromType ?: $this->_assignableEntityOwnerType );
+            $_owner = ( $fromId instanceof BaseEnterpriseModel )
+                ? $fromId
+                : OwnerTypes::getOwner(
+                    $fromId,
+                    $fromType ?: $this->_assignableEntityOwnerType
+                );
         }
 
         if ( $this->belongsToCluster( $_cluster->id ) )
@@ -94,11 +104,11 @@ trait AssignableEntity
     /**
      * @param int|string $clusterId
      *
-     * @return Cluster
+     * @return Models\Cluster
      */
     protected function _getCluster( $clusterId )
     {
-        if ( null === ( $_cluster = Cluster::byNameOrId( $clusterId )->first() ) )
+        if ( null === ( $_cluster = Models\Cluster::byNameOrId( $clusterId )->first() ) )
         {
             throw new \InvalidArgumentException( 'The cluster id "' . $clusterId . '" is invalid.' );
         }
@@ -115,7 +125,7 @@ trait AssignableEntity
     {
         $_cluster = $this->_getCluster( $clusterId );
 
-        return 0 != ClusterServer::whereRaw(
+        return 0 != Models\ClusterServer::whereRaw(
             'cluster_id = :cluster_id AND server_id = :server_id',
             [
                 ':cluster_id' => $_cluster->id,
@@ -129,7 +139,7 @@ trait AssignableEntity
      */
     public function getAssignableEntityOwnerType()
     {
-        return $this->_assignableEntityOwnerType;
+        return static::$_assignableEntityOwnerType;
     }
 
     /**

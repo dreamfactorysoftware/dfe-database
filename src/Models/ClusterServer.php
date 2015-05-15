@@ -1,15 +1,13 @@
 <?php
 namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Enterprise\Database\ModelsModel;
-
 /**
  * cluster_server_asgn_t
  *
  * @property int cluster_id
  * @property int server_id
  */
-class ClusterServer extends DeployModel
+class ClusterServer extends BaseEnterpriseModel
 {
     //******************************************************************************
     //* Members

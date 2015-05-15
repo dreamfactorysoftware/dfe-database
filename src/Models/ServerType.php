@@ -11,13 +11,11 @@
  */
 namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Enterprise\Database\ModelsModel;
-
 /**
  * @property string $type_name_text
  * @property string $schema_text
  */
-class ServerType extends DeployModel
+class ServerType extends BaseEnterpriseModel
 {
     //******************************************************************************
     //* Members

@@ -16,7 +16,7 @@ use Illuminate\Database\Query\Builder;
  * @method static Builder withDbName( string $dbName )
  * @method static Builder onDbServer( int $dbServerId )
  */
-class InstanceServer extends DeployModel
+class InstanceServer extends BaseEnterpriseModel
 {
     //******************************************************************************
     //* Members

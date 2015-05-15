@@ -11,9 +11,8 @@
  */
 namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Enterprise\Services\Enums\ServerTypes;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
-use DreamFactory\Enterprise\Database\ModelsModel;
+use DreamFactory\Enterprise\Database\Enums\ServerTypes;
 use Illuminate\Database\Query\Builder;
 
 /**
@@ -29,7 +28,7 @@ use Illuminate\Database\Query\Builder;
  *
  * @method static Builder byNameOrId( string $nameOrId )
  */
-class Server extends DeployModel
+class Server extends BaseEnterpriseModel
 {
     //******************************************************************************
     //* Members

@@ -1,11 +1,10 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
+use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
+use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Library\Fabric\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
-use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
-use DreamFactory\Enterprise\Database\ModelsModel;
-use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
@@ -48,7 +47,7 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
  * @property int    activate_ind
  * @property string remember_token
  */
-class User extends DeployModel implements AuthenticatableContract, CanResetPasswordContract
+class User extends BaseEnterpriseModel implements AuthenticatableContract, CanResetPasswordContract
 {
     //******************************************************************************
     //* Traits
@@ -171,4 +170,5 @@ class User extends DeployModel implements AuthenticatableContract, CanResetPassw
             $this->storage_id_text
         );
     }
+
 }

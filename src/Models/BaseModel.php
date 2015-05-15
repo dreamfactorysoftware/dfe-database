@@ -101,22 +101,6 @@ class BaseModel extends Model
     //*************************************************************************
 
     /**
-     * @type string
-     */
-    const FABRIC_STORAGE_KEY = '%%STORAGE_KEY%%';
-    /**
-     * @type string
-     */
-    const FABRIC_BASE_STORAGE_PATH = '/data/storage/%%STORAGE_KEY%%';
-    /**
-     * @type string
-     */
-    const FABRIC_INSTANCE_PRIVATE_PATH = '/data/storage/%%STORAGE_KEY%%/.private';
-    /**
-     * @type string
-     */
-    const FABRIC_INSTANCE_SNAPSHOT_PATH = '/data/storage/%%STORAGE_KEY%%/.private/snapshots';
-    /**
      * @type string The namespace of the deployment models
      */
     const DEPLOY_NAMESPACE = __NAMESPACE__;

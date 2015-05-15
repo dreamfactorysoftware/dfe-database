@@ -3,7 +3,7 @@ namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Database\ModelsModel;
 
-class InstanceJanitor extends DeployModel
+class InstanceJanitor extends BaseEnterpriseModel
 {
     //******************************************************************************
     //* Members

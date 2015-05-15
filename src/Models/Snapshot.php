@@ -2,7 +2,6 @@
 namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
-use DreamFactory\Enterprise\Database\ModelsModel;
 
 /**
  * snapshot_t
@@ -13,7 +12,7 @@ use DreamFactory\Enterprise\Database\ModelsModel;
  * @property string $url_text
  * @property string $expire_date
  */
-class Snapshot extends DeployModel
+class Snapshot extends BaseEnterpriseModel
 {
     //******************************************************************************
     //* Members

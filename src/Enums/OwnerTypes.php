@@ -1,10 +1,11 @@
 <?php namespace DreamFactory\Enterprise\Database\Enums;
 
+use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
+use DreamFactory\Enterprise\Database\Models\BaseEnterpriseModel;
 use DreamFactory\Enterprise\Database\Models\Cluster;
 use DreamFactory\Enterprise\Database\Models\Instance;
 use DreamFactory\Enterprise\Database\Models\Server;
 use DreamFactory\Enterprise\Database\Models\User;
-use DreamFactory\Enterprise\Database\ModelsModel;
 use DreamFactory\Library\Utility\Enums\FactoryEnum;
 use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -77,7 +78,7 @@ class OwnerTypes extends FactoryEnum
      * @param int        $ownerId
      * @param int|string $ownerType String types will be converted to numeric equivalent
      *
-     * @return DeployModel|Cluster|User|Instance|Server
+     * @return BaseEnterpriseModel|Cluster|User|Instance|Server
      */
     public static function getOwner( $ownerId, &$ownerType )
     {

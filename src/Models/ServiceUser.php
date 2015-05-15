@@ -12,7 +12,6 @@
 namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
-use DreamFactory\Enterprise\Database\ModelsModel;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
@@ -32,7 +31,7 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
  * @property string last_login_ip_text
  * @property string remember_token
  */
-class ServiceUser extends DeployModel implements AuthenticatableContract, CanResetPasswordContract
+class ServiceUser extends BaseEnterpriseModel implements AuthenticatableContract, CanResetPasswordContract
 {
     //******************************************************************************
     //* Traits

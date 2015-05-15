@@ -3,7 +3,7 @@ namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Database\ModelsModel;
 
-class OwnerHash extends DeployModel
+class OwnerHash extends BaseEnterpriseModel
 {
     //******************************************************************************
     //* Members

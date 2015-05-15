@@ -28,7 +28,7 @@ use DreamFactory\Enterprise\Database\ModelsModel;
  *
  * @property Instance           $instance
  */
-class InstanceGuest extends DeployModel
+class InstanceGuest extends BaseEnterpriseModel
 {
     //******************************************************************************
     //* Members

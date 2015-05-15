@@ -3,33 +3,27 @@ namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
-use DreamFactory\Enterprise\Database\ModelsModel;
 use Illuminate\Database\Query\Builder;
 
 /**
  * app_key_t
  *
+ * @property int    $id
+ * @property string key_class_text
  * @property string client_id
  * @property string client_secret
  * @property int    owner_id
  * @property int    owner_type_nbr
+ * @property string created_at
+ * @property string updated_at
  *
  * @method static Builder forInstance( int $instanceId )
  * @method static Builder byOwner( int $ownerId, int $ownerType = null )
  * @method static Builder byOwnerType( int $ownerType )
  * @method static Builder byClass( string $keyClass, int $ownerId = null )
  */
-class AppKey extends DeployModel
+class AppKey extends BaseEnterpriseModel
 {
-    //******************************************************************************
-    //* Constants
-    //******************************************************************************
-
-    /** @inheritdoc */
-    const CREATED_AT = 'created_at';
-    /** @inheritdoc */
-    const UPDATED_AT = 'updated_at';
-
     //******************************************************************************
     //* Members
     //******************************************************************************
@@ -38,6 +32,12 @@ class AppKey extends DeployModel
     protected $table = 'app_key_t';
     /** @inheritdoc */
     protected $hidden = ['server_secret', 'client_secret'];
+    /** @inheritdoc */
+    protected $casts = [
+        'id'             => 'integer',
+        'owner_id'       => 'integer',
+        'owner_type_nbr' => 'integer',
+    ];
 
     //******************************************************************************
     //* Methods
@@ -194,11 +194,11 @@ class AppKey extends DeployModel
     }
 
     /**
-     * @param DeployModel $entity
+     * @param BaseEnterpriseModel $entity
      *
      * @return bool|AppKey False if entity is not authorized otherwise the created AppKey model is returned
      */
-    public static function createKeyFromEntity( DeployModel $entity )
+    public static function createKeyFromEntity( BaseEnterpriseModel $entity )
     {
         list( $_ownerId, $_ownerType ) = static::_getOwnerType( $entity );
 
@@ -215,11 +215,11 @@ class AppKey extends DeployModel
     /**
      * Destroys all keys owned by this $entity
      *
-     * @param DeployModel $entity
+     * @param BaseEnterpriseModel $entity
      *
      * @return bool|int
      */
-    public static function destroyKeys( DeployModel $entity )
+    public static function destroyKeys( BaseEnterpriseModel $entity )
     {
         if ( false === ( list( $_ownerId, $_ownerType ) = static::_getOwnerType( $entity ) ) )
         {
@@ -233,11 +233,11 @@ class AppKey extends DeployModel
     /**
      * Get an entity's owner and type
      *
-     * @param DeployModel $entity
+     * @param BaseEnterpriseModel $entity
      *
      * @return array|bool Array of attributes ['owner_id' => int, 'owner_type_nbr' => int] or FALSE if no key required
      */
-    protected static function _getOwnerType( DeployModel $entity )
+    protected static function _getOwnerType( BaseEnterpriseModel $entity )
     {
         //  Don't bother with archive or assignment tables
         if ( !in_array( substr( $entity->getTable(), -7 ), ['_asgn_t', '_arch_t'] ) )

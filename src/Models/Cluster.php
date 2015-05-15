@@ -2,7 +2,6 @@
 namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
-use DreamFactory\Enterprise\Database\ModelsModel;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder;
@@ -16,7 +15,7 @@ use Illuminate\Database\Query\Builder;
  *
  * @method static Builder byNameOrId( string $clusterNameOrId )
  */
-class Cluster extends DeployModel
+class Cluster extends BaseEnterpriseModel
 {
     //******************************************************************************
     //* Traits

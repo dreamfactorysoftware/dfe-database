@@ -1,15 +1,13 @@
 <?php
 namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Enterprise\Database\ModelsModel;
-
 /**
  * user_role_asgn_t
  *
  * @property int    user_id
  * @property int    role_id
  */
-class UserRole extends DeployModel
+class UserRole extends BaseEnterpriseModel
 {
     //******************************************************************************
     //* Members

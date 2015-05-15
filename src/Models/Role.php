@@ -11,7 +11,7 @@ use DreamFactory\Enterprise\Database\ModelsModel;
  * @property bool   active_ind
  * @property string home_view_text
  */
-class Role extends DeployModel
+class Role extends BaseEnterpriseModel
 {
     //******************************************************************************
     //* Members

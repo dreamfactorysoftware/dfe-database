@@ -61,7 +61,7 @@ use Illuminate\Filesystem\FilesystemAdapter;
  * @method static Builder withDbName( string $dbName )
  * @method static Builder onDbServer( int $dbServerId )
  */
-class Instance extends DeployModel
+class Instance extends BaseEnterpriseModel
 {
     //******************************************************************************
     //* Constants

@@ -1,8 +1,6 @@
 <?php
 namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Enterprise\Database\ModelsModel;
-
 /**
  * route_hash_t
  *
@@ -12,7 +10,7 @@ use DreamFactory\Enterprise\Database\ModelsModel;
  * @property string $actual_path_text
  * @property string expireDate
  */
-class RouteHash extends DeployModel
+class RouteHash extends BaseEnterpriseModel
 {
     //******************************************************************************
     //* Members
