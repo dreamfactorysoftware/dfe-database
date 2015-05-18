@@ -1,8 +1,6 @@
 <?php
 namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Enterprise\Database\ModelsModel;
-
 /**
  * role_t
  *
@@ -11,7 +9,7 @@ use DreamFactory\Enterprise\Database\ModelsModel;
  * @property bool   active_ind
  * @property string home_view_text
  */
-class Role extends BaseEnterpriseModel
+class Role extends EnterpriseModel
 {
     //******************************************************************************
     //* Members

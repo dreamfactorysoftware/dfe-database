@@ -12,7 +12,7 @@ use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
  * @property string $url_text
  * @property string $expire_date
  */
-class Snapshot extends BaseEnterpriseModel
+class Snapshot extends EnterpriseModel
 {
     //******************************************************************************
     //* Members

@@ -10,7 +10,7 @@ namespace DreamFactory\Enterprise\Database\Models;
  * @property string $actual_path_text
  * @property string expireDate
  */
-class RouteHash extends BaseEnterpriseModel
+class RouteHash extends EnterpriseModel
 {
     //******************************************************************************
     //* Members

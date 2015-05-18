@@ -47,7 +47,7 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
  * @property int    activate_ind
  * @property string remember_token
  */
-class User extends BaseEnterpriseModel implements AuthenticatableContract, CanResetPasswordContract
+class User extends EnterpriseModel implements AuthenticatableContract, CanResetPasswordContract
 {
     //******************************************************************************
     //* Traits

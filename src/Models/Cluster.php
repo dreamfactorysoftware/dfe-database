@@ -15,7 +15,7 @@ use Illuminate\Database\Query\Builder;
  *
  * @method static Builder byNameOrId( string $clusterNameOrId )
  */
-class Cluster extends BaseEnterpriseModel
+class Cluster extends EnterpriseModel
 {
     //******************************************************************************
     //* Traits

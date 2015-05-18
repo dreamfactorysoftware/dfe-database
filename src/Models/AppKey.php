@@ -22,7 +22,7 @@ use Illuminate\Database\Query\Builder;
  * @method static Builder byOwnerType( int $ownerType )
  * @method static Builder byClass( string $keyClass, int $ownerId = null )
  */
-class AppKey extends BaseEnterpriseModel
+class AppKey extends EnterpriseModel
 {
     //******************************************************************************
     //* Members
@@ -194,11 +194,11 @@ class AppKey extends BaseEnterpriseModel
     }
 
     /**
-     * @param BaseEnterpriseModel $entity
+     * @param EnterpriseModel $entity
      *
      * @return bool|AppKey False if entity is not authorized otherwise the created AppKey model is returned
      */
-    public static function createKeyFromEntity( BaseEnterpriseModel $entity )
+    public static function createKeyFromEntity( EnterpriseModel $entity )
     {
         list( $_ownerId, $_ownerType ) = static::_getOwnerType( $entity );
 
@@ -215,11 +215,11 @@ class AppKey extends BaseEnterpriseModel
     /**
      * Destroys all keys owned by this $entity
      *
-     * @param BaseEnterpriseModel $entity
+     * @param EnterpriseModel $entity
      *
      * @return bool|int
      */
-    public static function destroyKeys( BaseEnterpriseModel $entity )
+    public static function destroyKeys( EnterpriseModel $entity )
     {
         if ( false === ( list( $_ownerId, $_ownerType ) = static::_getOwnerType( $entity ) ) )
         {
@@ -233,11 +233,11 @@ class AppKey extends BaseEnterpriseModel
     /**
      * Get an entity's owner and type
      *
-     * @param BaseEnterpriseModel $entity
+     * @param EnterpriseModel $entity
      *
      * @return array|bool Array of attributes ['owner_id' => int, 'owner_type_nbr' => int] or FALSE if no key required
      */
-    protected static function _getOwnerType( BaseEnterpriseModel $entity )
+    protected static function _getOwnerType( EnterpriseModel $entity )
     {
         //  Don't bother with archive or assignment tables
         if ( !in_array( substr( $entity->getTable(), -7 ), ['_asgn_t', '_arch_t'] ) )

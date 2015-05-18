@@ -16,7 +16,7 @@ use Illuminate\Database\Query\Builder;
  *
  * @method static Builder instanceId( int $instanceId )
  */
-class Deactivation extends BaseEnterpriseModel
+class Deactivation extends EnterpriseModel
 {
     //******************************************************************************
     //* Members

@@ -28,7 +28,7 @@ use Illuminate\Database\Query\Builder;
  *
  * @method static Builder byNameOrId( string $nameOrId )
  */
-class Server extends BaseEnterpriseModel
+class Server extends EnterpriseModel
 {
     //******************************************************************************
     //* Members

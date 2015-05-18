@@ -1,12 +1,13 @@
 <?php
 namespace DreamFactory\Enterprise\Database\Models;
 
+use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 
 /**
- * Base class for DFE models
+ * Base class for all DFE models
  *
  * @property int   id
  * @property mixed lmod_date
@@ -94,16 +95,12 @@ use Illuminate\Database\Query\Builder;
  * @method static mixed truncate()
  * @method static Builder raw( $value )
  */
-class BaseModel extends Model
+class EnterpriseModel extends Model
 {
     //*************************************************************************
     //* Constants
     //*************************************************************************
 
-    /**
-     * @type string The namespace of the deployment models
-     */
-    const DEPLOY_NAMESPACE = __NAMESPACE__;
     /**
      * @type string Override timestamp column
      */
@@ -112,6 +109,10 @@ class BaseModel extends Model
      * @type string Override timestamp column
      */
     const CREATED_AT = 'create_date';
+    /**
+     * @type string The namespace of the deployment models
+     */
+    const DEPLOY_NAMESPACE = __NAMESPACE__;
     /**
      * @type string
      */
@@ -122,6 +123,10 @@ class BaseModel extends Model
     //******************************************************************************
 
     /**
+     * @type int The type of entity which can own this entity
+     */
+    protected static $_assignmentOwnerType = false;
+    /**
      * @type bool
      */
     protected static $unguarded = true;
@@ -130,4 +135,24 @@ class BaseModel extends Model
      */
     protected $connection = 'dfe-local';
 
+    /**
+     * @return int
+     */
+    public static function getAssignmentOwnerType()
+    {
+        return static::$_assignmentOwnerType;
+    }
+
+    /**
+     * @param int $assignmentOwnerType
+     */
+    public static function setAssignmentOwnerType( $assignmentOwnerType )
+    {
+        if ( !OwnerTypes::contains( $assignmentOwnerType ) )
+        {
+            throw new \InvalidArgumentException( 'The owner type "' . $assignmentOwnerType . '" is invalid.' );
+        }
+
+        static::$_assignmentOwnerType = $assignmentOwnerType;
+    }
 }

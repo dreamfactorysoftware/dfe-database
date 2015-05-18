@@ -19,7 +19,7 @@ use Illuminate\Database\Query\Builder;
  *
  * @method static \Illuminate\Database\Query\Builder byNameOrId( string $mountNameOrId )
  */
-class Mount extends BaseEnterpriseModel
+class Mount extends EnterpriseModel
 {
     //******************************************************************************
     //* Traits

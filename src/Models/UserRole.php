@@ -7,7 +7,7 @@ namespace DreamFactory\Enterprise\Database\Models;
  * @property int    user_id
  * @property int    role_id
  */
-class UserRole extends BaseEnterpriseModel
+class UserRole extends EnterpriseModel
 {
     //******************************************************************************
     //* Members

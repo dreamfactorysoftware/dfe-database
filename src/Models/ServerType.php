@@ -15,7 +15,7 @@ namespace DreamFactory\Enterprise\Database\Models;
  * @property string $type_name_text
  * @property string $schema_text
  */
-class ServerType extends BaseEnterpriseModel
+class ServerType extends EnterpriseModel
 {
     //******************************************************************************
     //* Members

@@ -1,8 +1,8 @@
 <?php namespace DreamFactory\Enterprise\Database\Enums;
 
 use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
-use DreamFactory\Enterprise\Database\Models\BaseEnterpriseModel;
 use DreamFactory\Enterprise\Database\Models\Cluster;
+use DreamFactory\Enterprise\Database\Models\EnterpriseModel;
 use DreamFactory\Enterprise\Database\Models\Instance;
 use DreamFactory\Enterprise\Database\Models\Server;
 use DreamFactory\Enterprise\Database\Models\User;
@@ -78,7 +78,7 @@ class OwnerTypes extends FactoryEnum
      * @param int        $ownerId
      * @param int|string $ownerType String types will be converted to numeric equivalent
      *
-     * @return BaseEnterpriseModel|Cluster|User|Instance|Server
+     * @return EnterpriseModel|Cluster|User|Instance|Server
      */
     public static function getOwner( $ownerId, &$ownerType )
     {
@@ -97,7 +97,10 @@ class OwnerTypes extends FactoryEnum
             }
         }
 
-        if ( $ownerType >= 1000 )
+        /**
+         * Owner types >= 1000 are logical entities (i.e. console, dashboard, etc.) and have no database counterpart
+         */
+        if ( $ownerType >= static::CONSOLE )
         {
             $_owner = new \stdClass();
             $_owner->id = $ownerId;
@@ -149,61 +152,69 @@ class OwnerTypes extends FactoryEnum
             switch ( $type )
             {
                 case static::USER:
-                    $_result[$type][static::USER] = [
-                        'associative-entity' => false,
-                        'owner-class'        => 'DreamFactory\\Enterprise\\Database\\User',
-                        'owner-class-key'    => 'owner_id',
-                    ];
+                    $_result[$type][static::USER] = static::_createOwnerType(
+                        'DreamFactory\\Enterprise\\Database\\User',
+                        'owner_id'
+                    );
                     break;
 
                 case static::SERVICE_USER:
-                    $_result[$type][static::SERVICE_USER] = [
-                        'associative-entity' => false,
-                        'owner-class'        => 'DreamFactory\\Enterprise\\Database\\ServiceUser',
-                        'owner-class-key'    => 'owner_id',
-                    ];
+                    $_result[$type][static::SERVICE_USER] = static::_createOwnerType(
+                        'DreamFactory\\Enterprise\\Database\\ServiceUser',
+                        'owner_id'
+                    );
                     break;
 
                 case static::MOUNT:
-                    $_result[$type][static::SERVER] = [
-                        'associative-entity' => false,
-                        'owner-class'        => 'DreamFactory\\Enterprise\\Database\\Server',
-                        'owner-class-key'    => 'mount_id',
-                    ];
+                    $_result[$type][static::SERVER] = static::_createOwnerType(
+                        'DreamFactory\\Enterprise\\Database\\Server',
+                        'mount_id'
+                    );
                     break;
 
                 case static::INSTANCE:
-                    $_result[$type][static::SERVER] = [
-                        'associative-entity' => 'instance_server_asgn_t',
-                        'owner-class'        => 'DreamFactory\\Enterprise\\Database\\Server',
-                        'owner-class-key'    => 'server_id',
-                    ];
+                    $_result[$type][static::SERVER] = static::_createOwnerType(
+                        'DreamFactory\\Enterprise\\Database\\Server',
+                        'server_id',
+                        'instance_server_asgn_t'
+                    );
 
-                    $_result[$type][static::USER] = [
-                        'associative-entity' => false,
-                        'owner-class'        => 'DreamFactory\\Enterprise\\Database\\User',
-                        'owner-class-key'    => 'user_id',
-                    ];
+                    $_result[$type][static::USER] = static::_createOwnerType(
+                        'DreamFactory\\Enterprise\\Database\\User',
+                        'user_id'
+                    );
                     break;
 
                 case static::SERVER:
-                    $_result[$type][static::CLUSTER] = [
-                        'associative-entity' => 'cluster_server_asgn_t',
-                        'owner-class'        => 'DreamFactory\\Enterprise\\Database\\Cluster',
-                        'owner-class-key'    => 'server_id',
-                    ];
+                    $_result[$type][static::CLUSTER] = static::_createOwnerType(
+                        'DreamFactory\\Enterprise\\Database\\Cluster',
+                        'server_id',
+                        'cluster_server_asgn_t'
+                    );
                     break;
 
                 case static::CLUSTER:
-                    $_result[$type][static::USER] = [
-                        'associative-entity' => false,
-                        'owner-class'        => 'DreamFactory\\Enterprise\\Database\\User',
-                        'owner-class-key'    => 'user_id',
-                    ];
+                    $_result[$type][static::USER] = static::_createOwnerType( 'DreamFactory\\Enterprise\\Database\\User', 'user_id' );
                     break;
             }
         }
 
         return $returnAll ? $_result : IfSet::get( $_result, $type, false );
+    }
+
+    /**
+     * @param string      $class
+     * @param string      $key
+     * @param string|bool $assoc The name of the associative entity, or FALSE for none
+     *
+     * @return array
+     */
+    protected static function _createOwnerType( $class, $key, $assoc = false )
+    {
+        return [
+            'owner-class'        => $class,
+            'owner-class-key'    => $key,
+            'associative-entity' => $assoc,
+        ];
     }
 }

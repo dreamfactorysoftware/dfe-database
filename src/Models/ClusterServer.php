@@ -7,7 +7,7 @@ namespace DreamFactory\Enterprise\Database\Models;
  * @property int cluster_id
  * @property int server_id
  */
-class ClusterServer extends BaseEnterpriseModel
+class ClusterServer extends EnterpriseModel
 {
     //******************************************************************************
     //* Members
