@@ -19,7 +19,7 @@ trait AuthorizedEntity
         );
 
         static::deleted(
-            function ( EnterpriseModel $model )
+            function ( BaseEnterpriseModel $model )
             {
                 AppKey::destroyKeys( $model );
             }
