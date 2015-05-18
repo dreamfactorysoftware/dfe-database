@@ -1,5 +1,4 @@
-<?php
-namespace DreamFactory\Enterprise\Database\Models;
+<?php namespace DreamFactory\Enterprise\Database\Models;
 
 /**
  * route_hash_t

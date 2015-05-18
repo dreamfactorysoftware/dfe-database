@@ -1,5 +1,4 @@
-<?php
-namespace DreamFactory\Enterprise\Database\Models;
+<?php namespace DreamFactory\Enterprise\Database\Models;
 
 /**
  * instance_arch_t

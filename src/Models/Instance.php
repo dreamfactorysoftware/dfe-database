@@ -1,15 +1,16 @@
-<?php
-namespace DreamFactory\Enterprise\Database\Models;
+<?php namespace DreamFactory\Enterprise\Database\Models;
 
+use DreamFactory\Enterprise\Common\Enums\EnterprisePaths;
+use DreamFactory\Enterprise\Common\Enums\OperationalStates;
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use DreamFactory\Enterprise\Common\Utility\UniqueId;
+use DreamFactory\Enterprise\Database\Enums\DeactivationReasons;
 use DreamFactory\Enterprise\Database\Enums\GuestLocations;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Enterprise\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Services\Utility\InstanceMetadata;
-use DreamFactory\Library\Enterprise\Storage\Enums\EnterprisePaths;
 use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Filesystem\FilesystemAdapter;

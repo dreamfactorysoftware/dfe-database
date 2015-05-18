@@ -1,12 +1,10 @@
-<?php
-namespace DreamFactory\Enterprise\Database\Models;
+<?php namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
-use DreamFactory\Enterprise\Services\Facades\Mounter;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Exceptions\MountException;
-use DreamFactory\Enterprise\Database\ModelsModel;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
+use DreamFactory\Enterprise\Services\Facades\Mounter;
 use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Query\Builder;
 
@@ -17,7 +15,7 @@ use Illuminate\Database\Query\Builder;
  * @property string mount_id_text
  * @property string config_text
  *
- * @method static \Illuminate\Database\Query\Builder byNameOrId( string $mountNameOrId )
+ * @method static Builder byNameOrId( string $mountNameOrId )
  */
 class Mount extends EnterpriseModel
 {

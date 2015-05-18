@@ -1,7 +1,5 @@
-<?php
-namespace DreamFactory\Enterprise\Database\Models;
+<?php namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Enterprise\Database\ModelsModel;
 use Illuminate\Database\Query\Builder;
 
 /**

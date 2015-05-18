@@ -1,7 +1,4 @@
-<?php
-namespace DreamFactory\Enterprise\Database\Models;
-
-use DreamFactory\Enterprise\Database\ModelsModel;
+<?php namespace DreamFactory\Enterprise\Database\Models;
 
 class InstanceJanitor extends EnterpriseModel
 {
