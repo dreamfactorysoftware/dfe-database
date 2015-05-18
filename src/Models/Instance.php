@@ -55,6 +55,7 @@ use Illuminate\Filesystem\FilesystemAdapter;
  *
  * @method static Builder instanceName( string $instanceName )
  * @method static Builder byNameOrId( string $instanceNameOrId )
+ * @method static Builder userId( int $userId )
  * @method static Builder withDbName( string $dbName )
  * @method static Builder onDbServer( int $dbServerId )
  */
@@ -742,14 +743,13 @@ class Instance extends EnterpriseModel
     /**
      * Returns the relative root directory of this instance's storage
      *
-     * @param string $path
      * @param string $tag
      *
      * @return FilesystemAdapter
      */
-    public function getRootStorageMount( $path = null, $tag = null )
+    public function getRootStorageMount( $tag = null )
     {
-        return \InstanceStorage::getRootStorageMount( $this, $path, $tag );
+        return \InstanceStorage::getRootStorageMount( $this, $tag );
     }
 
     /**
