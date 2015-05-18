@@ -1,15 +1,4 @@
-<?php
-/**
- * This file is part of the DreamFactory Fabric(tm) Tools Library
- *
- * Copyright 2014 DreamFactory Software, Inc. All Rights Reserved.
- *
- * Proprietary code, DO NOT DISTRIBUTE!
- *
- * @email   <support@dreamfactory.com>
- * @license proprietary
- */
-namespace DreamFactory\Enterprise\Database\Models;
+<?php namespace DreamFactory\Enterprise\Database\Models;
 
 /**
  * @property string $type_name_text

@@ -2,15 +2,14 @@
 namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
-use DreamFactory\Library\Fabric\Common\Enums\DeactivationReasons;
-use DreamFactory\Library\Fabric\Common\Enums\EnterprisePaths;
-use DreamFactory\Library\Fabric\Common\Enums\OperationalStates;
-use DreamFactory\Library\Fabric\Common\Exceptions\InstanceNotActivatedException;
-use DreamFactory\Library\Fabric\Common\Exceptions\InstanceUnlockedException;
-use DreamFactory\Library\Fabric\Common\Utility\UniqueId;
+use DreamFactory\Enterprise\Common\Utility\UniqueId;
 use DreamFactory\Enterprise\Database\Enums\GuestLocations;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
+use DreamFactory\Enterprise\Database\Exceptions\InstanceNotActivatedException;
+use DreamFactory\Enterprise\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
+use DreamFactory\Enterprise\Services\Utility\InstanceMetadata;
+use DreamFactory\Library\Enterprise\Storage\Enums\EnterprisePaths;
 use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Filesystem\FilesystemAdapter;
@@ -390,7 +389,7 @@ class Instance extends EnterpriseModel
      */
     public function getStoragePath()
     {
-        return InstanceStorage::getStoragePath( $this );
+        return \InstanceStorage::getStoragePath( $this );
     }
 
     /**
@@ -398,7 +397,7 @@ class Instance extends EnterpriseModel
      */
     public function getSnapshotPath()
     {
-        return InstanceStorage::getSnapshotPath( $this );
+        return \InstanceStorage::getSnapshotPath( $this );
     }
 
     /**
@@ -408,7 +407,7 @@ class Instance extends EnterpriseModel
      */
     public function getPrivatePath()
     {
-        return InstanceStorage::getPrivatePath( $this );
+        return \InstanceStorage::getPrivatePath( $this );
     }
 
     /**
@@ -418,7 +417,7 @@ class Instance extends EnterpriseModel
      */
     public function getOwnerPrivatePath()
     {
-        return InstanceStorage::getOwnerPrivatePath( $this );
+        return \InstanceStorage::getOwnerPrivatePath( $this );
     }
 
     /**
@@ -749,7 +748,7 @@ class Instance extends EnterpriseModel
      */
     public function getRootStorageMount( $path = null, $tag = null )
     {
-        return InstanceStorage::getRootStorageMount( $this, $path, $tag );
+        return \InstanceStorage::getRootStorageMount( $this, $path, $tag );
     }
 
     /**
@@ -761,7 +760,7 @@ class Instance extends EnterpriseModel
      */
     public function getSnapshotMount( $tag = null )
     {
-        return InstanceStorage::getSnapshotMount( $this, $tag );
+        return \InstanceStorage::getSnapshotMount( $this, $tag );
     }
 
     /**
@@ -771,7 +770,7 @@ class Instance extends EnterpriseModel
      */
     public function getStorageMount( $tag = null )
     {
-        return InstanceStorage::getStorageMount( $this, $tag );
+        return \InstanceStorage::getStorageMount( $this, $tag );
     }
 
     /**
@@ -781,7 +780,7 @@ class Instance extends EnterpriseModel
      */
     public function getPrivateStorageMount( $tag = null )
     {
-        return InstanceStorage::getPrivateStorageMount( $this, $tag );
+        return \InstanceStorage::getPrivateStorageMount( $this, $tag );
     }
 
     /**
@@ -791,7 +790,7 @@ class Instance extends EnterpriseModel
      */
     public function getOwnerPrivateStorageMount( $tag = null )
     {
-        return InstanceStorage::getOwnerPrivateStorageMount( $this, $tag );
+        return \InstanceStorage::getOwnerPrivateStorageMount( $this, $tag );
     }
 
     /**
