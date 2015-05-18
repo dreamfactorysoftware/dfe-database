@@ -1,8 +1,7 @@
 <?php namespace DreamFactory\Enterprise\Database\Traits;
 
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
-use DreamFactory\Enterprise\Database\Models\ClusterServer;
-use DreamFactory\Library\Fabric\Database\Models\EnterpriseModel;
+use DreamFactory\Enterprise\Database\Models\BaseEnterpriseModel;
 use DreamFactory\Library\Utility\IfSet;
 
 trait AssignableEntity
@@ -14,124 +13,78 @@ trait AssignableEntity
     /**
      * @type array
      */
-    protected static $_assignableEntityOwnerMap = false;
+    private static $_assignableEntityOwnerMap = false;
     /**
      * @type int
      */
-    protected static $_assignableEntityOwnerType = null;
+    private static $_assignableEntityOwnerType = null;
 
     //******************************************************************************
     //* Methods
     //******************************************************************************
 
+    /**
+     * Boot the trait
+     */
     public static function boot()
     {
-        if ( !( get_called_class() instanceof EnterpriseModel ) )
+        if ( !( get_called_class() instanceof BaseEnterpriseModel ) )
         {
-            throw new \RuntimeException( 'This trait may only be used by the "EnterpriseModel" class and its descendants.' );
+            throw new \RuntimeException( 'This trait may only be used by the "BaseEnterpriseModel" class and its descendants.' );
         }
 
         /** @noinspection PhpUndefinedMethodInspection */
-        static::$_assignableEntityOwnerMap = OwnerTypes::getOwnerInfo( static::getAssignmentOwnerType() );
+        null !== static::$_assignableEntityOwnerType &&
+        ( static::$_assignableEntityOwnerMap = OwnerTypes::getOwnerInfo( static::$_assignableEntityOwnerType ) );
     }
 
     /**
-     * @param int|string|EnterpriseModel $fromId
+     * @param int $toId
+     * @param int $toType
+     *
+     * @return bool
+     */
+    public function assignEntity( $toId, $toType = null )
+    {
+        $_map = static::_getAssignmentOwnerInfo( $toType ?: static::$_assignableEntityOwnerType );
+
+        if ( false === ( $_assocClass = IfSet::get( $_map, 'associative-entity' ) ) )
+        {
+            return false;
+        }
+
+        /** @type BaseEnterpriseModel $_assoc */
+        $_assoc = new $_assocClass();
+
+        /** @noinspection PhpUndefinedFieldInspection */
+
+        return 1 == $_assoc->insert( [$_map['foreign-key'] => $toId, $_map['owner-class-key'] => $this->id] );
+    }
+
+    /**
+     * @param int|string|BaseEnterpriseModel $fromId
      * @param int                            $fromType
      *
      * @return bool True if removed from servitude
      */
     public function unassignEntity( $fromId, $fromType = null )
     {
-        $_info = $this->_getAssignmentOwnerInfo( $fromType );
+        $_map = static::_getAssignmentOwnerInfo( $fromType ?: static::$_assignableEntityOwnerType );
 
-        /** @noinspection PhpUndefinedMethodInspection */
-        if ( false === ( $fromType = $fromType ?: static::getAssignmentOwnerType() ) )
+        if ( false === ( $_assocClass = IfSet::get( $_map, 'associative-entity' ) ) )
         {
-            return true;
+            return false;
         }
 
-        $_info = IfSet::get( static::$_assignableEntityOwnerMap, $fromType, [] );
+        /** @type BaseEnterpriseModel $_assoc */
+        $_assoc = new $_assocClass();
+        /** @noinspection PhpUndefinedFieldInspection */
+        $_count = $_assoc->where( $_map['foreign-key'], $fromId )->where( $_map['owner-class-key'], $this->id )->delete();
+        \Log::debug( '[AssignableEntity] deleted ' . $_count . ' row(s) from "' . $_assoc->getTable() . '"' );
 
-        if ( empty( $_info ) )
-        {
-            static::$_assignableEntityOwnerMap = OwnerTypes::getOwnerInfo( $fromType );
-        }
+        /** @noinspection PhpUndefinedFieldInspection */
 
-        if ( !$fromType )
-        {
-            return true;
-        }
-
-        $_info = OwnerTypes::getOwnerInfo( $fromType );
-
-        if ( null !== $fromType )
-        {
-            static
-
-            $_owner = ( $fromId instanceof EnterpriseModel )
-                ? $fromId
-                : OwnerTypes::getOwner(
-                    $fromId,
-                    $fromType ?: $this->_assignableEntityOwnerType
-                );
-        }
-
-        if ( $this->belongsToCluster( $_cluster->id ) )
-        {
-            return
-                1 == ClusterServer::where( 'cluster_id', '=', $_cluster->id )
-                    ->where( 'server_id', '=', $this->id )
-                    ->delete();
-        }
-
-        return false;
-    }
-
-    /**
-     * @param int|string $clusterId
-     *
-     * @return bool
-     */
-    public function addToCluster( $clusterId )
-    {
-        //  This will fail if $clusterId is bogus
-        $this->removeFromCluster( $_cluster = $this->_getCluster( $clusterId ) );
-
-        return 1 == ClusterServer::insert( ['cluster_id' => $_cluster->id, 'server_id' => $this->id] );
-    }
-
-    /**
-     * @param int|string $clusterId
-     *
-     * @return Models\Cluster
-     */
-    protected function _getCluster( $clusterId )
-    {
-        if ( null === ( $_cluster = Models\Cluster::byNameOrId( $clusterId )->first() ) )
-        {
-            throw new \InvalidArgumentException( 'The cluster id "' . $clusterId . '" is invalid.' );
-        }
-
-        return $_cluster;
-    }
-
-    /**
-     * @param int|string $clusterId
-     *
-     * @return bool True if this instance
-     */
-    public function belongsToCluster( $clusterId )
-    {
-        $_cluster = $this->_getCluster( $clusterId );
-
-        return 0 != Models\ClusterServer::whereRaw(
-            'cluster_id = :cluster_id AND server_id = :server_id',
-            [
-                ':cluster_id' => $_cluster->id,
-                ':server_id'  => $this->id
-            ]
-        )->count();
+        return 0 > $_count;
     }
 
     /**
@@ -147,27 +100,28 @@ trait AssignableEntity
      *
      * @return AssignableEntity
      */
-    public function setAssignableEntityOwnerType( $assignableEntityOwnerType )
+    public static function setAssignableEntityOwnerType( $assignableEntityOwnerType )
     {
         if ( !OwnerTypes::contains( $assignableEntityOwnerType ) )
         {
             throw new \InvalidArgumentException( 'The owner type "' . $assignableEntityOwnerType . '" is invalid.' );
         }
 
-        $this->_assignableEntityOwnerType = $assignableEntityOwnerType;
-        $this->_ownerClass = 'DreamFactory\\Enterprise\\Database\\Deploy\\' . OwnerTypes::prettyNameOf( $assignableEntityOwnerType );
-
-        return $this;
+        static::$_assignableEntityOwnerType = $assignableEntityOwnerType;
     }
 
     /**
      * @param int $ownerType
+     *
+     * @return array
      */
-    protected function _getAssignmentOwnerInfo( $ownerType )
+    protected static function _getAssignmentOwnerInfo( $ownerType )
     {
         if ( null !== ( $_info = IfSet::get( static::$_assignableEntityOwnerMap, $ownerType ) ) )
         {
-            static::$_assignableEntityOwnerMap[$ownerType] = OwnerTypes::getOwnerInfo( $ownerType, false );
+            static::$_assignableEntityOwnerMap[$ownerType] = $_info = OwnerTypes::getOwnerInfo( $ownerType, false );
         }
+
+        return $_info;
     }
 }

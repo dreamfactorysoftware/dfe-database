@@ -1,8 +1,8 @@
 <?php namespace DreamFactory\Enterprise\Database\Enums;
 
 use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
+use DreamFactory\Enterprise\Database\Models\BaseEnterpriseModel;
 use DreamFactory\Enterprise\Database\Models\Cluster;
-use DreamFactory\Enterprise\Database\Models\EnterpriseModel;
 use DreamFactory\Enterprise\Database\Models\Instance;
 use DreamFactory\Enterprise\Database\Models\Server;
 use DreamFactory\Enterprise\Database\Models\User;
@@ -71,6 +71,15 @@ class OwnerTypes extends FactoryEnum
     const SERVICE = 1003;
 
     //******************************************************************************
+    //* Private Constants
+    //******************************************************************************
+
+    /**
+     * @type string My default namespace
+     */
+    const _DEFAULT_NAMESPACE_ = 'DreamFactory\\Enterprise\\Database\\Models';
+
+    //******************************************************************************
     //* Methods
     //******************************************************************************
 
@@ -78,7 +87,7 @@ class OwnerTypes extends FactoryEnum
      * @param int        $ownerId
      * @param int|string $ownerType String types will be converted to numeric equivalent
      *
-     * @return EnterpriseModel|Cluster|User|Instance|Server
+     * @return BaseEnterpriseModel|Cluster|User|Instance|Server
      */
     public static function getOwner( $ownerId, &$ownerType )
     {
@@ -97,9 +106,7 @@ class OwnerTypes extends FactoryEnum
             }
         }
 
-        /**
-         * Owner types >= 1000 are logical entities (i.e. console, dashboard, etc.) and have no database counterpart
-         */
+        //  Owner types >= 1000 are reserved for logical, non-physical, entities such as the console or dashboard
         if ( $ownerType >= static::CONSOLE )
         {
             $_owner = new \stdClass();
@@ -152,49 +159,28 @@ class OwnerTypes extends FactoryEnum
             switch ( $type )
             {
                 case static::USER:
-                    $_result[$type][static::USER] = static::_createOwnerType(
-                        'DreamFactory\\Enterprise\\Database\\User',
-                        'owner_id'
-                    );
+                    $_result[$type][static::USER] = static::_buildOwnerMapping( 'User', 'owner_id' );
                     break;
 
                 case static::SERVICE_USER:
-                    $_result[$type][static::SERVICE_USER] = static::_createOwnerType(
-                        'DreamFactory\\Enterprise\\Database\\ServiceUser',
-                        'owner_id'
-                    );
+                    $_result[$type][static::SERVICE_USER] = static::_buildOwnerMapping( 'ServiceUser', 'owner_id' );
                     break;
 
                 case static::MOUNT:
-                    $_result[$type][static::SERVER] = static::_createOwnerType(
-                        'DreamFactory\\Enterprise\\Database\\Server',
-                        'mount_id'
-                    );
+                    $_result[$type][static::SERVER] = static::_buildOwnerMapping( 'Server', 'mount_id' );
                     break;
 
                 case static::INSTANCE:
-                    $_result[$type][static::SERVER] = static::_createOwnerType(
-                        'DreamFactory\\Enterprise\\Database\\Server',
-                        'server_id',
-                        'instance_server_asgn_t'
-                    );
-
-                    $_result[$type][static::USER] = static::_createOwnerType(
-                        'DreamFactory\\Enterprise\\Database\\User',
-                        'user_id'
-                    );
+                    $_result[$type][static::SERVER] = static::_buildOwnerMapping( 'Server', 'server_id', 'InstanceServer', 'instance_id' );
+                    $_result[$type][static::USER] = static::_buildOwnerMapping( 'User', 'user_id' );
                     break;
 
                 case static::SERVER:
-                    $_result[$type][static::CLUSTER] = static::_createOwnerType(
-                        'DreamFactory\\Enterprise\\Database\\Cluster',
-                        'server_id',
-                        'cluster_server_asgn_t'
-                    );
+                    $_result[$type][static::CLUSTER] = static::_buildOwnerMapping( 'Cluster', 'server_id', 'ClusterServer', 'cluster_id' );
                     break;
 
                 case static::CLUSTER:
-                    $_result[$type][static::USER] = static::_createOwnerType( 'DreamFactory\\Enterprise\\Database\\User', 'user_id' );
+                    $_result[$type][static::USER] = static::_buildOwnerMapping( 'User', 'user_id' );
                     break;
             }
         }
@@ -203,18 +189,34 @@ class OwnerTypes extends FactoryEnum
     }
 
     /**
-     * @param string      $class
-     * @param string      $key
-     * @param string|bool $assoc The name of the associative entity, or FALSE for none
+     * Retrieve mapping info for an owner type.
+     *
+     * ** Classes that are not fully qualified are prefixed with this library's namespace by default. **
+     *
+     * @param string $class      The name of the owner's class
+     * @param string $classKey   The owner id column
+     * @param bool   $assoc      The associative entity model class
+     * @param bool   $foreignKey The foreign key within the associative entity for the mapping
      *
      * @return array
      */
-    protected static function _createOwnerType( $class, $key, $assoc = false )
+    protected static function _buildOwnerMapping( $class, $classKey, $assoc = false, $foreignKey = false )
     {
+        $_class =
+            ( false === strpos( $class, '\\' ) && class_exists( static::_DEFAULT_NAMESPACE_ . '\\' . $class, false ) )
+                ? static::_DEFAULT_NAMESPACE_ . '\\' . $class
+                : $class;
+
+        $_assoc =
+            ( false === strpos( $assoc, '\\' ) && class_exists( static::_DEFAULT_NAMESPACE_ . '\\' . $assoc, false ) )
+                ? static::_DEFAULT_NAMESPACE_ . '\\' . $assoc
+                : $assoc;
+
         return [
-            'owner-class'        => $class,
-            'owner-class-key'    => $key,
-            'associative-entity' => $assoc,
+            'associative-entity' => $_assoc,
+            'foreign-key'        => $foreignKey,
+            'owner-class'        => $_class,
+            'owner-class-key'    => $classKey,
         ];
     }
 }

@@ -1,7 +1,7 @@
 <?php namespace DreamFactory\Enterprise\Database\Traits;
 
 use DreamFactory\Enterprise\Database\Models\AppKey;
-use DreamFactory\Library\Fabric\Database\Models\EnterpriseModel;
+use DreamFactory\Enterprise\Database\Models\BaseEnterpriseModel;
 
 trait AuthorizedEntity
 {
@@ -31,7 +31,7 @@ trait AuthorizedEntity
      */
     public function appKeys()
     {
-        return $this->hasOne( EnterpriseModel::DEPLOY_NAMESPACE . '\\AppKey', 'owner_id' );
+        return $this->hasOne( BaseEnterpriseModel::DEPLOY_NAMESPACE . '\\AppKey', 'owner_id' );
     }
 
 }
