@@ -69,6 +69,10 @@ class OwnerTypes extends FactoryEnum
      * @type int services
      */
     const SERVICE = 1003;
+    /**
+     * @type int services
+     */
+    const TESTING = 9999;
 
     //******************************************************************************
     //* Private Constants
