@@ -86,14 +86,17 @@ class Mount extends EnterpriseModel
      * @param array  $options
      * @param bool   $nameOnly If true, the name of the disk is returned only
      *
-     * @return \Illuminate\Contracts\Filesystem\Filesystem|\Illuminate\Filesystem\Filesystem|string
+     * @return \Illuminate\Contracts\Filesystem\Filesystem|string
      * @throws \DreamFactory\Enterprise\Database\Exceptions\MountException
      */
     public function getFilesystem( $path = null, $tag = null, $options = [], $nameOnly = false )
     {
         if ( null === ( $_disk = IfSet::get( $this->config_text, 'disk' ) ) )
         {
-            throw new \RuntimeException( 'No "disk" configured for mount "' . $this->mount_id_text . '".' );
+            if ( null === ( $_disk = IfSet::get( $this->config_text, 'connection' ) ) )
+            {
+                throw new \RuntimeException( 'No "disk" configured for mount "' . $this->mount_id_text . '".' );
+            }
         }
 
         if ( is_array( $_disk ) )
@@ -105,9 +108,11 @@ class Mount extends EnterpriseModel
                 throw new MountException( 'Cannot mount dynamic file system when there is no "name" setting.' );
             }
 
-            unset( $_config['name'] );
+            !isset( $_config['driver'] ) && $_config['driver'] = 'local';
+            !isset( $_config['path'] ) && isset( $_config['root'] ) && $_config['path'] = $_config['root'];
+            unset( $_config['root'], $_config['name'] );
 
-            \Config::set( 'filesystems.disks.' . $_disk, $_config );
+            \Config::set( 'flysystem.connections.' . $_disk, $_config );
         }
 
         if ( $nameOnly )

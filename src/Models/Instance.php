@@ -13,45 +13,45 @@ use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Services\Utility\InstanceMetadata;
 use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Query\Builder;
-use Illuminate\Filesystem\FilesystemAdapter;
+use League\Flysystem\Filesystem;
 
 /**
  * instance_t
  *
- * @property integer            $user_id
- * @property integer            $cluster_id
- * @property integer            $guest_location_nbr
- * @property string             $instance_id_text
- * @property array              $instance_data_text
- * @property int                $app_server_id
- * @property int                $db_server_id
- * @property int                $web_server_id
- * @property string             $db_host_text
- * @property int                $db_port_nbr
- * @property string             $db_name_text
- * @property string             $db_user_text
- * @property string             $db_password_text
- * @property string             $storage_id_text
- * @property string             $request_id_text
- * @property string             $request_date
- * @property integer            $deprovision_ind
- * @property integer            $provision_ind
- * @property integer            $trial_instance_ind
- * @property integer            $state_nbr
- * @property integer            $platform_state_nbr
- * @property integer            $ready_state_nbr
- * @property integer            $environment_id
- * @property integer            $activate_ind
- * @property string             $start_date
- * @property string             $end_date
- * @property string             $terminate_date
+ * @property integer $user_id
+ * @property integer $cluster_id
+ * @property integer $guest_location_nbr
+ * @property string  $instance_id_text
+ * @property array   $instance_data_text
+ * @property int     $app_server_id
+ * @property int     $db_server_id
+ * @property int     $web_server_id
+ * @property string  $db_host_text
+ * @property int     $db_port_nbr
+ * @property string  $db_name_text
+ * @property string  $db_user_text
+ * @property string  $db_password_text
+ * @property string  $storage_id_text
+ * @property string  $request_id_text
+ * @property string  $request_date
+ * @property integer $deprovision_ind
+ * @property integer $provision_ind
+ * @property integer $trial_instance_ind
+ * @property integer $state_nbr
+ * @property integer $platform_state_nbr
+ * @property integer $ready_state_nbr
+ * @property integer $environment_id
+ * @property integer $activate_ind
+ * @property string  $start_date
+ * @property string  $end_date
+ * @property string  $terminate_date
  *
  * Relations:
  *
- * @property User               $user
- * @property Server             $appServer
- * @property Server             $dbServer
- * @property Server             $webServer
+ * @property User    $user
+ * @property Server  $appServer
+ * @property Server  $dbServer
+ * @property Server  $webServer
  *
  * @method static Builder instanceName( string $instanceName )
  * @method static Builder byNameOrId( string $instanceNameOrId )
@@ -535,7 +535,7 @@ class Instance extends EnterpriseModel
 
         if ( isset( $_sanitized[$name] ) )
         {
-            \Log::debug( '>>> sanitize skipped' );
+            //\Log::debug( '>>> sanitize skipped' );
 
             return $_sanitized[$name];
         }
@@ -584,7 +584,7 @@ class Instance extends EnterpriseModel
         //  Cache it...
         $_sanitized[$name] = $_clean;
 
-        \Log::debug( '>>> sanitized "' . $name . '" to "' . $_clean . '"' );
+        //\Log::debug( '>>> sanitized "' . $name . '" to "' . $_clean . '"' );
 
         return $_clean;
     }
@@ -734,7 +734,7 @@ class Instance extends EnterpriseModel
             }
 
             $this->instance_data_text = array_merge( $this->instance_data_text, ['storage-map' => $_map] );
-            \Log::debug( 'instance: storage map generated', $this->instance_data_text );
+            //\Log::debug( 'instance: storage map generated', $this->instance_data_text );
         }
 
         return $_map;
@@ -745,7 +745,7 @@ class Instance extends EnterpriseModel
      *
      * @param string $tag
      *
-     * @return FilesystemAdapter
+     * @return Filesystem
      */
     public function getRootStorageMount( $tag = null )
     {
@@ -757,7 +757,7 @@ class Instance extends EnterpriseModel
      *
      * @param string $tag
      *
-     * @return FilesystemAdapter
+     * @return Filesystem
      */
     public function getSnapshotMount( $tag = null )
     {
@@ -767,7 +767,7 @@ class Instance extends EnterpriseModel
     /**
      * @param string $tag
      *
-     * @return FilesystemAdapter
+     * @return Filesystem
      */
     public function getStorageMount( $tag = null )
     {
@@ -777,7 +777,7 @@ class Instance extends EnterpriseModel
     /**
      * @param string $tag
      *
-     * @return \Illuminate\Filesystem\FilesystemAdapter
+     * @return Filesystem
      */
     public function getPrivateStorageMount( $tag = null )
     {
@@ -787,7 +787,7 @@ class Instance extends EnterpriseModel
     /**
      * @param string $tag
      *
-     * @return FilesystemAdapter
+     * @return Filesystem
      */
     public function getOwnerPrivateStorageMount( $tag = null )
     {
