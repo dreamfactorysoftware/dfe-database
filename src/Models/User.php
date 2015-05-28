@@ -166,7 +166,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     public function getHash()
     {
         return hash(
-            config( 'dfe.signature-method', config( 'dfe.signature-method', EnterpriseDefaults::DEFAULT_DATA_STORAGE_HASH ) ),
+            config( 'dfe.signature-method', config( 'dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD ) ),
             $this->storage_id_text
         );
     }
