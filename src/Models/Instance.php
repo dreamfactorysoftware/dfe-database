@@ -550,8 +550,8 @@ class Instance extends EnterpriseModel
         //  Ensure non-admin user instances are prefixed
         $_prefix =
             function_exists( 'config' )
-                ? config( 'dfe.common.instance-prefix' )
-                : 'dsp-';
+                ? config( 'dfe.instance-prefix' )
+                : 'dfe-';
 
         if ( $_prefix != substr( $_clean, 0, strlen( $_prefix ) ) )
         {

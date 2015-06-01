@@ -3,7 +3,7 @@ namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
-use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * app_key_t
@@ -86,6 +86,15 @@ class AppKey extends EnterpriseModel
                 }
             }
         );
+    }
+
+    /**
+     * @return \DreamFactory\Enterprise\Database\Models\EnterpriseModel|\DreamFactory\Enterprise\Database\Models\Cluster|\DreamFactory\Enterprise\Database\Models\Instance|\DreamFactory\Enterprise\Database\Models\Server|\DreamFactory\Enterprise\Database\Models\User|\stdClass
+     */
+    public function getOwner()
+    {
+        return
+            OwnerTypes::getOwner( $this->owner_id, $this->owner_type_nbr );
     }
 
     /**
