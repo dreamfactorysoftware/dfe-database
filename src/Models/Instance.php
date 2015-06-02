@@ -118,7 +118,7 @@ class Instance extends EnterpriseModel
     /**
      * @param array $attributes
      */
-    public function __construct( array $attributes = array() )
+    public function __construct( array $attributes = [] )
     {
         parent::__construct( $attributes );
 
@@ -560,7 +560,7 @@ class Instance extends EnterpriseModel
 
         if ( null === $_unavailableNames && function_exists( 'config' ) )
         {
-            $_unavailableNames = config( 'dfe.forbidden-names', array() );
+            $_unavailableNames = config( 'dfe.forbidden-names', [] );
 
             if ( !is_array( $_unavailableNames ) || empty( $_unavailableNames ) )
             {
@@ -837,8 +837,8 @@ class Instance extends EnterpriseModel
                     ),
                     'signature-method' => config( 'dfe.signature-method', config( 'dfe-ops-client.signature-method' ) ),
                     'storage-root'     => EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH,
-                    'console-api-url'  => config( 'dfe.console-api-url', config( 'dfe-ops-client.console-api-url' ) ),
-                    'console-api-key'  => config( 'dfe.console-api-key', config( 'dfe-ops-client.console-api-key' ) ),
+                    'console-api-url'  => config( 'dfe.security.console-api-url', config( 'dfe-ops-client.console-api-url' ) ),
+                    'console-api-key'  => config( 'dfe.security.console-api-key', config( 'dfe-ops-client.console-api-key' ) ),
                     'client-id'        => $_key->client_id,
                     'client-secret'    => $_key->client_secret,
                 ],

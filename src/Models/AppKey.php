@@ -69,7 +69,7 @@ class AppKey extends EnterpriseModel
 
                 if ( empty( $row->server_secret ) )
                 {
-                    if ( null === ( $_key = config( 'dfe-ops-client.console-api-key', config( 'dfe.console-api-key' ) ) ) )
+                    if ( null === ( $_key = config( 'dfe-ops-client.console-api-key', config( 'dfe.security.console-api-key' ) ) ) )
                     {
                         throw new \RuntimeException( 'Please ensure "dfe-ops-client" is installed and configured properly.' );
                     }

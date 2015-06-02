@@ -1,7 +1,7 @@
 <?php namespace DreamFactory\Enterprise\Database\Traits;
 
 use DreamFactory\Enterprise\Database\Models\AppKey;
-use DreamFactory\Enterprise\Database\Models\BaseEnterpriseModel;
+use DreamFactory\Enterprise\Database\Models\EnterpriseModel;
 
 trait AuthorizedEntity
 {
@@ -19,7 +19,7 @@ trait AuthorizedEntity
         );
 
         static::deleted(
-            function ( BaseEnterpriseModel $model )
+            function ( EnterpriseModel $model )
             {
                 AppKey::destroyKeys( $model );
             }
@@ -31,7 +31,7 @@ trait AuthorizedEntity
      */
     public function appKeys()
     {
-        return $this->hasOne( BaseEnterpriseModel::DEPLOY_NAMESPACE . '\\AppKey', 'owner_id' );
+        return $this->hasOne( EnterpriseModel::DEPLOY_NAMESPACE . '\\AppKey', 'owner_id' );
     }
 
 }

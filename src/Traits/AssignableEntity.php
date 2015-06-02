@@ -1,7 +1,7 @@
 <?php namespace DreamFactory\Enterprise\Database\Traits;
 
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
-use DreamFactory\Enterprise\Database\Models\BaseEnterpriseModel;
+use DreamFactory\Enterprise\Database\Models\EnterpriseModel;
 use DreamFactory\Library\Utility\IfSet;
 
 trait AssignableEntity
@@ -28,9 +28,9 @@ trait AssignableEntity
      */
     public static function boot()
     {
-        if ( !( get_called_class() instanceof BaseEnterpriseModel ) )
+        if ( !( get_called_class() instanceof EnterpriseModel ) )
         {
-            throw new \RuntimeException( 'This trait may only be used by the "BaseEnterpriseModel" class and its descendants.' );
+            throw new \RuntimeException( 'This trait may only be used by the "EnterpriseModel" class and its descendants.' );
         }
 
         /** @noinspection PhpUndefinedMethodInspection */
@@ -53,7 +53,7 @@ trait AssignableEntity
             return false;
         }
 
-        /** @type BaseEnterpriseModel $_assoc */
+        /** @type EnterpriseModel $_assoc */
         $_assoc = new $_assocClass();
 
         /** @noinspection PhpUndefinedFieldInspection */
@@ -62,8 +62,8 @@ trait AssignableEntity
     }
 
     /**
-     * @param int|string|BaseEnterpriseModel $fromId
-     * @param int                            $fromType
+     * @param int|string|EnterpriseModel $fromId
+     * @param int                        $fromType
      *
      * @return bool True if removed from servitude
      */
@@ -76,7 +76,7 @@ trait AssignableEntity
             return false;
         }
 
-        /** @type BaseEnterpriseModel $_assoc */
+        /** @type EnterpriseModel $_assoc */
         $_assoc = new $_assocClass();
         /** @noinspection PhpUndefinedFieldInspection */
         $_count = $_assoc->where( $_map['foreign-key'], $fromId )->where( $_map['owner-class-key'], $this->id )->delete();
