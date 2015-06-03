@@ -111,8 +111,7 @@ class Mount extends EnterpriseModel
             !isset( $_config['driver'] ) && $_config['driver'] = 'local';
             !isset( $_config['path'] ) && isset( $_config['root'] ) && $_config['path'] = $_config['root'];
             unset( $_config['root'], $_config['name'] );
-
-            \Config::set( 'flysystem.connections.' . $_disk, $_config );
+            config( ['flysystem.connections.' . $_disk => $_config] );
         }
 
         if ( $nameOnly )
