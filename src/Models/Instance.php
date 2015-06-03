@@ -1,5 +1,6 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
+use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Common\Enums\EnterprisePaths;
 use DreamFactory\Enterprise\Common\Enums\OperationalStates;
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
@@ -835,7 +836,7 @@ class Instance extends EnterpriseModel
                         'dfe.provisioning.default-domain',
                         config( 'dashboard.default-domain', '.enterprise.dreamfactory.com' )
                     ),
-                    'signature-method' => config( 'dfe.signature-method', config( 'dfe-ops-client.signature-method' ) ),
+                    'signature-method' => config( 'dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD ),
                     'storage-root'     => EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH,
                     'console-api-url'  => config( 'dfe.security.console-api-url', config( 'dfe-ops-client.console-api-url' ) ),
                     'console-api-key'  => config( 'dfe.security.console-api-key', config( 'dfe-ops-client.console-api-key' ) ),

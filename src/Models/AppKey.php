@@ -2,6 +2,7 @@
 namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
+use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -77,7 +78,7 @@ class AppKey extends EnterpriseModel
 
                 if ( empty( $row->client_id ) || empty( $row->client_secret ) )
                 {
-                    $_algorithm = config( 'dfe.signature-method', 'sha256' );
+                    $_algorithm = config( 'dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD );
 
                     $row->client_id = hash_hmac( $_algorithm, str_random( 40 ), $row->server_secret );
                     $row->client_secret = hash_hmac( $_algorithm, str_random( 40 ), $row->server_secret . $row->client_id );
