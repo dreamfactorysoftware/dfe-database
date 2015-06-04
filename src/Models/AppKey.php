@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Builder;
  * @method static Builder byOwner( int $ownerId, int $ownerType = null )
  * @method static Builder byOwnerType( int $ownerType )
  * @method static Builder byClass( string $keyClass, int $ownerId = null )
+ * @method static Builder byClientId( string $clientId )
  */
 class AppKey extends EnterpriseModel
 {
@@ -132,6 +133,17 @@ class AppKey extends EnterpriseModel
         }
 
         return $_query;
+    }
+
+    /**
+     * @param Builder $query
+     * @param string  $clientId
+     *
+     * @return Builder
+     */
+    public function scopeByClientId( $query, $clientId )
+    {
+        return $query->where( 'client_id', $clientId );
     }
 
     /**

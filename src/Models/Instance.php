@@ -602,14 +602,14 @@ class Instance extends EnterpriseModel
     {
         $_data = $this->instance_data_text;
 
-        if ( !empty( $_data ) && is_array( $_data ) )
+        if ( is_array( $_data ) && !empty( $_data ) )
         {
             return $_data;
         }
 
         $_data = static::_makeMetadata( $this );
 
-        !$key && $sync && $this->update( ['instance_data_text' => $_data] );
+        ( $sync && !$key ) && $this->update( ['instance_data_text' => $_data] );
 
         return $key ? IfSet::get( $_data, $key ) : $_data;
     }
@@ -625,7 +625,7 @@ class Instance extends EnterpriseModel
     {
         static $_cache = [];
 
-        $_ck = hash( 'sha256', 'rsp.' . $this->id . ( $append ? DIRECTORY_SEPARATOR . $append : $append ) );
+        $_ck = hash( EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD, 'rsp.' . $this->id . ( $append ? DIRECTORY_SEPARATOR . $append : $append ) );
 
         if ( null === ( $_path = IfSet::get( $_cache, $_ck ) ) )
         {
@@ -826,20 +826,19 @@ class Instance extends EnterpriseModel
     {
         $_key = AppKey::mine( $instance->user_id, OwnerTypes::USER );
 
+        $_cluster = static::_findCluster( $instance->cluster_id );
+
         return array_merge(
             static::$_metadataTemplate,
             [
                 'storage-map' => $instance->getStorageMap(),
                 'env'         => [
-                    'cluster-id'       => $instance->cluster ? $instance->cluster->cluster_id_text : $instance->cluster_id,
-                    'default-domain'   => config(
-                        'dfe.provisioning.default-domain',
-                        config( 'dashboard.default-domain', '.enterprise.dreamfactory.com' )
-                    ),
+                    'cluster-id'       => $_cluster->cluster_id,
+                    'default-domain'   => $_cluster->subdomain_text,
                     'signature-method' => config( 'dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD ),
                     'storage-root'     => EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH,
-                    'console-api-url'  => config( 'dfe.security.console-api-url', config( 'dfe-ops-client.console-api-url' ) ),
-                    'console-api-key'  => config( 'dfe.security.console-api-key', config( 'dfe-ops-client.console-api-key' ) ),
+                    'console-api-url'  => config( 'dfe.security.console-api-url' ),
+                    'console-api-key'  => config( 'dfe.security.console-api-key' ),
                     'client-id'        => $_key->client_id,
                     'client-secret'    => $_key->client_secret,
                 ],
