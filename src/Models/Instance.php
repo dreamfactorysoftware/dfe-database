@@ -827,7 +827,7 @@ class Instance extends EnterpriseModel
     {
         $_key = AppKey::mine( $instance->user_id, OwnerTypes::USER );
 
-        $_cluster = static::_findCluster( $instance->cluster_id );
+        $_cluster = static::_lookupCluster( $instance->cluster_id );
 
         return array_merge(
             static::$_metadataTemplate,
