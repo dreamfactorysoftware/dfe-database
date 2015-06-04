@@ -4,6 +4,7 @@ use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Common\Enums\EnterprisePaths;
 use DreamFactory\Enterprise\Common\Enums\OperationalStates;
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
+use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
 use DreamFactory\Enterprise\Common\Utility\UniqueId;
 use DreamFactory\Enterprise\Database\Enums\DeactivationReasons;
 use DreamFactory\Enterprise\Database\Enums\GuestLocations;
@@ -79,7 +80,7 @@ class Instance extends EnterpriseModel
     //* Traits
     //******************************************************************************
 
-    use EntityLookup, AuthorizedEntity;
+    use EntityLookup, AuthorizedEntity, StaticComponentLookup;
 
     //******************************************************************************
     //* Members
