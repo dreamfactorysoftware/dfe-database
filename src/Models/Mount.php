@@ -4,7 +4,6 @@ use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Exceptions\MountException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
-use DreamFactory\Enterprise\Services\Facades\Mounter;
 use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Query\Builder;
 
