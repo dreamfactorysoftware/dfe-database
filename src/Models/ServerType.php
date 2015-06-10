@@ -14,6 +14,10 @@ class ServerType extends EnterpriseModel
      * @type string The table name
      */
     protected $table = 'server_type_t';
+    /** @inheritdoc */
+    protected $casts = [
+        'schema_text' => 'array',
+    ];
 
     //******************************************************************************
     //* Methods
@@ -24,6 +28,6 @@ class ServerType extends EnterpriseModel
      */
     public function servers()
     {
-        return $this->belongsToMany( __NAMESPACE__ . '\\Server', 'server_type_id' );
+        return $this->belongsToMany(__NAMESPACE__ . '\\Server', 'server_type_id');
     }
 }
