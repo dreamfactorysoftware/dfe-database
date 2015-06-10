@@ -97,18 +97,26 @@ class Mount extends EnterpriseModel
             }
         }
 
-        if (is_array($_disk)) {
+        $_config = null;
+
+        if (is_string($_disk)) {
+            if (null === ($_config = config('flysystem.connections.' . $_disk)) || !is_array($_config))
+                throw new \RuntimeException('Mount "' . $_disk . '" is not valid.');
+        } else if (is_array($_disk)) {
             $_config = $_disk;
-
-            if (null === ($_disk = IfSet::get($_config, 'name'))) {
-                throw new MountException('Cannot mount dynamic file system when there is no "name" setting.');
-            }
-
-            !isset($_config['driver']) && $_config['driver'] = 'local';
-            !isset($_config['path']) && isset($_config['root']) && $_config['path'] = $_config['root'];
-            unset($_config['root'], $_config['name']);
-            config(['flysystem.connections.' . $_disk => $_config]);
+        } else {
+            throw new \RuntimeException('Invalid configuration for mount disk "' . $_disk . '".');
         }
+
+        if (null === ($_disk = IfSet::get($_config, 'name'))) {
+            throw new MountException('Cannot mount dynamic file system when there is no "name" setting.');
+        }
+
+        !isset($_config['driver']) && $_config['driver'] = 'local';
+        !isset($_config['path']) && isset($_config['root']) && $_config['path'] = $_config['root'];
+        unset($_config['root'], $_config['name']);
+        config(['flysystem.connections.' . $_disk => $_config]);
+
 
         if ($nameOnly) {
             return $_disk;
