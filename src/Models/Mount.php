@@ -102,6 +102,7 @@ class Mount extends EnterpriseModel
         if (is_string($_disk)) {
             if (null === ($_config = config('flysystem.connections.' . $_disk)) || !is_array($_config))
                 throw new \RuntimeException('Mount "' . $_disk . '" is not valid.');
+            $_config['name'] = $_disk;
         } else if (is_array($_disk)) {
             $_config = $_disk;
         } else {
