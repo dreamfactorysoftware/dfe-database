@@ -2,7 +2,6 @@
 
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
-use DreamFactory\Enterprise\Database\Exceptions\MountException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Storage\Facades\Mounter;
 use DreamFactory\Library\Utility\IfSet;
@@ -32,9 +31,7 @@ class Mount extends EnterpriseModel
     /** @inheritdoc */
     protected $table = 'mount_t';
     /** @inheritdoc */
-    protected $casts = [
-        'config_text' => 'array',
-    ];
+    protected $casts = ['config_text' => 'array',];
     /** @inheritdoc */
     protected static $_assignmentOwnerType = OwnerTypes::SERVER;
 
@@ -58,10 +55,8 @@ class Mount extends EnterpriseModel
      */
     public function scopeByNameOrId($query, $mountNameOrId)
     {
-        return $query->whereRaw(
-            'mount_id_text = :mount_id_text OR id = :id',
-            [':mount_id_text' => $mountNameOrId, ':id' => $mountNameOrId]
-        );
+        return $query->whereRaw('mount_id_text = :mount_id_text OR id = :id',
+            [':mount_id_text' => $mountNameOrId, ':id' => $mountNameOrId]);
     }
 
     /**
@@ -74,8 +69,7 @@ class Mount extends EnterpriseModel
     public function isInUse($mountId)
     {
         /** @noinspection PhpUndefinedMethodInspection */
-        return
-            Server::where('mount_id', $mountId)->count() > 0;
+        return Server::where('mount_id', $mountId)->count() > 0;
     }
 
     /**
@@ -91,38 +85,46 @@ class Mount extends EnterpriseModel
      */
     public function getFilesystem($path = null, $tag = null, $options = [], $nameOnly = false)
     {
-        if (null === ($_disk = IfSet::get($this->config_text, 'disk'))) {
-            if (null === ($_disk = IfSet::get($this->config_text, 'connection'))) {
-                throw new \RuntimeException('No "disk" configured for mount "' . $this->mount_id_text . '".');
+        $_diskName = null;
+
+        if (null === ($_info = IfSet::get($this->config_text, 'disk'))) {
+            if (null === ($_info = IfSet::get($this->config_text, 'connection'))) {
+                throw new \RuntimeException('No "disk" or "connection" configured for mount "' . $this->mount_id_text . '".');
             }
         }
 
-        $_config = null;
+        //  If it's a string, it should be pre-configured
+        if (is_string($_info)) {
+            if (null === ($_config = config('flysystem.connections.' . $_info))) {
+                throw new \RuntimeException('No pre-configured mount "' . $_info . '" found.');
+            }
 
-        if (is_string($_disk)) {
-            if (null === ($_config = config('flysystem.connections.' . $_disk)) || !is_array($_config))
-                throw new \RuntimeException('Mount "' . $_disk . '" is not valid.');
-            $_config['name'] = $_disk;
-        } else if (is_array($_disk)) {
-            $_config = $_disk;
-        } else {
-            throw new \RuntimeException('Invalid configuration for mount disk "' . $_disk . '".');
+            $_diskName = $_info;
+            $_info = $_config;
         }
 
-        if (null === ($_disk = IfSet::get($_config, 'name'))) {
-            throw new MountException('Cannot mount dynamic file system when there is no "name" setting.');
+        //  If it's not an array, bail
+        if (!is_array($_info)) {
+            throw new \RuntimeException('Invalid configuration for mount disk "' . $_info . '".');
+        }
+
+        $_config = $_info;
+
+        if (!$_diskName && null === ($_diskName = IfSet::get($_config, 'name'))) {
+            $_diskName = 'mount-temp-' . microtime(true);
         }
 
         !isset($_config['driver']) && $_config['driver'] = 'local';
         !isset($_config['path']) && isset($_config['root']) && $_config['path'] = $_config['root'];
         unset($_config['root'], $_config['name']);
-        config(['flysystem.connections.' . $_disk => $_config]);
+
+        config(['flysystem.connections.' . $_diskName => $_config]);
 
 
         if ($nameOnly) {
-            return $_disk;
+            return $_diskName;
         }
 
-        return Mounter::mount($_disk, array_merge($options, ['prefix' => $path, 'tag' => $tag]));
+        return Mounter::mount($_diskName, array_merge($options, ['prefix' => $path, 'tag' => $tag]));
     }
 }
