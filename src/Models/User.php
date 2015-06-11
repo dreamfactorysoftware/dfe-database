@@ -15,14 +15,14 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
  *
  * user_t table
  *
- * @property int    drupal_id
  * @property string api_token_text
  * @property string first_name_text
  * @property string last_name_text
  * @property string nickname_text
  * @property string email_addr_text
  * @property string password_text
- * @property string drupal_password_text
+ * @property int    external_id
+ * @property string external_password_text
  * @property int    owner_id
  * @property int    owner_type_nbr
  * @property string company_name_text
@@ -32,7 +32,6 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
  * @property string country_text
  * @property string postal_code_text
  * @property string phone_text
- * @property string fax_text
  * @property int    opt_in_ind
  * @property int    agree_ind
  * @property string valid_email_hash_text
@@ -84,9 +83,9 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      *
      * @return \Illuminate\Database\Eloquent\Collection|\Illuminate\Database\Eloquent\Model|null|static|static[]
      */
-    public function getKeys( $keyClass = AppKeyClasses::USER, $ownerId = null )
+    public function getKeys($keyClass = AppKeyClasses::USER, $ownerId = null)
     {
-        return AppKey::byClass( $keyClass, $ownerId )->get();
+        return AppKey::byClass($keyClass, $ownerId)->get();
     }
 
     /**
@@ -94,7 +93,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      */
     public function hashes()
     {
-        return $this->belongsTo( static::DEPLOY_NAMESPACE . '\\OwnerHash', 'id', 'owner_id' );
+        return $this->belongsTo(static::DEPLOY_NAMESPACE . '\\OwnerHash', 'id', 'owner_id');
     }
 
     /**
@@ -102,9 +101,8 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      */
     public function checkStorageKey()
     {
-        if ( empty( $this->storage_id_text ) )
-        {
-            $this->storage_id_text = UniqueId::generate( __CLASS__ );
+        if (empty($this->storage_id_text)) {
+            $this->storage_id_text = UniqueId::generate(__CLASS__);
         }
     }
 
@@ -115,29 +113,21 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     {
         parent::boot();
 
-        static::creating(
-            function ( User $model )
-            {
-                $model->checkStorageKey();
+        static::creating(function (User $model) {
+            $model->checkStorageKey();
 
-                if ( empty( $model->nickname_text ) )
-                {
-                    $model->nickname_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
-                }
+            if (empty($model->nickname_text)) {
+                $model->nickname_text = trim($model->first_name_text . ' ' . $model->last_name_text, '- ');
             }
-        );
+        });
 
-        static::updating(
-            function ( User $model )
-            {
-                $model->checkStorageKey();
+        static::updating(function (User $model) {
+            $model->checkStorageKey();
 
-                if ( empty( $model->nickname_text ) )
-                {
-                    $model->nickname_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
-                }
+            if (empty($model->nickname_text)) {
+                $model->nickname_text = trim($model->first_name_text . ' ' . $model->last_name_text, '- ');
             }
-        );
+        });
     }
 
     /**
@@ -165,10 +155,8 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      */
     public function getHash()
     {
-        return hash(
-            config( 'dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD ) ,
-            $this->storage_id_text
-        );
+        return hash(config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
+            $this->storage_id_text);
     }
 
 }
