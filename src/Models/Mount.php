@@ -118,13 +118,10 @@ class Mount extends EnterpriseModel
         !isset($_config['path']) && isset($_config['root']) && $_config['path'] = $_config['root'];
         unset($_config['root'], $_config['name']);
 
-        config(['flysystem.connections.' . $_diskName => $_config]);
-
-
         if ($nameOnly) {
             return $_diskName;
         }
 
-        return Mounter::mount($_diskName, array_merge($options, ['prefix' => $path, 'tag' => $tag]));
+        return Mounter::mount($_diskName, array_merge($_config, $options, ['prefix' => $path, 'tag' => $tag]));
     }
 }
