@@ -99,14 +99,15 @@ class Mount extends EnterpriseModel
                 throw new \RuntimeException('No pre-configured mount "' . $_info . '" found.');
             }
 
-            $_diskName = $_info;
-            $_info = $_config;
+            return Mounter::mount($_diskName, array_merge($options, ['prefix' => $path, 'tag' => $tag]));
         }
 
         //  If it's not an array, bail
         if (!is_array($_info)) {
             throw new \RuntimeException('Invalid configuration for mount disk "' . $_info . '".');
         }
+
+        //@todo Dynamically configured disk is not yet supported because of a config provider issue
 
         $_config = $_info;
 
