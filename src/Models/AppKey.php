@@ -68,7 +68,7 @@ class AppKey extends EnterpriseModel
                 }
 
                 if (null === $row->server_secret) {
-                    $row->server_secret = config( 'dfe.security.console-api-key' );
+                    $row->server_secret = config( 'dfe.security.console-api-key', 'this-value-is-not-set' );
                 }
 
                 if (empty( $row->client_id ) || empty( $row->client_secret )) {
