@@ -1,54 +1,54 @@
 {
-  "name": "dreamfactory/dfe-database",
-  "description": "DreamFactory Enterprise(tm) Database Library",
-  "homepage": "https://www.dreamfactory.com/",
-  "keywords": [
-    "dreamfactory",
-    "dfe",
-    "fabric",
-    "utility",
-    "database"
-  ],
-  "license": [
-    "proprietary"
-  ],
-  "authors": [
-    {
-      "name": "Jerry Ablan",
-      "email": "jerryablan@dreamfactory.com"
-    }
-  ],
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "git@github.com:dreamfactorysoftware/dfe-database.git"
-    },
-    {
-      "type": "vcs",
-      "url": "git@github.com:dreamfactorysoftware/dfe-storage.git"
-    },
-    {
-      "type": "vcs",
-      "url": "git@github.com:dreamfactorysoftware/dfe-common.git"
-    }
-  ],
-  "minimum-stability": "dev",
-  "require": {
-    "dreamfactory/dfe-common": "dev-develop as dev-master",
-    "dreamfactory/dfe-storage": "dev-develop as dev-master"
-  },
-  "require-dev": {
-    "phpunit/phpunit": "@stable",
-    "laravel/laravel": "~5.0.0"
-  },
-  "autoload": {
-    "psr-4": {
-      "DreamFactory\\Enterprise\\Database\\": "src/"
-    }
-  },
-  "extra": {
-    "branch-alias": {
-      "dev-develop": "1.0.x-dev"
-    }
-  }
+	"name":              "dreamfactory/dfe-database",
+	"description":       "DreamFactory Enterprise(tm) Database Library",
+	"homepage":          "https://www.dreamfactory.com/",
+	"keywords":          [
+		"dreamfactory",
+		"dfe",
+		"fabric",
+		"utility",
+		"database"
+	],
+	"license":           [
+		"proprietary"
+	],
+	"authors":           [
+		{
+			"name":  "Jerry Ablan",
+			"email": "jerryablan@dreamfactory.com"
+		}
+	],
+	"repositories":      [
+		{
+			"type": "vcs",
+			"url":  "git@github.com:dreamfactorysoftware/dfe-database.git"
+		},
+		{
+			"type": "vcs",
+			"url":  "git@github.com:dreamfactorysoftware/dfe-storage.git"
+		},
+		{
+			"type": "vcs",
+			"url":  "git@github.com:dreamfactorysoftware/dfe-common.git"
+		}
+	],
+	"minimum-stability": "dev",
+	"require":           {
+		"dreamfactory/dfe-common":  "dev-develop as dev-master",
+		"dreamfactory/dfe-storage": "dev-develop as dev-master"
+	},
+	"require-dev":       {
+		"phpunit/phpunit": "@stable",
+		"laravel/laravel": "5.1.*"
+	},
+	"autoload":          {
+		"psr-4": {
+			"DreamFactory\\Enterprise\\Database\\": "src/"
+		}
+	},
+	"extra":             {
+		"branch-alias": {
+			"dev-develop": "0.1.x-dev"
+		}
+	}
 }

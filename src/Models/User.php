@@ -84,9 +84,9 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      *
      * @return \Illuminate\Database\Eloquent\Collection|\Illuminate\Database\Eloquent\Model|null|static|static[]
      */
-    public function getKeys($keyClass = AppKeyClasses::USER, $ownerId = null)
+    public function getKeys( $keyClass = AppKeyClasses::USER, $ownerId = null )
     {
-        return AppKey::byClass($keyClass, $ownerId)->get();
+        return AppKey::byClass( $keyClass, $ownerId )->get();
     }
 
     /**
@@ -94,7 +94,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      */
     public function hashes()
     {
-        return $this->belongsTo(static::DEPLOY_NAMESPACE . '\\OwnerHash', 'id', 'owner_id');
+        return $this->belongsTo( static::DEPLOY_NAMESPACE . '\\OwnerHash', 'id', 'owner_id' );
     }
 
     /**
@@ -102,8 +102,9 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      */
     public function checkStorageKey()
     {
-        if (empty($this->storage_id_text)) {
-            $this->storage_id_text = UniqueId::generate(__CLASS__);
+        if ( empty( $this->storage_id_text ) )
+        {
+            $this->storage_id_text = UniqueId::generate( __CLASS__ );
         }
     }
 
@@ -114,21 +115,29 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     {
         parent::boot();
 
-        static::creating(function (User $model) {
-            $model->checkStorageKey();
+        static::creating(
+            function ( User $model )
+            {
+                $model->checkStorageKey();
 
-            if (empty($model->nickname_text)) {
-                $model->nickname_text = trim($model->first_name_text . ' ' . $model->last_name_text, '- ');
+                if ( empty( $model->nickname_text ) )
+                {
+                    $model->nickname_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
+                }
             }
-        });
+        );
 
-        static::updating(function (User $model) {
-            $model->checkStorageKey();
+        static::updating(
+            function ( User $model )
+            {
+                $model->checkStorageKey();
 
-            if (empty($model->nickname_text)) {
-                $model->nickname_text = trim($model->first_name_text . ' ' . $model->last_name_text, '- ');
+                if ( empty( $model->nickname_text ) )
+                {
+                    $model->nickname_text = trim( $model->first_name_text . ' ' . $model->last_name_text, '- ' );
+                }
             }
-        });
+        );
     }
 
     /**
@@ -156,8 +165,10 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      */
     public function getHash()
     {
-        return hash(config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
-            $this->storage_id_text);
+        return hash(
+            config( 'dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD ),
+            $this->storage_id_text
+        );
     }
 
 }

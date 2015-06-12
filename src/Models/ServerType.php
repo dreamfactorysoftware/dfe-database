@@ -28,6 +28,6 @@ class ServerType extends EnterpriseModel
      */
     public function servers()
     {
-        return $this->belongsToMany(__NAMESPACE__ . '\\Server', 'server_type_id');
+        return $this->belongsToMany( __NAMESPACE__ . '\\Server', 'server_type_id' );
     }
 }
