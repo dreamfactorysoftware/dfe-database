@@ -29,7 +29,6 @@ class RouteHash extends EnterpriseModel
      */
     public function mount()
     {
-        return
-            $this->hasOne( __NAMESPACE__ . '\\Mount' );
+        return $this->hasOne( __NAMESPACE__ . '\\Mount' );
     }
 }

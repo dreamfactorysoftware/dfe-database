@@ -3,6 +3,7 @@
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Models\EnterpriseModel;
 use DreamFactory\Library\Utility\IfSet;
+use Illuminate\Support\Facades\Log;
 
 trait AssignableEntity
 {
@@ -80,7 +81,7 @@ trait AssignableEntity
         $_assoc = new $_assocClass();
         /** @noinspection PhpUndefinedFieldInspection */
         $_count = $_assoc->where( $_map['foreign-key'], $fromId )->where( $_map['owner-class-key'], $this->id )->delete();
-        \Log::debug( '[AssignableEntity] deleted ' . $_count . ' row(s) from "' . $_assoc->getTable() . '"' );
+        Log::debug( '[AssignableEntity] deleted ' . $_count . ' row(s) from "' . $_assoc->getTable() . '"' );
 
         /** @noinspection PhpUndefinedFieldInspection */
 
