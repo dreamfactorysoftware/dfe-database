@@ -8,6 +8,7 @@ use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use Illuminate\Database\Query\Builder;
 
 /**
  * 2015-04-13 GHA: This model was moved to Deploy from Auth
@@ -46,6 +47,8 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
  * @property int    activate_ind
  * @property int    active_ind
  * @property string remember_token
+ *
+ * @method static Builder byEmail(string $email)
  */
 class User extends EnterpriseModel implements AuthenticatableContract, CanResetPasswordContract
 {
@@ -133,6 +136,17 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
                 }
             }
         );
+    }
+
+    /**
+     * @param Builder $query
+     * @param string  $email
+     *
+     * @return Builder
+     */
+    public function scopeByEmail($query, $email)
+    {
+        return $query->where('email_addr_text', $email);
     }
 
     /**
