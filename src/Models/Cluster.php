@@ -13,9 +13,9 @@ use Illuminate\Database\Query\Builder;
  * @property string cluster_id_text
  * @property string subdomain_text
  *
- * @method static Builder byNameOrId( string $clusterNameOrId )
+ * @method static Builder byNameOrId(string $clusterNameOrId)
  */
-class Cluster extends EnterpriseModel
+class Cluster extends SelfAssociativeEntity
 {
     //******************************************************************************
     //* Traits
@@ -31,12 +31,18 @@ class Cluster extends EnterpriseModel
      * @type string The table name
      */
     protected $table = 'cluster_t';
-    /** @inheritdoc */
-    protected static $_assignmentOwnerType = OwnerTypes::USER;
 
     //******************************************************************************
     //* Methods
     //******************************************************************************
+
+    /** @inheritdoc */
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+
+        $this->setOwnerType(OwnerTypes::SERVICE_USER);
+    }
 
     /**
      * Our instances relationship
@@ -56,7 +62,7 @@ class Cluster extends EnterpriseModel
      */
     public function user()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\ServiceUser', 'id', 'id' );
+        return $this->hasOne(__NAMESPACE__ . '\\ServiceUser', 'id', 'id');
     }
 
     /**
@@ -65,7 +71,7 @@ class Cluster extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeByNameOrId( $query, $clusterNameOrId )
+    public function scopeByNameOrId($query, $clusterNameOrId)
     {
         return $query->whereRaw(
             'cluster_id_text = :cluster_id_text OR id = :id',

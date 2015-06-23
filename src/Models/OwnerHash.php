@@ -1,6 +1,8 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
-class OwnerHash extends EnterpriseModel
+use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
+
+class OwnerHash extends AssociativeEntityOwner
 {
     //******************************************************************************
     //* Members
@@ -16,13 +18,24 @@ class OwnerHash extends EnterpriseModel
     //******************************************************************************
 
     /**
+     * @param array $attributes
+     */
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+
+        //  Servers are the owner of mounts for association
+        $this->setOwnerType(OwnerTypes::USER);
+    }
+
+    /**
      * Our owners
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function owners()
     {
-        return $this->hasMany( static::DEPLOY_NAMESPACE . '\\User', 'id', 'owner_id' );
+        return $this->hasMany(static::DEPLOY_NAMESPACE . '\\User', 'id', 'owner_id');
     }
 
 }

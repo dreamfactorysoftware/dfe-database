@@ -1,17 +1,17 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
+use DreamFactory\Enterprise\Database\Traits\AssociativeEntity;
+
 /**
- * Deleted server_t rows
+ * Base class for associative entity classes
+ *
+ * @property int $id
  */
-class ServerArchive extends Server
+class AssociativeEntityOwner extends EnterpriseModel
 {
     //******************************************************************************
-    //* Members
+    //* Traits
     //******************************************************************************
 
-    /**
-     * @type string The table name
-     */
-    protected $table = 'server_arch_t';
-
+    use AssociativeEntity;
 }

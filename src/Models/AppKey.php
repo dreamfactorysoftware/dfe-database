@@ -1,5 +1,4 @@
-<?php
-namespace DreamFactory\Enterprise\Database\Models;
+<?php namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
@@ -18,13 +17,13 @@ use Illuminate\Database\Eloquent\Builder;
  * @property string created_at
  * @property string updated_at
  *
- * @method static Builder forInstance( int $instanceId )
- * @method static Builder byOwner( int $ownerId, int $ownerType = null )
- * @method static Builder byOwnerType( int $ownerType )
- * @method static Builder byClass( string $keyClass, int $ownerId = null )
- * @method static Builder byClientId( string $clientId )
+ * @method static Builder forInstance(int $instanceId)
+ * @method static Builder byOwner(int $ownerId, int $ownerType = null)
+ * @method static Builder byOwnerType(int $ownerType)
+ * @method static Builder byClass(string $keyClass, int $ownerId = null)
+ * @method static Builder byClientId(string $clientId)
  */
-class AppKey extends EnterpriseModel
+class AppKey extends SelfAssociativeEntity
 {
     //******************************************************************************
     //* Constants
@@ -62,36 +61,23 @@ class AppKey extends EnterpriseModel
         parent::boot();
 
         static::creating(
-            function ( $row )
-            {
-                if ( empty( $row->key_class_text ) )
-                {
+            function ($row) {
+                if (empty($row->key_class_text)) {
                     $row->key_class_text = AppKeyClasses::OTHER;
                 }
 
-                if ( null === $row->server_secret )
-                {
-                    $row->server_secret = config( 'dfe.security.console-api-key', 'this-value-is-not-set' );
+                if (null === $row->server_secret) {
+                    $row->server_secret = config('dfe.security.console-api-key', 'this-value-is-not-set');
                 }
 
-                if ( empty( $row->client_id ) || empty( $row->client_secret ) )
-                {
-                    $_algorithm = config( 'dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD );
+                if (empty($row->client_id) || empty($row->client_secret)) {
+                    $_algorithm = config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD);
 
-                    $row->client_id = hash_hmac( $_algorithm, str_random( 40 ), $row->server_secret );
-                    $row->client_secret = hash_hmac( $_algorithm, str_random( 40 ), $row->server_secret . $row->client_id );
+                    $row->client_id = hash_hmac($_algorithm, str_random(40), $row->server_secret);
+                    $row->client_secret = hash_hmac($_algorithm, str_random(40), $row->server_secret . $row->client_id);
                 }
             }
         );
-    }
-
-    /**
-     * @return \DreamFactory\Enterprise\Database\Models\EnterpriseModel|\DreamFactory\Enterprise\Database\Models\Cluster|\DreamFactory\Enterprise\Database\Models\Instance|\DreamFactory\Enterprise\Database\Models\Server|\DreamFactory\Enterprise\Database\Models\User|\stdClass
-     */
-    public function getOwner()
-    {
-        return
-            OwnerTypes::getOwner( $this->owner_id, $this->owner_type_nbr );
     }
 
     /**
@@ -99,7 +85,7 @@ class AppKey extends EnterpriseModel
      */
     public function user()
     {
-        return $this->belongsTo( static::DEPLOY_NAMESPACE . '\\User', 'id', 'owner_id' );
+        return $this->belongsTo(static::DEPLOY_NAMESPACE . '\\User', 'id', 'owner_id');
     }
 
     /**
@@ -108,9 +94,9 @@ class AppKey extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeForInstance( $query, $instanceId )
+    public function scopeForInstance($query, $instanceId)
     {
-        return $this->scopeByOwner( $query, $instanceId, OwnerTypes::INSTANCE );
+        return $this->scopeByOwner($query, $instanceId, OwnerTypes::INSTANCE);
     }
 
     /**
@@ -120,13 +106,12 @@ class AppKey extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeByOwner( $query, $ownerId, $ownerType = null )
+    public function scopeByOwner($query, $ownerId, $ownerType = null)
     {
-        $_query = $query->where( 'owner_id', $ownerId );
+        $_query = $query->where('owner_id', $ownerId);
 
-        if ( null !== $ownerType )
-        {
-            $_query = $_query->where( 'owner_type_nbr', $ownerType );
+        if (null !== $ownerType) {
+            $_query = $_query->where('owner_type_nbr', $ownerType);
         }
 
         return $_query;
@@ -138,9 +123,9 @@ class AppKey extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeByClientId( $query, $clientId )
+    public function scopeByClientId($query, $clientId)
     {
-        return $query->where( 'client_id', $clientId );
+        return $query->where('client_id', $clientId);
     }
 
     /**
@@ -150,13 +135,12 @@ class AppKey extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeByClass( $query, $keyClass, $ownerId = null )
+    public function scopeByClass($query, $keyClass, $ownerId = null)
     {
-        $_query = $query->where( 'key_class_text', $keyClass );
+        $_query = $query->where('key_class_text', $keyClass);
 
-        if ( null !== $ownerId )
-        {
-            $_query = $_query->where( 'owner_id', $ownerId );
+        if (null !== $ownerId) {
+            $_query = $_query->where('owner_id', $ownerId);
         }
 
         return $_query;
@@ -170,9 +154,9 @@ class AppKey extends EnterpriseModel
      * @internal param int $ownerId
      *
      */
-    public function scopeByOwnerType( $query, $ownerType )
+    public function scopeByOwnerType($query, $ownerType)
     {
-        return $query->where( 'owner_type_nbr', $ownerType );
+        return $query->where('owner_type_nbr', $ownerType);
     }
 
     /**
@@ -182,11 +166,11 @@ class AppKey extends EnterpriseModel
      *
      * @return bool|AppKey False if owner is not authorized or on error, otherwise the created AppKey model is returned
      */
-    public static function createKey( $ownerId, $ownerType, $fill = [] )
+    public static function createKey($ownerId, $ownerType, $fill = [])
     {
-        $_owner = OwnerTypes::getOwner( $ownerId, $ownerType );
+        $_owner = OwnerTypes::getOwner($ownerId, $ownerType);
 
-        return static::_makeKey( $_owner->id, $ownerType, AppKeyClasses::fromOwnerType( $ownerType ), $fill );
+        return static::_makeKey($_owner->id, $ownerType, AppKeyClasses::fromOwnerType($ownerType), $fill);
     }
 
     /**
@@ -197,7 +181,7 @@ class AppKey extends EnterpriseModel
      *
      * @return bool|AppKey False if owner is not authorized or on error, otherwise the created AppKey model is returned
      */
-    protected static function _makeKey( $ownerId, $ownerType, $keyClass, $fill = [] )
+    protected static function _makeKey($ownerId, $ownerType, $keyClass, $fill = [])
     {
         $_model = new static();
         $_model->fill(
@@ -211,9 +195,8 @@ class AppKey extends EnterpriseModel
             )
         );
 
-        if ( !$_model->save() )
-        {
-            throw new \LogicException( 'Key creation fail' );
+        if (!$_model->save()) {
+            throw new \LogicException('Key creation fail');
         }
 
         return $_model;
@@ -224,18 +207,17 @@ class AppKey extends EnterpriseModel
      *
      * @return bool|AppKey False if entity is not authorized otherwise the created AppKey model is returned
      */
-    public static function createKeyFromEntity( EnterpriseModel $entity )
+    public static function createKeyFromEntity(EnterpriseModel $entity)
     {
-        list( $_ownerId, $_ownerType ) = static::_getOwnerType( $entity );
+        list($_ownerId, $_ownerType) = static::_getOwnerType($entity);
 
-        if ( null === $_ownerId && null === $_ownerType )
-        {
-            \Log::debug( 'authorization key NOT created for new row: ' . $entity->getTable() );
+        if (null === $_ownerId && null === $_ownerType) {
+            \Log::debug('authorization key NOT created for new row: ' . $entity->getTable());
 
             return false;
         }
 
-        return static::_makeKey( $_ownerId, $_ownerType, AppKeyClasses::fromOwnerType( $_ownerType ) );
+        return static::_makeKey($_ownerId, $_ownerType, AppKeyClasses::fromOwnerType($_ownerType));
     }
 
     /**
@@ -245,15 +227,14 @@ class AppKey extends EnterpriseModel
      *
      * @return bool|int
      */
-    public static function destroyKeys( EnterpriseModel $entity )
+    public static function destroyKeys(EnterpriseModel $entity)
     {
-        if ( false === ( list( $_ownerId, $_ownerType ) = static::_getOwnerType( $entity ) ) )
-        {
+        if (false === (list($_ownerId, $_ownerType) = static::_getOwnerType($entity))) {
             //  Unnecessary
             return false;
         }
 
-        return static::byOwner( $_ownerId, $_ownerType )->delete();
+        return static::byOwner($_ownerId, $_ownerType)->delete();
     }
 
     /**
@@ -263,17 +244,14 @@ class AppKey extends EnterpriseModel
      *
      * @return array|bool Array of attributes ['owner_id' => int, 'owner_type_nbr' => int] or FALSE if no key required
      */
-    protected static function _getOwnerType( EnterpriseModel $entity )
+    protected static function _getOwnerType(EnterpriseModel $entity)
     {
         //  Don't bother with archive or assignment tables
-        if ( !in_array( substr( $entity->getTable(), -7 ), ['_asgn_t', '_arch_t'] ) )
-        {
+        if (!in_array(substr($entity->getTable(), -7), ['_asgn_t', '_arch_t'])) {
             //  Anything with owner and type get tagged
-            if ( isset( $entity->owner_id, $entity->owner_type_nbr ) )
-            {
+            if (isset($entity->owner_id, $entity->owner_type_nbr)) {
                 //  No owner to speak of...
-                if ( 0 == $entity->owner_id && empty( $entity->owner_type_nbr ) )
-                {
+                if (0 == $entity->owner_id && empty($entity->owner_type_nbr)) {
                     return [null, null];
                 }
 
@@ -281,8 +259,7 @@ class AppKey extends EnterpriseModel
             }
 
             //  A user_id only means a user owns the entity (can't be zero either...)
-            if ( isset( $entity->user_id ) && !empty( $entity->user_id ) )
-            {
+            if (isset($entity->user_id) && !empty($entity->user_id)) {
                 return [$entity->user_id, OwnerTypes::USER];
             }
         }
@@ -296,14 +273,13 @@ class AppKey extends EnterpriseModel
      *
      * @return \Illuminate\Database\Eloquent\Collection|\Illuminate\Database\Eloquent\Model|null|static|static[]
      */
-    public static function getKeys( $keyClass = AppKeyClasses::USER, $ownerId = null )
+    public static function getKeys($keyClass = AppKeyClasses::USER, $ownerId = null)
     {
-        if ( empty( $keyClass ) )
-        {
-            return static::byOwner( $ownerId )->get();
+        if (empty($keyClass)) {
+            return static::byOwner($ownerId)->get();
         }
 
-        return static::byClass( $keyClass, $ownerId )->get();
+        return static::byClass($keyClass, $ownerId)->get();
     }
 
     /**
@@ -312,9 +288,9 @@ class AppKey extends EnterpriseModel
      *
      * @return AppKey|null
      */
-    public static function mine( $ownerId, $ownerType )
+    public static function mine($ownerId, $ownerType)
     {
         return
-            static::byOwnerType( $ownerType )->byOwner( $ownerId )->firstOrFail();
+            static::byOwnerType($ownerType)->byOwner($ownerId)->firstOrFail();
     }
 }

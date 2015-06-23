@@ -15,9 +15,9 @@ use Illuminate\Database\Query\Builder;
  *
  * @property Mount  $mount
  *
- * @method static Builder byNameOrId( string $nameOrId )
+ * @method static Builder byNameOrId(string $nameOrId)
  */
-class Server extends EnterpriseModel
+class Server extends AssociativeEntityOwner
 {
     //******************************************************************************
     //* Members
@@ -34,19 +34,26 @@ class Server extends EnterpriseModel
         'mount_id'       => 'integer',
         'config_text'    => 'array',
     ];
-    /** @inheritdoc */
-    protected static $_assignmentOwnerType = OwnerTypes::CLUSTER;
 
     //******************************************************************************
     //* Methods
     //******************************************************************************
+
+    /** @inheritdoc */
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+
+        //  Clusters are the owner of servers for association
+        $this->setOwnerType(OwnerTypes::CLUSTER);
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
     public function serverType()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\ServerType', 'id', 'server_type_id' );
+        return $this->hasOne(__NAMESPACE__ . '\\ServerType', 'id', 'server_type_id');
     }
 
     /**
@@ -54,7 +61,7 @@ class Server extends EnterpriseModel
      */
     public function mount()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\Mount', 'id', 'mount_id' );
+        return $this->hasOne(__NAMESPACE__ . '\\Mount', 'id', 'mount_id');
     }
 
     /**
@@ -88,7 +95,7 @@ class Server extends EnterpriseModel
      */
     public function clusterServer()
     {
-        return $this->belongsTo( 'clusterServer', __NAMESPACE__ . '\\ClusterServer', 'cluster_id' );
+        return $this->belongsTo('clusterServer', __NAMESPACE__ . '\\ClusterServer', 'cluster_id');
     }
 
     /**
@@ -96,15 +103,14 @@ class Server extends EnterpriseModel
      *
      * @return bool True if server removed from cluster
      */
-    public function removeFromCluster( $clusterId )
+    public function removeFromCluster($clusterId)
     {
-        $_cluster = ( $clusterId instanceof Cluster ) ? $clusterId : $this->_getCluster( $clusterId );
+        $_cluster = ($clusterId instanceof Cluster) ? $clusterId : $this->_getCluster($clusterId);
 
-        if ( $this->belongsToCluster( $_cluster->id ) )
-        {
+        if ($this->belongsToCluster($_cluster->id)) {
             return
-                1 == ClusterServer::where( 'cluster_id', '=', $_cluster->id )
-                    ->where( 'server_id', '=', $this->id )
+                1 == ClusterServer::where('cluster_id', '=', $_cluster->id)
+                    ->where('server_id', '=', $this->id)
                     ->delete();
         }
 
@@ -116,12 +122,12 @@ class Server extends EnterpriseModel
      *
      * @return bool
      */
-    public function addToCluster( $clusterId )
+    public function addToCluster($clusterId)
     {
         //  This will fail if $clusterId is bogus
-        $this->removeFromCluster( $_cluster = $this->_getCluster( $clusterId ) );
+        $this->removeFromCluster($_cluster = $this->_getCluster($clusterId));
 
-        return 1 == ClusterServer::insert( ['cluster_id' => $_cluster->id, 'server_id' => $this->id] );
+        return 1 == ClusterServer::insert(['cluster_id' => $_cluster->id, 'server_id' => $this->id]);
     }
 
     /**
@@ -129,11 +135,10 @@ class Server extends EnterpriseModel
      *
      * @return Cluster
      */
-    protected function _getCluster( $clusterId )
+    protected function _getCluster($clusterId)
     {
-        if ( null === ( $_cluster = Cluster::byNameOrId( $clusterId )->first() ) )
-        {
-            throw new \InvalidArgumentException( 'The cluster id "' . $clusterId . '" is invalid.' );
+        if (null === ($_cluster = Cluster::byNameOrId($clusterId)->first())) {
+            throw new \InvalidArgumentException('The cluster id "' . $clusterId . '" is invalid.');
         }
 
         return $_cluster;
@@ -144,15 +149,15 @@ class Server extends EnterpriseModel
      *
      * @return bool True if this instance
      */
-    public function belongsToCluster( $clusterId )
+    public function belongsToCluster($clusterId)
     {
-        $_cluster = $this->_getCluster( $clusterId );
+        $_cluster = $this->_getCluster($clusterId);
 
         return 0 != ClusterServer::whereRaw(
             'cluster_id = :cluster_id AND server_id = :server_id',
             [
                 ':cluster_id' => $_cluster->id,
-                ':server_id'  => $this->id
+                ':server_id'  => $this->id,
             ]
         )->count();
     }
@@ -163,7 +168,7 @@ class Server extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeByNameOrId( $query, $nameOrId )
+    public function scopeByNameOrId($query, $nameOrId)
     {
         return $query->whereRaw(
             'server_id_text = :server_id_text OR id = :id',
@@ -178,9 +183,9 @@ class Server extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeAppServers( $query )
+    public function scopeAppServers($query)
     {
-        return $this->scopeByType( $query, ServerTypes::APP );
+        return $this->scopeByType($query, ServerTypes::APP);
     }
 
     /**
@@ -190,9 +195,9 @@ class Server extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeDbServers( $query )
+    public function scopeDbServers($query)
     {
-        return $this->scopeByType( $query, ServerTypes::DB );
+        return $this->scopeByType($query, ServerTypes::DB);
     }
 
     /**
@@ -202,9 +207,9 @@ class Server extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeWebServers( $query )
+    public function scopeWebServers($query)
     {
-        return $this->scopeByType( $query, ServerTypes::WEB );
+        return $this->scopeByType($query, ServerTypes::WEB);
     }
 
     /**
@@ -215,9 +220,9 @@ class Server extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeByType( $query, $typeId )
+    public function scopeByType($query, $typeId)
     {
-        return $query->where( 'server_type_id', '=', (int)$typeId );
+        return $query->where('server_type_id', '=', (int)$typeId);
     }
 
 }

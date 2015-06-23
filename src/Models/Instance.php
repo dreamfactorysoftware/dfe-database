@@ -12,6 +12,7 @@ use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Enterprise\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
+use DreamFactory\Enterprise\Database\Traits\DataStash;
 use DreamFactory\Enterprise\Services\Utility\InstanceMetadata;
 use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Query\Builder;
@@ -55,14 +56,20 @@ use League\Flysystem\Filesystem;
  * @property Server  $dbServer
  * @property Server  $webServer
  *
- * @method static Builder instanceName( string $instanceName )
- * @method static Builder byNameOrId( string $instanceNameOrId )
- * @method static Builder userId( int $userId )
- * @method static Builder withDbName( string $dbName )
- * @method static Builder onDbServer( int $dbServerId )
+ * @method static Builder instanceName(string $instanceName)
+ * @method static Builder byNameOrId(string $instanceNameOrId)
+ * @method static Builder userId(int $userId)
+ * @method static Builder withDbName(string $dbName)
+ * @method static Builder onDbServer(int $dbServerId)
  */
-class Instance extends EnterpriseModel
+class Instance extends AssociativeEntityOwner
 {
+    //******************************************************************************
+    //* Traits
+    //******************************************************************************
+
+    use EntityLookup, AuthorizedEntity, StaticComponentLookup, DataStash;
+
     //******************************************************************************
     //* Constants
     //******************************************************************************
@@ -77,12 +84,6 @@ class Instance extends EnterpriseModel
     const HOST_NAME_PATTERN = "/^([a-zA-Z0-9])+$/";
 
     //******************************************************************************
-    //* Traits
-    //******************************************************************************
-
-    use EntityLookup, AuthorizedEntity, StaticComponentLookup;
-
-    //******************************************************************************
     //* Members
     //******************************************************************************
 
@@ -90,10 +91,6 @@ class Instance extends EnterpriseModel
      * @type string The table name
      */
     protected $table = 'instance_t';
-    /**
-     * @type string
-     */
-    protected $_privatePathName = '.private';
     /** @inheritdoc */
     protected $casts = [
         'instance_data_text' => 'array',
@@ -106,12 +103,14 @@ class Instance extends EnterpriseModel
         'platform_state_nbr' => 'integer',
         'ready_state_nbr'    => 'integer',
     ];
-    /** @inheritdoc */
-    protected static $_assignmentOwnerType = OwnerTypes::SERVER;
     /**
      * @type array The template for metadata stored in
      */
     protected static $_metadataTemplate = ['storage-map' => [], 'paths' => [], 'db' => [], 'env' => [],];
+    /**
+     * @type string
+     */
+    protected $_privatePathName = '.private';
 
     //******************************************************************************
     //* Methods
@@ -120,11 +119,14 @@ class Instance extends EnterpriseModel
     /**
      * @param array $attributes
      */
-    public function __construct( array $attributes = [] )
+    public function __construct(array $attributes = [])
     {
-        parent::__construct( $attributes );
+        parent::__construct($attributes);
 
-        $this->_privatePathName = config( 'dfe.provisioning.private-path-name', '.private' );
+        $this->_privatePathName = config('dfe.provisioning.private-path-name', '.private');
+
+        //  Servers are the owner of instances for association
+        $this->setOwnerType(OwnerTypes::SERVER);
     }
 
     /**
@@ -135,9 +137,8 @@ class Instance extends EnterpriseModel
         parent::boot();
 
         static::creating(
-            function ( $instance /** @var Instance $instance */ )
-            {
-                $instance->instance_name_text = $instance->sanitizeName( $instance->instance_name_text );
+            function ($instance/** @var Instance $instance */) {
+                $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
 
                 $instance->checkStorageKey();
                 $instance->refreshMetadata();
@@ -145,8 +146,7 @@ class Instance extends EnterpriseModel
         );
 
         static::updating(
-            function ( $instance /** @var Instance $instance */ )
-            {
+            function ($instance/** @var Instance $instance */) {
                 $instance->checkStorageKey();
                 $instance->refreshMetadata();
             }
@@ -158,7 +158,7 @@ class Instance extends EnterpriseModel
      */
     public function cluster()
     {
-        return $this->belongsTo( __NAMESPACE__ . '\\Cluster' );
+        return $this->belongsTo(__NAMESPACE__ . '\\Cluster');
     }
 
     /**
@@ -166,7 +166,10 @@ class Instance extends EnterpriseModel
      */
     public function servers()
     {
-        return $this->hasManyThrough( __NAMESPACE__ . '\\InstanceServer', __NAMESPACE__ . '\\Server', 'instance_id', 'server_id' );
+        return $this->hasManyThrough(__NAMESPACE__ . '\\InstanceServer',
+            __NAMESPACE__ . '\\Server',
+            'instance_id',
+            'server_id');
     }
 
     /**
@@ -174,7 +177,7 @@ class Instance extends EnterpriseModel
      */
     public function webServer()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'web_server_id' );
+        return $this->hasOne(__NAMESPACE__ . '\\Server', 'id', 'web_server_id');
     }
 
     /**
@@ -182,7 +185,7 @@ class Instance extends EnterpriseModel
      */
     public function dbServer()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'db_server_id' );
+        return $this->hasOne(__NAMESPACE__ . '\\Server', 'id', 'db_server_id');
     }
 
     /**
@@ -190,7 +193,7 @@ class Instance extends EnterpriseModel
      */
     public function appServer()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'app_server_id' );
+        return $this->hasOne(__NAMESPACE__ . '\\Server', 'id', 'app_server_id');
     }
 
     /**
@@ -198,7 +201,7 @@ class Instance extends EnterpriseModel
      */
     public function user()
     {
-        return $this->hasOne( static::DEPLOY_NAMESPACE . '\\User', 'id', 'user_id' );
+        return $this->hasOne(static::DEPLOY_NAMESPACE . '\\User', 'id', 'user_id');
     }
 
     /**
@@ -206,7 +209,7 @@ class Instance extends EnterpriseModel
      */
     public function guest()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\InstanceGuest', 'id', 'instance_id' );
+        return $this->hasOne(__NAMESPACE__ . '\\InstanceGuest', 'id', 'instance_id');
     }
 
     /**
@@ -216,9 +219,9 @@ class Instance extends EnterpriseModel
      *
      * @return bool|int
      */
-    public function updateState( $state )
+    public function updateState($state)
     {
-        return $this->update( ['state_nbr' => $state] );
+        return $this->update(['state_nbr' => $state]);
     }
 
     /**
@@ -227,17 +230,16 @@ class Instance extends EnterpriseModel
      * @throws InstanceNotActivatedException
      * @return bool|int
      */
-    public static function lock( $id )
+    public static function lock($id)
     {
         /** @type Instance $_instance */
-        $_instance = static::findOrFail( $id );
+        $_instance = static::findOrFail($id);
 
-        if ( OperationalStates::ACTIVATED != $_instance->platform_state_nbr )
-        {
-            throw new InstanceNotActivatedException( 'Instance "' . $id . '" not activated.' );
+        if (OperationalStates::ACTIVATED != $_instance->platform_state_nbr) {
+            throw new InstanceNotActivatedException('Instance "' . $id . '" not activated.');
         }
 
-        return $_instance->update( ['platform_state_nbr' => OperationalStates::LOCKED] );
+        return $_instance->update(['platform_state_nbr' => OperationalStates::LOCKED]);
     }
 
     /**
@@ -246,17 +248,16 @@ class Instance extends EnterpriseModel
      * @return bool|int
      * @throws InstanceUnlockedException
      */
-    public static function unlock( $id )
+    public static function unlock($id)
     {
         /** @type Instance $_instance */
-        $_instance = static::findOrFail( $id );
+        $_instance = static::findOrFail($id);
 
-        if ( OperationalStates::LOCKED != $_instance->platform_state_nbr )
-        {
-            throw new InstanceUnlockedException( 'Instance "' . $id . '" not locked.' );
+        if (OperationalStates::LOCKED != $_instance->platform_state_nbr) {
+            throw new InstanceUnlockedException('Instance "' . $id . '" not locked.');
         }
 
-        return $_instance->update( ['platform_state_nbr' => OperationalStates::ACTIVATED] );
+        return $_instance->update(['platform_state_nbr' => OperationalStates::ACTIVATED]);
     }
 
     /**
@@ -265,23 +266,19 @@ class Instance extends EnterpriseModel
      *
      * @return bool
      */
-    public static function deactivate( array $schemaInfo, $actionReason = DeactivationReasons::NON_USE )
+    public static function deactivate(array $schemaInfo, $actionReason = DeactivationReasons::NON_USE)
     {
-        if ( null === ( $_row = Deactivation::instanceId( $schemaInfo['instance']->id )->first() ) )
-        {
+        if (null === ($_row = Deactivation::instanceId($schemaInfo['instance']->id)->first())) {
             //  Not found
             $_row = new Deactivation();
             $_row->user_id = $schemaInfo['instance']->user_id;
             $_row->instance_id = $schemaInfo['instance']->id;
         }
 
-        if ( false === $actionReason )
-        {
+        if (false === $actionReason) {
             //  Set activation date to 7 days from now.
-            $_row->activate_by_date = date( 'Y-m-d H-i-s', time() + ( 7 * 86400 ) );
-        }
-        else
-        {
+            $_row->activate_by_date = date('Y-m-d H-i-s', time() + (7 * 86400));
+        } else {
             $_row->action_reason_nbr = $actionReason;
         }
 
@@ -294,11 +291,10 @@ class Instance extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeUserId( $query, $userId )
+    public function scopeUserId($query, $userId)
     {
-        if ( !empty( $userId ) )
-        {
-            return $query->where( 'user_id', '=', $userId );
+        if (!empty($userId)) {
+            return $query->where('user_id', '=', $userId);
         }
 
         return $query;
@@ -310,11 +306,10 @@ class Instance extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeOnDbServer( $query, $dbServerId )
+    public function scopeOnDbServer($query, $dbServerId)
     {
-        if ( !empty( $dbServerId ) )
-        {
-            return $query->where( 'db_server_id', '=', $dbServerId );
+        if (!empty($dbServerId)) {
+            return $query->where('db_server_id', '=', $dbServerId);
         }
 
         return $query;
@@ -326,11 +321,10 @@ class Instance extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeWithPlatformState( $query, $stateId )
+    public function scopeWithPlatformState($query, $stateId)
     {
-        if ( null !== $stateId )
-        {
-            return $query->where( 'platform_state_nbr', '=', $stateId );
+        if (null !== $stateId) {
+            return $query->where('platform_state_nbr', '=', $stateId);
         }
 
         return $query;
@@ -342,11 +336,10 @@ class Instance extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeWithDbName( $query, $dbName )
+    public function scopeWithDbName($query, $dbName)
     {
-        if ( null !== $dbName )
-        {
-            return $query->where( 'db_name_text', '=', $dbName );
+        if (null !== $dbName) {
+            return $query->where('db_name_text', '=', $dbName);
         }
 
         return $query;
@@ -358,9 +351,9 @@ class Instance extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeInstanceName( $query, $instanceName )
+    public function scopeInstanceName($query, $instanceName)
     {
-        return $query->where( 'instance_name_text', '=', $instanceName );
+        return $query->where('instance_name_text', '=', $instanceName);
     }
 
     /**
@@ -369,11 +362,15 @@ class Instance extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeByNameOrId( $query, $instanceNameOrId )
+    public function scopeByNameOrId($query, $instanceNameOrId)
     {
         return $query->whereRaw(
             'instance_name_text = :instance_name_text OR instance_id_text = :instance_id_text or id = :id',
-            [':instance_name_text' => $instanceNameOrId, ':instance_id_text' => $instanceNameOrId, ':id' => $instanceNameOrId]
+            [
+                ':instance_name_text' => $instanceNameOrId,
+                ':instance_id_text'   => $instanceNameOrId,
+                ':id'                 => $instanceNameOrId,
+            ]
         );
     }
 
@@ -383,9 +380,9 @@ class Instance extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeLikeInstanceName( $query, $instanceName )
+    public function scopeLikeInstanceName($query, $instanceName)
     {
-        return $query->where( 'instance_name_text', 'like', '%' . $instanceName . '%' );
+        return $query->where('instance_name_text', 'like', '%' . $instanceName . '%');
     }
 
     /**
@@ -393,7 +390,7 @@ class Instance extends EnterpriseModel
      */
     public function getStoragePath()
     {
-        return \InstanceStorage::getStoragePath( $this );
+        return \InstanceStorage::getStoragePath($this);
     }
 
     /**
@@ -401,7 +398,7 @@ class Instance extends EnterpriseModel
      */
     public function getSnapshotPath()
     {
-        return \InstanceStorage::getSnapshotPath( $this );
+        return \InstanceStorage::getSnapshotPath($this);
     }
 
     /**
@@ -411,7 +408,7 @@ class Instance extends EnterpriseModel
      */
     public function getPrivatePath()
     {
-        return \InstanceStorage::getPrivatePath( $this );
+        return \InstanceStorage::getPrivatePath($this);
     }
 
     /**
@@ -421,7 +418,7 @@ class Instance extends EnterpriseModel
      */
     public function getOwnerPrivatePath()
     {
-        return \InstanceStorage::getOwnerPrivatePath( $this );
+        return \InstanceStorage::getOwnerPrivatePath($this);
     }
 
     /**
@@ -429,9 +426,8 @@ class Instance extends EnterpriseModel
      */
     public function checkStorageKey()
     {
-        if ( empty( $this->storage_id_text ) )
-        {
-            $this->storage_id_text = UniqueId::generate( __CLASS__ );
+        if (empty($this->storage_id_text)) {
+            $this->storage_id_text = UniqueId::generate(__CLASS__);
             $this->getStorageMap();
         }
     }
@@ -441,17 +437,16 @@ class Instance extends EnterpriseModel
      *
      * @return bool
      */
-    public function removeFromServer( $serverId )
+    public function removeFromServer($serverId)
     {
-        $_server = ( $serverId instanceof Server ) ? $serverId : $this->_getServer( $serverId );
+        $_server = ($serverId instanceof Server) ? $serverId : $this->_getServer($serverId);
 
         //  Do we belong to a server?
-        if ( $this->belongsToServer( $_server->id ) )
-        {
+        if ($this->belongsToServer($_server->id)) {
             return
                 1 == InstanceServer::whereRaw(
                     'server_id = :server_id AND instance_id = :instance_id',
-                    array(':server_id' => $_server->id, ':instance_id' => $this->id)
+                    [':server_id' => $_server->id, ':instance_id' => $this->id]
                 )->delete();
         }
 
@@ -464,12 +459,12 @@ class Instance extends EnterpriseModel
      *
      * @return bool
      */
-    public function addToServer( $serverId )
+    public function addToServer($serverId)
     {
         //  This will fail if $serverId is bogus
-        $this->removeFromServer( $_server = $this->_getServer( $serverId ) );
+        $this->removeFromServer($_server = $this->_getServer($serverId));
 
-        return 1 == InstanceServer::insert( ['server_id' => $_server->id, 'instance_id' => $this->id] );
+        return 1 == InstanceServer::insert(['server_id' => $_server->id, 'instance_id' => $this->id]);
     }
 
     /**
@@ -477,9 +472,9 @@ class Instance extends EnterpriseModel
      *
      * @return bool True if this instance
      */
-    public function belongsToServer( $serverId )
+    public function belongsToServer($serverId)
     {
-        $_server = $this->_getServer( $serverId );
+        $_server = $this->_getServer($serverId);
 
         /** @noinspection PhpUndefinedMethodInspection */
 
@@ -487,7 +482,7 @@ class Instance extends EnterpriseModel
             'server_id = :server_id AND instance_id = :instance_id',
             [
                 ':server_id'   => $_server->id,
-                ':instance_id' => $this->id
+                ':instance_id' => $this->id,
             ]
         )->count();
     }
@@ -497,11 +492,10 @@ class Instance extends EnterpriseModel
      *
      * @return Server
      */
-    protected function _getServer( $serverId )
+    protected function _getServer($serverId)
     {
-        if ( null === ( $_server = Server::byNameOrId( $serverId )->first() ) )
-        {
-            throw new \InvalidArgumentException( 'The server id "' . $serverId . '" is invalid.' );
+        if (null === ($_server = Server::byNameOrId($serverId)->first())) {
+            throw new \InvalidArgumentException('The server id "' . $serverId . '" is invalid.');
         }
 
         return $_server;
@@ -512,14 +506,13 @@ class Instance extends EnterpriseModel
      *
      * @return bool|string Returns the sanitized name or FALSE if not available
      */
-    public static function isNameAvailable( $name )
+    public static function isNameAvailable($name)
     {
-        if ( false === ( $_sanitized = static::sanitizeName( $name ) ) )
-        {
+        if (false === ($_sanitized = static::sanitizeName($name))) {
             return false;
         }
 
-        return ( 0 == static::byNameOrId( $_sanitized )->count() ? $_sanitized : false );
+        return (0 == static::byNameOrId($_sanitized)->count() ? $_sanitized : false);
     }
 
     /**
@@ -530,13 +523,12 @@ class Instance extends EnterpriseModel
      *
      * @return string
      */
-    public static function sanitizeName( $name, $isAdmin = false )
+    public static function sanitizeName($name, $isAdmin = false)
     {
         static $_sanitized = [];
         static $_unavailableNames = null;
 
-        if ( isset( $_sanitized[$name] ) )
-        {
+        if (isset($_sanitized[$name])) {
             //\Log::debug( '>>> sanitize skipped' );
 
             return $_sanitized[$name];
@@ -546,41 +538,36 @@ class Instance extends EnterpriseModel
         $_clean = str_replace(
             [' ', '_'],
             '-',
-            trim( str_replace( '--', '-', preg_replace( static::CHARACTER_PATTERN, '-', $name ) ), ' -_' )
+            trim(str_replace('--', '-', preg_replace(static::CHARACTER_PATTERN, '-', $name)), ' -_')
         );
 
         //  Ensure non-admin user instances are prefixed
         $_prefix =
-            function_exists( 'config' )
-                ? config( 'dfe.instance-prefix' )
+            function_exists('config')
+                ? config('dfe.instance-prefix')
                 : 'dfe-';
 
-        if ( $_prefix != substr( $_clean, 0, strlen( $_prefix ) ) )
-        {
-            $_clean = trim( str_replace( '--', '-', $_prefix . $_clean ), ' -_' );
+        if ($_prefix != substr($_clean, 0, strlen($_prefix))) {
+            $_clean = trim(str_replace('--', '-', $_prefix . $_clean), ' -_');
         }
 
-        if ( null === $_unavailableNames && function_exists( 'config' ) )
-        {
-            $_unavailableNames = config( 'dfe.forbidden-names', [] );
+        if (null === $_unavailableNames && function_exists('config')) {
+            $_unavailableNames = config('dfe.forbidden-names', []);
 
-            if ( !is_array( $_unavailableNames ) || empty( $_unavailableNames ) )
-            {
+            if (!is_array($_unavailableNames) || empty($_unavailableNames)) {
                 $_unavailableNames = [];
             }
         }
 
-        if ( in_array( $_clean, $_unavailableNames ) )
-        {
-            \Log::error( 'Attempt to register forbidden instance name: ' . $name . ' => ' . $_clean );
+        if (in_array($_clean, $_unavailableNames)) {
+            \Log::error('Attempt to register forbidden instance name: ' . $name . ' => ' . $_clean);
 
             return false;
         }
 
         //	Check host name
-        if ( preg_match( static::HOST_NAME_PATTERN, $_clean ) )
-        {
-            \Log::notice( 'Non-standard instance name "' . $_clean . '" being provisioned' );
+        if (preg_match(static::HOST_NAME_PATTERN, $_clean)) {
+            \Log::notice('Non-standard instance name "' . $_clean . '" being provisioned');
         }
 
         //  Cache it...
@@ -599,20 +586,19 @@ class Instance extends EnterpriseModel
      *
      * @return array
      */
-    public function getMetadata( $sync = true, $key = null )
+    public function getMetadata($sync = true, $key = null)
     {
         $_data = $this->instance_data_text;
 
-        if ( is_array( $_data ) && !empty( $_data ) )
-        {
+        if (is_array($_data) && !empty($_data)) {
             return $_data;
         }
 
-        $_data = static::_makeMetadata( $this );
+        $_data = static::_makeMetadata($this);
 
-        ( $sync && !$key ) && $this->update( ['instance_data_text' => $_data] );
+        ($sync && !$key) && $this->update(['instance_data_text' => $_data]);
 
-        return $key ? IfSet::get( $_data, $key ) : $_data;
+        return $key ? IfSet::get($_data, $key) : $_data;
     }
 
     /**
@@ -622,25 +608,24 @@ class Instance extends EnterpriseModel
      *
      * @return mixed|string
      */
-    public function getRootStoragePath( $append = null )
+    public function getRootStoragePath($append = null)
     {
         static $_cache = [];
 
-        $_ck = hash( EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD, 'rsp.' . $this->id . ( $append ? DIRECTORY_SEPARATOR . $append : $append ) );
+        $_ck = hash(EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD,
+            'rsp.' . $this->id . ($append ? DIRECTORY_SEPARATOR . $append : $append));
 
-        if ( null === ( $_path = IfSet::get( $_cache, $_ck ) ) )
-        {
-            switch ( $this->guest_location_nbr )
-            {
+        if (null === ($_path = IfSet::get($_cache, $_ck))) {
+            switch ($this->guest_location_nbr) {
                 case GuestLocations::LOCAL:
-                    $_path = storage_path( $append );
+                    $_path = storage_path($append);
                     break;
 
                 default:
                     $_map = $this->getStorageMap();
                     $_path =
-                        implode( DIRECTORY_SEPARATOR, [$_map['zone'], $_map['partition'], $_map['root-hash']] ) .
-                        ( $append ? DIRECTORY_SEPARATOR . ltrim( $append, ' ' . DIRECTORY_SEPARATOR ) : null );
+                        implode(DIRECTORY_SEPARATOR, [$_map['zone'], $_map['partition'], $_map['root-hash']]) .
+                        ($append ? DIRECTORY_SEPARATOR . ltrim($append, ' ' . DIRECTORY_SEPARATOR) : null);
                     break;
             }
 
@@ -655,77 +640,64 @@ class Instance extends EnterpriseModel
      */
     public function getStorageMap()
     {
-        if ( empty( $this->instance_data_text ) )
-        {
+        if (empty($this->instance_data_text)) {
             $this->instance_data_text = [];
         }
 
-        $_map = IfSet::get( $this->instance_data_text, 'storage-map' );
+        $_map = IfSet::get($this->instance_data_text, 'storage-map');
 
-        if ( empty( $this->instance_data_text ) || empty( $_map ) )
-        {
+        if (empty($this->instance_data_text) || empty($_map)) {
             //  Non-hosted has no structure, just storage
-            if ( GuestLocations::LOCAL == $this->guest_location_nbr )
-            {
+            if (GuestLocations::LOCAL == $this->guest_location_nbr) {
                 $_map = [
                     'zone'      => null,
                     'partition' => null,
                     'root-hash' => null,
                 ];
-            }
-            else
-            {
-                if ( $this->user )
-                {
+            } else {
+                if ($this->user) {
                     $_userKey = $this->user->storage_id_text;
-                }
-                else
-                {
+                } else {
                     $_userKey = \DB::select(
                         'SELECT storage_id_text FROM user_t WHERE id = :id',
                         [':id' => $this->user_id]
                     );
 
-                    if ( $_userKey )
-                    {
+                    if ($_userKey) {
                         $_userKey = $_userKey[0]->storage_id_text;
                     }
-
                 }
 
-                if ( empty( $_userKey ) )
-                {
-                    throw new \RuntimeException( 'Cannot locate owner record of instance.' );
+                if (empty($_userKey)) {
+                    throw new \RuntimeException('Cannot locate owner record of instance.');
                 }
 
-                $_rootHash = hash( config( 'dfe.signature-method', 'sha256' ), $_userKey );
-                $_partition = substr( $_rootHash, 0, 2 );
+                $_rootHash = hash(config('dfe.signature-method', 'sha256'), $_userKey);
+                $_partition = substr($_rootHash, 0, 2);
 
                 $_zone = null;
 
-                switch ( config( 'dfe.provisioning.storage-zone-type' ) )
-                {
+                switch (config('dfe.provisioning.storage-zone-type')) {
                     case 'dynamic':
-                        switch ( $this->guest_location_nbr )
-                        {
+                        switch ($this->guest_location_nbr) {
                             case GuestLocations::AMAZON_EC2:
                             case GuestLocations::DFE_CLUSTER:
-                                if ( file_exists( '/usr/bin/ec2metadata' ) )
-                                {
-                                    $_zone = str_replace( 'availability-zone: ', null, `/usr/bin/ec2metadata | grep zone` );
+                                if (file_exists('/usr/bin/ec2metadata')) {
+                                    $_zone = str_replace('availability-zone: ',
+                                        null,
+                                        `/usr/bin/ec2metadata | grep zone`);
                                 }
                                 break;
                         }
                         break;
 
                     case 'static':
-                        $_zone = config( 'dfe.provisioning.static-zone-name' );
+                        $_zone = config('dfe.provisioning.static-zone-name');
                         break;
                 }
 
-                if ( empty( $_zone ) || empty( $_partition ) )
-                {
-                    throw new \RuntimeException( 'Zone and/or partition unknown. Cannot provision storage.' );
+                if (empty($_zone) || empty($_partition)) {
+                    throw new \RuntimeException('Zone and/or partition unknown. Cannot provision storage.');
                 }
 
                 $_map = [
@@ -735,7 +707,7 @@ class Instance extends EnterpriseModel
                 ];
             }
 
-            $this->instance_data_text = array_merge( $this->instance_data_text, ['storage-map' => $_map] );
+            $this->instance_data_text = array_merge($this->instance_data_text, ['storage-map' => $_map]);
             //\Log::debug( 'instance: storage map generated', $this->instance_data_text );
         }
 
@@ -749,9 +721,9 @@ class Instance extends EnterpriseModel
      *
      * @return Filesystem
      */
-    public function getRootStorageMount( $tag = null )
+    public function getRootStorageMount($tag = null)
     {
-        return \InstanceStorage::getRootStorageMount( $this, $tag );
+        return \InstanceStorage::getRootStorageMount($this, $tag);
     }
 
     /**
@@ -761,9 +733,9 @@ class Instance extends EnterpriseModel
      *
      * @return Filesystem
      */
-    public function getSnapshotMount( $tag = null )
+    public function getSnapshotMount($tag = null)
     {
-        return \InstanceStorage::getSnapshotMount( $this, $tag );
+        return \InstanceStorage::getSnapshotMount($this, $tag);
     }
 
     /**
@@ -771,9 +743,9 @@ class Instance extends EnterpriseModel
      *
      * @return Filesystem
      */
-    public function getStorageMount( $tag = null )
+    public function getStorageMount($tag = null)
     {
-        return \InstanceStorage::getStorageMount( $this, $tag );
+        return \InstanceStorage::getStorageMount($this, $tag);
     }
 
     /**
@@ -781,9 +753,9 @@ class Instance extends EnterpriseModel
      *
      * @return Filesystem
      */
-    public function getPrivateStorageMount( $tag = null )
+    public function getPrivateStorageMount($tag = null)
     {
-        return \InstanceStorage::getPrivateStorageMount( $this, $tag );
+        return \InstanceStorage::getPrivateStorageMount($this, $tag);
     }
 
     /**
@@ -791,9 +763,9 @@ class Instance extends EnterpriseModel
      *
      * @return Filesystem
      */
-    public function getOwnerPrivateStorageMount( $tag = null )
+    public function getOwnerPrivateStorageMount($tag = null)
     {
-        return \InstanceStorage::getOwnerPrivateStorageMount( $this, $tag );
+        return \InstanceStorage::getOwnerPrivateStorageMount($this, $tag);
     }
 
     /**
@@ -803,7 +775,7 @@ class Instance extends EnterpriseModel
      */
     public function getInstanceMetadata()
     {
-        return InstanceMetadata::createFromInstance( $this );
+        return InstanceMetadata::createFromInstance($this);
     }
 
     /**
@@ -811,9 +783,9 @@ class Instance extends EnterpriseModel
      *
      * @return array|bool If $save is TRUE, instance row is saved and result returned. Otherwise, the freshened metadata is returned.
      */
-    public function refreshMetadata( $save = false )
+    public function refreshMetadata($save = false)
     {
-        $this->instance_data_text = array_merge( $this->instance_data_text, static::_makeMetadata( $this ) );
+        $this->instance_data_text = array_merge($this->instance_data_text, static::_makeMetadata($this));
 
         return $save ? $this->save() : $this->instance_data_text;
     }
@@ -823,11 +795,11 @@ class Instance extends EnterpriseModel
      *
      * @return array
      */
-    protected static function _makeMetadata( Instance $instance )
+    protected static function _makeMetadata(Instance $instance)
     {
-        $_key = AppKey::mine( $instance->user_id, OwnerTypes::USER );
+        $_key = AppKey::mine($instance->user_id, OwnerTypes::USER);
 
-        $_cluster = static::_lookupCluster( $instance->cluster_id );
+        $_cluster = static::_lookupCluster($instance->cluster_id);
 
         return array_merge(
             static::$_metadataTemplate,
@@ -836,16 +808,17 @@ class Instance extends EnterpriseModel
                 'env'         => [
                     'cluster-id'       => $_cluster->cluster_id,
                     'default-domain'   => $_cluster->subdomain_text,
-                    'signature-method' => config( 'dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD ),
+                    'signature-method' => config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
                     'storage-root'     => EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH,
-                    'console-api-url'  => config( 'dfe.security.console-api-url' ),
-                    'console-api-key'  => config( 'dfe.security.console-api-key' ),
+                    'console-api-url'  => config('dfe.security.console-api-url'),
+                    'console-api-key'  => config('dfe.security.console-api-key'),
                     'client-id'        => $_key->client_id,
                     'client-secret'    => $_key->client_secret,
                 ],
                 'db'          => [
                     $instance->instance_name_text => [
-                        'id'                    => $instance->dbServer ? $instance->dbServer->server_id_text : $instance->db_server_id,
+                        'id'                    => $instance->dbServer ? $instance->dbServer->server_id_text
+                            : $instance->db_server_id,
                         'host'                  => $instance->db_host_text,
                         'port'                  => $instance->db_port_nbr,
                         'username'              => $instance->db_user_text,
@@ -856,14 +829,15 @@ class Instance extends EnterpriseModel
                         'charset'               => 'utf8',
                         'collation'             => 'utf8_unicode_ci',
                         'prefix'                => '',
-                        'db-server-id'          => $instance->dbServer ? $instance->dbServer->server_id_text : $instance->db_server_id,
-                    ]
+                        'db-server-id'          => $instance->dbServer ? $instance->dbServer->server_id_text
+                            : $instance->db_server_id,
+                    ],
                 ],
                 'paths'       => [
                     'private-path'       => $instance->instance_name_text . DIRECTORY_SEPARATOR . '.private',
                     'owner-private-path' => '.private',
-                    'snapshot-path-name' => '.private' . DIRECTORY_SEPARATOR . 'snapshots'
-                ]
+                    'snapshot-path-name' => '.private' . DIRECTORY_SEPARATOR . 'snapshots',
+                ],
             ]
         );
     }

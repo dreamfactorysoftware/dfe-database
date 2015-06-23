@@ -21,8 +21,6 @@ class Snapshot extends EnterpriseModel
      * @type string The table name
      */
     protected $table = 'snapshot_t';
-    /** @inheritdoc */
-    protected static $_assignmentOwnerType = OwnerTypes::USER;
 
     //******************************************************************************
     //* Methods

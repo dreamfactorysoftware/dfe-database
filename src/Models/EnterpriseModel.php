@@ -8,9 +8,9 @@ use Illuminate\Database\Query\Builder;
 /**
  * Base class for all DFE models
  *
- * @property int   id
- * @property mixed lmod_date
- * @property mixed create_date
+ * @property int   $id
+ * @property mixed $lmod_date
+ * @property mixed $create_date
  *
  * @method static Builder|\Illuminate\Database\Eloquent\Builder where($column, $operator = null, $value = null, $boolean = 'and')
  * @method static Builder|\Illuminate\Database\Eloquent\Builder whereRaw($clause, $params = [])
@@ -141,7 +141,7 @@ class EnterpriseModel extends Model
     /**
      * @return int
      */
-    public static function getAssignmentOwnerType()
+    public static function getAssociativeEntityOwnerType()
     {
         return static::$_assignmentOwnerType;
     }
@@ -149,7 +149,7 @@ class EnterpriseModel extends Model
     /**
      * @param int $assignmentOwnerType
      */
-    public static function setAssignmentOwnerType($assignmentOwnerType)
+    public static function setAssociativeEntityOwnerType($assignmentOwnerType)
     {
         if (!OwnerTypes::contains($assignmentOwnerType)) {
             throw new \InvalidArgumentException('The owner type "' . $assignmentOwnerType . '" is invalid.');

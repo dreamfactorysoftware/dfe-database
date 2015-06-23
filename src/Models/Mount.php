@@ -14,9 +14,9 @@ use Illuminate\Database\Query\Builder;
  * @property string mount_id_text
  * @property string config_text
  *
- * @method static Builder byNameOrId( string $mountNameOrId )
+ * @method static Builder byNameOrId(string $mountNameOrId)
  */
-class Mount extends EnterpriseModel
+class Mount extends AssociativeEntityOwner
 {
     //******************************************************************************
     //* Traits
@@ -32,19 +32,28 @@ class Mount extends EnterpriseModel
     protected $table = 'mount_t';
     /** @inheritdoc */
     protected $casts = ['config_text' => 'array',];
-    /** @inheritdoc */
-    protected static $_assignmentOwnerType = OwnerTypes::SERVER;
 
     //******************************************************************************
     //* Methods
     //******************************************************************************
 
     /**
+     * @param array $attributes
+     */
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+
+        //  Servers are the owner of mounts for association
+        $this->setOwnerType(OwnerTypes::SERVER);
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function server()
     {
-        return $this->belongsTo( __NAMESPACE__ . '\\Server', 'id', 'mount_id' );
+        return $this->belongsTo(__NAMESPACE__ . '\\Server', 'id', 'mount_id');
     }
 
     /**
@@ -53,7 +62,7 @@ class Mount extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeByNameOrId( $query, $mountNameOrId )
+    public function scopeByNameOrId($query, $mountNameOrId)
     {
         return $query->whereRaw(
             'mount_id_text = :mount_id_text OR id = :id',
@@ -68,10 +77,10 @@ class Mount extends EnterpriseModel
      *
      * @return bool
      */
-    public function isInUse( $mountId )
+    public function isInUse($mountId)
     {
         /** @noinspection PhpUndefinedMethodInspection */
-        return Server::where( 'mount_id', $mountId )->count() > 0;
+        return Server::where('mount_id', $mountId)->count() > 0;
     }
 
     /**
@@ -85,17 +94,16 @@ class Mount extends EnterpriseModel
      * @return \Illuminate\Contracts\Filesystem\Filesystem|string
      * @throws \DreamFactory\Enterprise\Database\Exceptions\MountException
      */
-    public function getFilesystem( $path = null, $tag = null, $options = [], $nameOnly = false )
+    public function getFilesystem($path = null, $tag = null, $options = [], $nameOnly = false)
     {
         $_diskName = null;
         $_mountConfig = $this->config_text;
 
-        if ( null === ( $_diskName = IfSet::get( $_mountConfig, 'disk' ) ) )
-        {
-            throw new \RuntimeException( 'No "disk" configured for mount "' . $this->mount_id_text . '".' );
+        if (null === ($_diskName = IfSet::get($_mountConfig, 'disk'))) {
+            throw new \RuntimeException('No "disk" configured for mount "' . $this->mount_id_text . '".');
         }
 
-        return Mounter::mount( $_diskName, array_merge( $options, ['prefix' => $path, 'tag' => $tag] ) );
+        return Mounter::mount($_diskName, array_merge($options, ['prefix' => $path, 'tag' => $tag]));
 
         //@todo Dynamically configured disk is not yet supported because of a config provider issue
 
