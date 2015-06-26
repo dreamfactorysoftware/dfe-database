@@ -61,7 +61,7 @@ class AppKey extends SelfAssociativeEntity
         parent::boot();
 
         static::creating(
-            function ($row) {
+            function ($row){
                 if (empty($row->key_class_text)) {
                     $row->key_class_text = AppKeyClasses::OTHER;
                 }
@@ -251,7 +251,7 @@ class AppKey extends SelfAssociativeEntity
             //  Anything with owner and type get tagged
             if (isset($entity->owner_id, $entity->owner_type_nbr)) {
                 //  No owner to speak of...
-                if (0 == $entity->owner_id && empty($entity->owner_type_nbr)) {
+                if (empty($entity->owner_id) && empty($entity->owner_type_nbr)) {
                     return [null, null];
                 }
 

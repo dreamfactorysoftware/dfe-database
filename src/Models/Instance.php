@@ -137,7 +137,7 @@ class Instance extends AssociativeEntityOwner
         parent::boot();
 
         static::creating(
-            function ($instance/** @var Instance $instance */) {
+            function ($instance/** @var Instance $instance */){
                 $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
 
                 $instance->checkStorageKey();
@@ -146,11 +146,15 @@ class Instance extends AssociativeEntityOwner
         );
 
         static::updating(
-            function ($instance/** @var Instance $instance */) {
+            function ($instance/** @var Instance $instance */){
                 $instance->checkStorageKey();
                 $instance->refreshMetadata();
             }
         );
+
+        static::deleted(function ($instance/** @var Instance $instance */){
+            AppKey::where('owner_id', $instance->id)->where('owner_type_nbr', OwnerTypes::INSTANCE)->delete();
+        });
     }
 
     /**
@@ -781,7 +785,8 @@ class Instance extends AssociativeEntityOwner
     /**
      * @param bool $save
      *
-     * @return array|bool If $save is TRUE, instance row is saved and result returned. Otherwise, the freshened metadata is returned.
+     * @return array|bool If $save is TRUE, instance row is saved and result returned. Otherwise, the freshened
+     *                    metadata is returned.
      */
     public function refreshMetadata($save = false)
     {
