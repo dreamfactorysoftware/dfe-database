@@ -3,6 +3,7 @@
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Common\Enums\EnterprisePaths;
 use DreamFactory\Enterprise\Common\Enums\OperationalStates;
+use DreamFactory\Enterprise\Common\Support\Metadata;
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
 use DreamFactory\Enterprise\Common\Utility\UniqueId;
@@ -13,8 +14,6 @@ use DreamFactory\Enterprise\Database\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Enterprise\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Database\Traits\DataStash;
-use DreamFactory\Enterprise\Services\Utility\InstanceMetadata;
-use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Query\Builder;
 use League\Flysystem\Filesystem;
 
@@ -102,6 +101,9 @@ class Instance extends AssociativeEntityOwner
         'state_nbr'          => 'integer',
         'platform_state_nbr' => 'integer',
         'ready_state_nbr'    => 'integer',
+        'provision_ind'      => 'boolean',
+        'deprovision_ind'    => 'boolean',
+        'trial_instance_ind' => 'boolean',
     ];
     /**
      * @type array The template for metadata stored in
@@ -137,7 +139,7 @@ class Instance extends AssociativeEntityOwner
         parent::boot();
 
         static::creating(
-            function ($instance/** @var Instance $instance */){
+            function ($instance/** @var Instance $instance */) {
                 $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
 
                 $instance->checkStorageKey();
@@ -146,13 +148,13 @@ class Instance extends AssociativeEntityOwner
         );
 
         static::updating(
-            function ($instance/** @var Instance $instance */){
+            function ($instance/** @var Instance $instance */) {
                 $instance->checkStorageKey();
                 $instance->refreshMetadata();
             }
         );
 
-        static::deleted(function ($instance/** @var Instance $instance */){
+        static::deleted(function ($instance/** @var Instance $instance */) {
             AppKey::where('owner_id', $instance->id)->where('owner_type_nbr', OwnerTypes::INSTANCE)->delete();
         });
     }
@@ -594,15 +596,55 @@ class Instance extends AssociativeEntityOwner
     {
         $_data = $this->instance_data_text;
 
-        if (is_array($_data) && !empty($_data)) {
-            return $_data;
+        if (empty($_data)) {
+            $_data = static::makeMetadata($this)->toArray();
+            ($sync && !$key) && $this->update(['instance_data_text' => $_data]);
         }
 
-        $_data = static::_makeMetadata($this);
+        return $key ? array_get($_data, $key) : $_data;
+    }
 
-        ($sync && !$key) && $this->update(['instance_data_text' => $_data]);
+    /**
+     * Sets an instances metadata
+     *
+     * @param Metadata|array $md The metadata to set
+     *
+     * @return Instance
+     */
+    public function setMetadata($md)
+    {
+        if ($md instanceof Metadata) {
+            $this->instance_data_text = $md->toArray();
+        } elseif (is_array($md)) {
+            $this->instance_data_text = $md;
+        }
 
-        return $key ? IfSet::get($_data, $key) : $_data;
+        return $this;
+    }
+
+    /**
+     * Merges fresh metadata with the existing
+     *
+     * @param Metadata|array $md The metadata to merge
+     *
+     * @return Instance
+     */
+    public function mergeMetadata($md)
+    {
+        $_data = $this->instance_data_text;
+        empty($_data) && ($_data = []);
+
+        if ($md instanceof Metadata) {
+            $_md = $md->toArray();
+        } elseif (is_array($md)) {
+            $_md = $md;
+        } else {
+            throw new \InvalidArgumentException();
+        }
+
+        $this->instance_data_text = array_merge($_data, $_md);
+
+        return $this;
     }
 
     /**
@@ -619,7 +661,7 @@ class Instance extends AssociativeEntityOwner
         $_ck = hash(EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD,
             'rsp.' . $this->id . ($append ? DIRECTORY_SEPARATOR . $append : $append));
 
-        if (null === ($_path = IfSet::get($_cache, $_ck))) {
+        if (null === ($_path = array_get($_cache, $_ck))) {
             switch ($this->guest_location_nbr) {
                 case GuestLocations::LOCAL:
                     $_path = storage_path($append);
@@ -640,17 +682,17 @@ class Instance extends AssociativeEntityOwner
     }
 
     /**
+     * @param bool $update If true (default), the metadata will be updated with this new map
+     *
      * @return array
      */
-    public function getStorageMap()
+    public function getStorageMap($update = true)
     {
-        if (empty($this->instance_data_text)) {
-            $this->instance_data_text = [];
-        }
+        $_data = $this->instance_data_text;
+        empty($_data) && ($_data = []);
+        $_map = array_get($_data, 'storage-map', []);
 
-        $_map = IfSet::get($this->instance_data_text, 'storage-map');
-
-        if (empty($this->instance_data_text) || empty($_map)) {
+        if (empty($_map)) {
             //  Non-hosted has no structure, just storage
             if (GuestLocations::LOCAL == $this->guest_location_nbr) {
                 $_map = [
@@ -676,7 +718,7 @@ class Instance extends AssociativeEntityOwner
                     throw new \RuntimeException('Cannot locate owner record of instance.');
                 }
 
-                $_rootHash = hash(config('dfe.signature-method', 'sha256'), $_userKey);
+                $_rootHash = hash(config('dfe.signature-method', EnterpriseDefaults::SIGNATURE_METHOD), $_userKey);
                 $_partition = substr($_rootHash, 0, 2);
 
                 $_zone = null;
@@ -711,8 +753,9 @@ class Instance extends AssociativeEntityOwner
                 ];
             }
 
-            $this->instance_data_text = array_merge($this->instance_data_text, ['storage-map' => $_map]);
-            //\Log::debug( 'instance: storage map generated', $this->instance_data_text );
+            //  save the map into the metadata
+            $_data['storage-map'] = $_map;
+            $update && ($this->instance_data_text = $_data);
         }
 
         return $_map;
@@ -773,16 +816,6 @@ class Instance extends AssociativeEntityOwner
     }
 
     /**
-     * Returns an instance of InstanceMetadata
-     *
-     * @return array
-     */
-    public function getInstanceMetadata()
-    {
-        return InstanceMetadata::createFromInstance($this);
-    }
-
-    /**
      * @param bool $save
      *
      * @return array|bool If $save is TRUE, instance row is saved and result returned. Otherwise, the freshened
@@ -790,26 +823,26 @@ class Instance extends AssociativeEntityOwner
      */
     public function refreshMetadata($save = false)
     {
-        $this->instance_data_text = array_merge($this->instance_data_text, static::_makeMetadata($this));
+        $this->instance_data_text = static::makeMetadata($this);
 
         return $save ? $this->save() : $this->instance_data_text;
     }
 
     /**
      * @param Instance $instance
+     * @param bool     $object If true, the Metadata object is returned instead of the array
      *
-     * @return array
+     * @return array|\DreamFactory\Enterprise\Common\Support\Metadata
      */
-    protected static function _makeMetadata(Instance $instance)
+    public static function makeMetadata(Instance $instance, $object = false)
     {
         $_key = AppKey::mine($instance->user_id, OwnerTypes::USER);
-
         $_cluster = static::_lookupCluster($instance->cluster_id);
 
-        return array_merge(
+        $_metadata = array_merge(
             static::$_metadataTemplate,
             [
-                'storage-map' => $instance->getStorageMap(),
+                'storage-map' => $instance->getStorageMap(false),
                 'env'         => [
                     'cluster-id'       => $_cluster->cluster_id,
                     'default-domain'   => $_cluster->subdomain_text,
@@ -841,9 +874,17 @@ class Instance extends AssociativeEntityOwner
                 'paths'       => [
                     'private-path'       => $instance->instance_name_text . DIRECTORY_SEPARATOR . '.private',
                     'owner-private-path' => '.private',
-                    'snapshot-path-name' => '.private' . DIRECTORY_SEPARATOR . 'snapshots',
+                    'snapshot-path'      => '.private' . DIRECTORY_SEPARATOR . 'snapshots',
                 ],
             ]
         );
+
+        $_md = new Metadata(
+            $_metadata,
+            $instance->instance_name_text . '.json',
+            $instance->getOwnerPrivateStorageMount()
+        );
+
+        return $object ? $_md : $_md->toArray();
     }
 }
