@@ -1,14 +1,14 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
-
 /**
  * snapshot_t
  *
- * @property string $snapshot_id_text
  * @property int    $user_id
  * @property int    $instance_id
- * @property string $url_text
+ * @property int    $route_hash_id
+ * @property string $snapshot_id_text
+ * @property int    $public_ind
+ * @property string $public_url_text
  * @property string $expire_date
  */
 class Snapshot extends EnterpriseModel
@@ -21,6 +21,10 @@ class Snapshot extends EnterpriseModel
      * @type string The table name
      */
     protected $table = 'snapshot_t';
+    /** @inheritdoc */
+    protected $casts = [
+        'public_ind' => 'bool',
+    ];
 
     //******************************************************************************
     //* Methods
@@ -32,7 +36,7 @@ class Snapshot extends EnterpriseModel
     public function user()
     {
         return
-            $this->hasOne( static::DEPLOY_NAMESPACE . '\\User', 'id', 'user_id' );
+            $this->hasOne(static::DEPLOY_NAMESPACE . '\\User', 'id', 'user_id');
     }
 
     /**
@@ -41,6 +45,15 @@ class Snapshot extends EnterpriseModel
     public function instance()
     {
         return
-            $this->hasOne( static::DEPLOY_NAMESPACE . '\\Instance', 'id', 'instance_id' );
+            $this->hasOne(static::DEPLOY_NAMESPACE . '\\Instance', 'id', 'instance_id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function routeHash()
+    {
+        return
+            $this->hasOne(static::DEPLOY_NAMESPACE . '\\RouteHash', 'id', 'route_hash_id');
     }
 }
