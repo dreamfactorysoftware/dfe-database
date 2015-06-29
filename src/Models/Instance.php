@@ -139,7 +139,7 @@ class Instance extends AssociativeEntityOwner
         parent::boot();
 
         static::creating(
-            function ($instance/** @var Instance $instance */) {
+            function ($instance/** @var Instance $instance */){
                 $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
 
                 $instance->checkStorageKey();
@@ -148,13 +148,13 @@ class Instance extends AssociativeEntityOwner
         );
 
         static::updating(
-            function ($instance/** @var Instance $instance */) {
+            function ($instance/** @var Instance $instance */){
                 $instance->checkStorageKey();
                 $instance->refreshMetadata();
             }
         );
 
-        static::deleted(function ($instance/** @var Instance $instance */) {
+        static::deleted(function ($instance/** @var Instance $instance */){
             AppKey::where('owner_id', $instance->id)->where('owner_type_nbr', OwnerTypes::INSTANCE)->delete();
         });
     }
@@ -839,12 +839,11 @@ class Instance extends AssociativeEntityOwner
         $_key = AppKey::mine($instance->user_id, OwnerTypes::USER);
         $_cluster = static::_lookupCluster($instance->cluster_id);
 
-        $_metadata = array_merge(
-            static::$_metadataTemplate,
-            [
-                'storage-map' => $instance->getStorageMap(false),
-                'env'         => [
-                    'cluster-id'       => $_cluster->cluster_id,
+        $_md = new Metadata([], $instance->instance_name_text . '.json', $instance->getOwnerPrivateStorageMount());
+        $_md->set('storage-map', $instance->getStorageMap(false))
+            ->set('env',
+                [
+                    'cluster-id'       => $_cluster->cluster_id_text,
                     'default-domain'   => $_cluster->subdomain_text,
                     'signature-method' => config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
                     'storage-root'     => EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH,
@@ -852,8 +851,9 @@ class Instance extends AssociativeEntityOwner
                     'console-api-key'  => config('dfe.security.console-api-key'),
                     'client-id'        => $_key->client_id,
                     'client-secret'    => $_key->client_secret,
-                ],
-                'db'          => [
+                ])
+            ->set('db',
+                [
                     $instance->instance_name_text => [
                         'id'                    => $instance->dbServer ? $instance->dbServer->server_id_text
                             : $instance->db_server_id,
@@ -870,20 +870,13 @@ class Instance extends AssociativeEntityOwner
                         'db-server-id'          => $instance->dbServer ? $instance->dbServer->server_id_text
                             : $instance->db_server_id,
                     ],
-                ],
-                'paths'       => [
+                ])
+            ->set('paths',
+                [
                     'private-path'       => $instance->instance_name_text . DIRECTORY_SEPARATOR . '.private',
                     'owner-private-path' => '.private',
                     'snapshot-path'      => '.private' . DIRECTORY_SEPARATOR . 'snapshots',
-                ],
-            ]
-        );
-
-        $_md = new Metadata(
-            $_metadata,
-            $instance->instance_name_text . '.json',
-            $instance->getOwnerPrivateStorageMount()
-        );
+                ]);
 
         return $object ? $_md : $_md->toArray();
     }
