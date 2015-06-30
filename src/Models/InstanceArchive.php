@@ -14,4 +14,15 @@ class InstanceArchive extends Instance
      */
     protected $table = 'instance_arch_t';
 
+    //******************************************************************************
+    //* Methods
+    //******************************************************************************
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function guest()
+    {
+        return $this->hasOne(__NAMESPACE__ . '\\InstanceGuestArchive', 'id', 'instance_id');
+    }
 }

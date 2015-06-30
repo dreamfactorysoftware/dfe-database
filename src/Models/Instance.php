@@ -139,7 +139,7 @@ class Instance extends AssociativeEntityOwner
         parent::boot();
 
         static::creating(
-            function ($instance/** @var Instance $instance */){
+            function ($instance/** @var Instance $instance */) {
                 $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
 
                 $instance->checkStorageKey();
@@ -148,13 +148,13 @@ class Instance extends AssociativeEntityOwner
         );
 
         static::updating(
-            function ($instance/** @var Instance $instance */){
+            function ($instance/** @var Instance $instance */) {
                 $instance->checkStorageKey();
                 $instance->refreshMetadata();
             }
         );
 
-        static::deleted(function ($instance/** @var Instance $instance */){
+        static::deleted(function ($instance/** @var Instance $instance */) {
             AppKey::where('owner_id', $instance->id)->where('owner_type_nbr', OwnerTypes::INSTANCE)->delete();
         });
     }
@@ -854,22 +854,7 @@ class Instance extends AssociativeEntityOwner
                 ])
             ->set('db',
                 [
-                    $instance->instance_name_text => [
-                        'id'                    => $instance->dbServer ? $instance->dbServer->server_id_text
-                            : $instance->db_server_id,
-                        'host'                  => $instance->db_host_text,
-                        'port'                  => $instance->db_port_nbr,
-                        'username'              => $instance->db_user_text,
-                        'password'              => $instance->db_password_text,
-                        'driver'                => 'mysql',
-                        'default-database-name' => '',
-                        'database'              => $instance->db_name_text,
-                        'charset'               => 'utf8',
-                        'collation'             => 'utf8_unicode_ci',
-                        'prefix'                => '',
-                        'db-server-id'          => $instance->dbServer ? $instance->dbServer->server_id_text
-                            : $instance->db_server_id,
-                    ],
+                    $instance->instance_name_text => static::buildConnectionArray($instance),
                 ])
             ->set('paths',
                 [
@@ -879,5 +864,47 @@ class Instance extends AssociativeEntityOwner
                 ]);
 
         return $object ? $_md : $_md->toArray();
+    }
+
+    /**
+     * @param Instance $instance
+     *
+     * @return array
+     */
+    protected static function buildConnectionArray(Instance $instance)
+    {
+        return [
+            'id'                    => $instance->dbServer
+                ? $instance->dbServer->server_id_text
+                : $instance->db_server_id,
+            'host'                  => $instance->db_host_text,
+            'port'                  => $instance->db_port_nbr,
+            'username'              => $instance->db_user_text,
+            'password'              => $instance->db_password_text,
+            'driver'                => 'mysql',
+            'default-database-name' => '',
+            'database'              => $instance->db_name_text,
+            'charset'               => 'utf8',
+            'collation'             => 'utf8_unicode_ci',
+            'prefix'                => '',
+            'db-server-id'          => $instance->dbServer ? $instance->dbServer->server_id_text
+                : $instance->db_server_id,
+        ];
+    }
+
+    /**
+     * Returns a connection to the instance's database
+     *
+     * @param \DreamFactory\Enterprise\Database\Models\Instance $instance
+     *
+     * @return \Illuminate\Database\Connection
+     */
+    public function instanceConnection(Instance $instance)
+    {
+        $_id = 'database.connections.' . $instance->instance_id_text;
+
+        \Config::set('database.connections.' . $_id, static::buildConnectionArray($instance));
+
+        return \DB::connection($_id);
     }
 }
