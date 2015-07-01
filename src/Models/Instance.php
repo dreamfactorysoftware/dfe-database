@@ -3,6 +3,7 @@
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Common\Enums\EnterprisePaths;
 use DreamFactory\Enterprise\Common\Enums\OperationalStates;
+use DreamFactory\Enterprise\Common\Facades\InstanceStorage;
 use DreamFactory\Enterprise\Common\Support\Metadata;
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
@@ -404,7 +405,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function getStoragePath()
     {
-        return \InstanceStorage::getStoragePath($this);
+        return InstanceStorage::getStoragePath($this);
     }
 
     /**
@@ -412,7 +413,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function getSnapshotPath()
     {
-        return \InstanceStorage::getSnapshotPath($this);
+        return InstanceStorage::getSnapshotPath($this);
     }
 
     /**
@@ -422,7 +423,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function getPrivatePath()
     {
-        return \InstanceStorage::getPrivatePath($this);
+        return InstanceStorage::getPrivatePath($this);
     }
 
     /**
@@ -432,7 +433,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function getOwnerPrivatePath()
     {
-        return \InstanceStorage::getOwnerPrivatePath($this);
+        return InstanceStorage::getOwnerPrivatePath($this);
     }
 
     /**
@@ -778,7 +779,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function getRootStorageMount($tag = null)
     {
-        return \InstanceStorage::getRootStorageMount($this, $tag);
+        return InstanceStorage::getRootStorageMount($this, $tag);
     }
 
     /**
@@ -790,7 +791,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function getSnapshotMount($tag = null)
     {
-        return \InstanceStorage::getSnapshotMount($this, $tag);
+        return InstanceStorage::getSnapshotMount($this, $tag);
     }
 
     /**
@@ -800,7 +801,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function getStorageMount($tag = null)
     {
-        return \InstanceStorage::getStorageMount($this, $tag);
+        return InstanceStorage::getStorageMount($this, $tag);
     }
 
     /**
@@ -810,7 +811,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function getPrivateStorageMount($tag = null)
     {
-        return \InstanceStorage::getPrivateStorageMount($this, $tag);
+        return InstanceStorage::getPrivateStorageMount($this, $tag);
     }
 
     /**
@@ -820,7 +821,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function getOwnerPrivateStorageMount($tag = null)
     {
-        return \InstanceStorage::getOwnerPrivateStorageMount($this, $tag);
+        return InstanceStorage::getOwnerPrivateStorageMount($this, $tag);
     }
 
     /**
