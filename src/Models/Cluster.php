@@ -13,7 +13,7 @@ use Illuminate\Database\Query\Builder;
  * @property string cluster_id_text
  * @property string subdomain_text
  *
- * @method static Builder byNameOrId(string $clusterNameOrId)
+ * @method static \Illuminate\Database\Eloquent\Builder byNameOrId(string $clusterNameOrId)
  */
 class Cluster extends SelfAssociativeEntity
 {

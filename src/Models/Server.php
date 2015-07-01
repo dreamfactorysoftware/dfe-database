@@ -1,7 +1,7 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
+use DreamFactory\Enterprise\Common\Enums\ServerTypes;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
-use DreamFactory\Enterprise\Database\Enums\ServerTypes;
 use Illuminate\Database\Query\Builder;
 
 /**
@@ -15,7 +15,7 @@ use Illuminate\Database\Query\Builder;
  *
  * @property Mount  $mount
  *
- * @method static Builder byNameOrId(string $nameOrId)
+ * @method static Builder|\Illuminate\Database\Eloquent\Builder byNameOrId(string $nameOrId)
  */
 class Server extends AssociativeEntityOwner
 {

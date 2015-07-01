@@ -1,7 +1,7 @@
 <?php
 namespace DreamFactory\Enterprise\Database\Traits;
 
-use DreamFactory\Enterprise\Common\Contracts\InstanceContainer;
+use DreamFactory\Enterprise\Common\Contracts\InstanceAware;
 use DreamFactory\Enterprise\Database\Exceptions\InstanceNotFoundException;
 use DreamFactory\Enterprise\Database\Models\Instance;
 
@@ -20,32 +20,26 @@ trait InstanceValidation
      * @return \DreamFactory\Enterprise\Database\Models\Instance
      * @throws \DreamFactory\Enterprise\Database\Exceptions\InstanceNotFoundException
      */
-    protected function _validateInstance( $instanceId )
+    protected function _validateInstance($instanceId)
     {
-        if ( $instanceId instanceof Instance )
-        {
+        if ($instanceId instanceof Instance) {
             return $instanceId;
         }
 
-        if ( $instanceId instanceOf InstanceContainer )
-        {
+        if ($instanceId instanceOf InstanceAware) {
             return $instanceId->getInstance();
         }
 
-        if ( !is_string( $instanceId ) )
-        {
-            throw new InstanceNotFoundException( $instanceId );
+        if (!is_string($instanceId)) {
+            throw new InstanceNotFoundException($instanceId);
         }
 
-        try
-        {
-            $instanceId = Instance::sanitizeName( $instanceId );
+        try {
+            $instanceId = Instance::sanitizeName($instanceId);
 
-            return Instance::byNameOrId( $instanceId )->firstOrFail();
-        }
-        catch ( \Exception $_ex )
-        {
-            throw new InstanceNotFoundException( $instanceId );
+            return Instance::byNameOrId($instanceId)->firstOrFail();
+        } catch (\Exception $_ex) {
+            throw new InstanceNotFoundException($instanceId);
         }
     }
 

@@ -57,7 +57,7 @@ use League\Flysystem\Filesystem;
  * @property Server  $webServer
  *
  * @method static Builder instanceName(string $instanceName)
- * @method static Builder byNameOrId(string $instanceNameOrId)
+ * @method static Builder|\Illuminate\Database\Eloquent\Builder byNameOrId(string $instanceNameOrId)
  * @method static Builder userId(int $userId)
  * @method static Builder withDbName(string $dbName)
  * @method static Builder onDbServer(int $dbServerId)
@@ -140,7 +140,7 @@ class Instance extends AssociativeEntityOwner
         parent::boot();
 
         static::creating(
-            function ($instance/** @var Instance $instance */) {
+            function ($instance/** @var Instance $instance */){
                 $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
 
                 $instance->checkStorageKey();
@@ -149,13 +149,13 @@ class Instance extends AssociativeEntityOwner
         );
 
         static::updating(
-            function ($instance/** @var Instance $instance */) {
+            function ($instance/** @var Instance $instance */){
                 $instance->checkStorageKey();
                 $instance->refreshMetadata();
             }
         );
 
-        static::deleted(function ($instance/** @var Instance $instance */) {
+        static::deleted(function ($instance/** @var Instance $instance */){
             AppKey::where('owner_id', $instance->id)->where('owner_type_nbr', OwnerTypes::INSTANCE)->delete();
         });
     }

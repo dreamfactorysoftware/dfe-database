@@ -14,7 +14,7 @@ use Illuminate\Database\Query\Builder;
  * @property string mount_id_text
  * @property string config_text
  *
- * @method static Builder byNameOrId(string $mountNameOrId)
+ * @method static Builder|\Illuminate\Database\Eloquent\Builder byNameOrId(string $mountNameOrId)
  */
 class Mount extends AssociativeEntityOwner
 {
