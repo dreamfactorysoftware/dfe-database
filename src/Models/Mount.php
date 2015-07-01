@@ -4,7 +4,6 @@ use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Storage\Facades\Mounter;
-use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Database\Query\Builder;
 
 /**
@@ -59,9 +58,9 @@ class Mount extends AssociativeEntityOwner
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function server()
+    public function servers()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\Server');
+        return $this->hasMany(__NAMESPACE__ . '\\Server');
     }
 
     /**
@@ -107,7 +106,7 @@ class Mount extends AssociativeEntityOwner
         $_diskName = null;
         $_mountConfig = $this->config_text;
 
-        if (null === ($_diskName = IfSet::get($_mountConfig, 'disk'))) {
+        if (null === ($_diskName = array_get($_mountConfig, 'disk'))) {
             throw new \RuntimeException('No "disk" configured for mount "' . $this->mount_id_text . '".');
         }
 
@@ -117,7 +116,7 @@ class Mount extends AssociativeEntityOwner
 
 //        $_config = $_info;
 //
-//        if (!$_diskName && null === ($_diskName = IfSet::get($_config, 'name'))) {
+//        if (!$_diskName && null === ($_diskName = array_get($_config, 'name'))) {
 //            $_diskName = 'mount-temp-' . microtime(true);
 //        }
 //

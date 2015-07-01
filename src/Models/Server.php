@@ -49,25 +49,25 @@ class Server extends AssociativeEntityOwner
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|ServerType
      */
     public function serverType()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\ServerType', 'id', 'server_type_id');
+        return $this->belongsTo(__NAMESPACE__ . '\\ServerType');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Mount
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|Mount
      */
     public function mount()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Mount', 'id', 'mount_id');
+        return $this->belongsTo(__NAMESPACE__ . '\\Mount');
     }
 
     /**
      * Cluster in which I belong
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany|Cluster
      */
     public function cluster()
     {

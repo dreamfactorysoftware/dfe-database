@@ -140,7 +140,7 @@ class Instance extends AssociativeEntityOwner
         parent::boot();
 
         static::creating(
-            function ($instance/** @var Instance $instance */){
+            function ($instance/** @var Instance $instance */) {
                 $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
 
                 $instance->checkStorageKey();
@@ -149,13 +149,13 @@ class Instance extends AssociativeEntityOwner
         );
 
         static::updating(
-            function ($instance/** @var Instance $instance */){
+            function ($instance/** @var Instance $instance */) {
                 $instance->checkStorageKey();
                 $instance->refreshMetadata();
             }
         );
 
-        static::deleted(function ($instance/** @var Instance $instance */){
+        static::deleted(function ($instance/** @var Instance $instance */) {
             AppKey::where('owner_id', $instance->id)->where('owner_type_nbr', OwnerTypes::INSTANCE)->delete();
         });
     }
@@ -184,7 +184,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function webServer()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Server', 'web_server_id');
+        return $this->hasOne(__NAMESPACE__ . '\\Server', 'id', 'web_server_id');
     }
 
     /**
@@ -192,7 +192,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function dbServer()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Server', 'db_server_id');
+        return $this->hasOne(__NAMESPACE__ . '\\Server', 'id', 'db_server_id');
     }
 
     /**
@@ -200,7 +200,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function appServer()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Server', 'app_server_id');
+        return $this->hasOne(__NAMESPACE__ . '\\Server', 'id', 'app_server_id');
     }
 
     /**
