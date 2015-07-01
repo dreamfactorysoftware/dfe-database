@@ -89,7 +89,7 @@ class User extends SelfAssociativeEntity implements AuthenticatableContract, Can
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|OwnerHash[]
      */
     public function hashes()
     {
@@ -97,11 +97,19 @@ class User extends SelfAssociativeEntity implements AuthenticatableContract, Can
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany|Snapshot[]
      */
     public function snapshots()
     {
         return $this->hasMany(__NAMESPACE__ . '\\Snapshot');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany|Instance[]
+     */
+    public function instances()
+    {
+        return $this->hasMany(__NAMESPACE__ . '\\Instances');
     }
 
     /**

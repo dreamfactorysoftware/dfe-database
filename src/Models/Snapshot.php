@@ -1,10 +1,11 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
+use DreamFactory\Enterprise\Common\Traits\Archivist;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Response;
+use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
-use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 /**
  * snapshot_t
@@ -21,6 +22,12 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
  */
 class Snapshot extends EnterpriseModel
 {
+    //******************************************************************************
+    //* Traits
+    //******************************************************************************
+
+    use Archivist;
+
     //******************************************************************************
     //* Members
     //******************************************************************************
@@ -98,21 +105,29 @@ class Snapshot extends EnterpriseModel
 
         try {
             if (null !== ($_routeHash = RouteHash::byHash($hash)->firstOrFail())) {
+                //  Look up the snapshot and get an instance of the file system
                 $_snapshot = $_routeHash->snapshot ?: static::fromHash($hash)->firstOrFail();
-
                 $_fs = $_snapshot->instance->getSnapshotMount();
 
-                response()->headers->set(
-                    'Content-Disposition',
-                    response()->headers->makeDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-                        $_snapshot->snapshot_id_text . '.zip')
-                );
+                //  Get some work space to download the snapshot
+                $_workPath = static::getWorkPath('snapshot-download', true);
+                $_fsWork = new Filesystem(new Local($_workPath));
+                $_tempFile = $_routeHash->actual_path_text;
 
-                return $_fs->read($_routeHash->actual_path_text);
+                //  Delete any file with the same name...
+                @unlink($_workPath . DIRECTORY_SEPARATOR . $_tempFile);
+
+                //  Download the snapshot to local temp
+                static::writeStream($_fsWork, $_fs->readStream($_tempFile), $_tempFile);
+
+                //  Download the local file to client
+                return response()->download($_workPath . DIRECTORY_SEPARATOR . $_tempFile, $_tempFile);
             }
 
             throw new ModelNotFoundException();
         } catch (\Exception $_ex) {
+            \Log::error('error retrieving download location: ' . $_ex->getMessage());
+
             abort(Response::HTTP_NOT_FOUND);
         }
 
