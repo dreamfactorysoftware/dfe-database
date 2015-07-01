@@ -161,11 +161,11 @@ class Instance extends AssociativeEntityOwner
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Cluster
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|Cluster
      */
     public function cluster()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Cluster');
+        return $this->belongsTo(__NAMESPACE__ . '\\Cluster');
     }
 
     /**
@@ -206,11 +206,11 @@ class Instance extends AssociativeEntityOwner
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne|User
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|User
      */
     public function user()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\User');
+        return $this->belongsTo(__NAMESPACE__ . '\\User');
     }
 
     /**

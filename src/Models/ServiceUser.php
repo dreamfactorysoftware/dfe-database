@@ -65,14 +65,6 @@ class ServiceUser extends EnterpriseModel implements AuthenticatableContract, Ca
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function servers()
-    {
-        return $this->hasMany(__NAMESPACE__ . '\\Server', 'user_id');
-    }
-
-    /**
      * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
      */
     public function roles()

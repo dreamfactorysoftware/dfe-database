@@ -53,15 +53,15 @@ class Snapshot extends EnterpriseModel
      */
     public function user()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\User');
+        return $this->belongsTo(__NAMESPACE__ . '\\User');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Instance
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|Instance
      */
     public function instance()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Instance');
+        return $this->belongsTo(__NAMESPACE__ . '\\Instance');
     }
 
     /**

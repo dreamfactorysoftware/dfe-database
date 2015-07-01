@@ -48,7 +48,7 @@ class Mount extends AssociativeEntityOwner
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany|RouteHash[]
+     * @return \Illuminate\Database\Eloquent\Relations\hasMany|RouteHash[]
      */
     public function routeHashes()
     {
@@ -56,11 +56,11 @@ class Mount extends AssociativeEntityOwner
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany|Server[]
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany|Server[]
      */
     public function servers()
     {
-        return $this->hasMany(__NAMESPACE__ . '\\Server');
+        return $this->belongsToMany(__NAMESPACE__ . '\\Server');
     }
 
     /**

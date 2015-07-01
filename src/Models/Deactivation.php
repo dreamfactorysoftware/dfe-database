@@ -30,19 +30,19 @@ class Deactivation extends EnterpriseModel
     //******************************************************************************
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|User
      */
     public function user()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\User');
+        return $this->belongsTo(__NAMESPACE__ . '\\User');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|Instance
      */
     public function instance()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Instance');
+        return $this->belongsTo(__NAMESPACE__ . '\\Instance');
     }
 
     /**
