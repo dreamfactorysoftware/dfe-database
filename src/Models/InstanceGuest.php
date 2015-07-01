@@ -48,11 +48,11 @@ class InstanceGuest extends EnterpriseModel
     //******************************************************************************
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Instance
      */
     public function instance()
     {
-        return $this->belongsTo( __NAMESPACE__ . '\\Instance' );
+        return $this->hasOne(__NAMESPACE__ . '\\Instance');
     }
 
 }

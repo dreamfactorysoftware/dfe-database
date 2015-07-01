@@ -22,19 +22,19 @@ class UserRole extends EnterpriseModel
     //******************************************************************************
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|ServiceUser
      */
     public function user()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\ServiceUser', 'user_id' );
+        return $this->hasOne(__NAMESPACE__ . '\\ServiceUser', 'id', 'user_id');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Role
      */
     public function role()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\Role' );
+        return $this->hasOne(__NAMESPACE__ . '\\Role');
     }
 
 }

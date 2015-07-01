@@ -49,27 +49,27 @@ class Snapshot extends EnterpriseModel
     //******************************************************************************
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|User
      */
     public function user()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\User');
+        return $this->hasOne(__NAMESPACE__ . '\\User');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Instance
      */
     public function instance()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\Instance');
+        return $this->hasOne(__NAMESPACE__ . '\\Instance');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|RouteHash
      */
     public function routeHash()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\RouteHash');
+        return $this->hasOne(__NAMESPACE__ . '\\RouteHash');
     }
 
     /**

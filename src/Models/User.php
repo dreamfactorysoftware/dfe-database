@@ -6,6 +6,7 @@ use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Database\Traits\CheckNickname;
 use DreamFactory\Enterprise\Database\Traits\KeyHolder;
+use DreamFactory\Enterprise\Database\Traits\OwnedEntity;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
@@ -51,13 +52,13 @@ use Illuminate\Database\Query\Builder;
  *
  * @method static Builder byEmail(string $email)
  */
-class User extends SelfAssociativeEntity implements AuthenticatableContract, CanResetPasswordContract
+class User extends EnterpriseModel implements AuthenticatableContract, CanResetPasswordContract
 {
     //******************************************************************************
     //* Traits
     //******************************************************************************
 
-    use Authenticatable, AuthorizedEntity, KeyHolder, CheckNickname;
+    use Authenticatable, AuthorizedEntity, KeyHolder, CheckNickname, OwnedEntity;
 
     //******************************************************************************
     //* Members
@@ -85,19 +86,19 @@ class User extends SelfAssociativeEntity implements AuthenticatableContract, Can
     {
         parent::__construct($attributes);
 
-        $this->setOwnerType(OwnerTypes::USER);
+        $this->owner_type_nbr = OwnerTypes::USER;
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|OwnerHash[]
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany|OwnerHash[]
      */
     public function hashes()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\OwnerHash', 'id', 'owner_id');
+        return $this->hasMany(__NAMESPACE__ . '\\OwnerHash', 'id', 'owner_id');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany|Snapshot[]
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function snapshots()
     {

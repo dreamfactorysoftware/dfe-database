@@ -81,14 +81,6 @@ class AppKey extends SelfAssociativeEntity
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function user()
-    {
-        return $this->belongsTo(__NAMESPACE__ . '\\User', 'id', 'owner_id');
-    }
-
-    /**
      * @param Builder $query
      * @param int     $instanceId
      *

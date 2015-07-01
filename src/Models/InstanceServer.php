@@ -10,9 +10,9 @@ use Illuminate\Database\Query\Builder;
  * @property string create_date
  * @property string lmod_date
  *
- * @method static Builder instanceName( string $instanceName )
- * @method static Builder withDbName( string $dbName )
- * @method static Builder onDbServer( int $dbServerId )
+ * @method static Builder instanceName(string $instanceName)
+ * @method static Builder withDbName(string $dbName)
+ * @method static Builder onDbServer(int $dbServerId)
  */
 class InstanceServer extends EnterpriseModel
 {
@@ -30,19 +30,19 @@ class InstanceServer extends EnterpriseModel
     //******************************************************************************
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Server
      */
     public function instance()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\Instance', 'id', 'instance_id' );
+        return $this->hasOne(__NAMESPACE__ . '\\Instance');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Server
      */
     public function server()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\Server', 'id', 'server_id' );
+        return $this->hasOne(__NAMESPACE__ . '\\Server');
     }
 
 }

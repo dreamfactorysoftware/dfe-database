@@ -161,26 +161,28 @@ class Instance extends AssociativeEntityOwner
     }
 
     /**
-     * @return Cluster
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Cluster
      */
     public function cluster()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\Cluster');
+        return $this->hasOne(__NAMESPACE__ . '\\Cluster');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough|Server[]
      */
     public function servers()
     {
-        return $this->hasManyThrough(__NAMESPACE__ . '\\InstanceServer',
+        return $this->hasManyThrough(
+            __NAMESPACE__ . '\\InstanceServer',
             __NAMESPACE__ . '\\Server',
             'instance_id',
-            'server_id');
+            'server_id'
+        );
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Server
      */
     public function webServer()
     {
@@ -188,7 +190,7 @@ class Instance extends AssociativeEntityOwner
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Server
      */
     public function dbServer()
     {
@@ -196,7 +198,7 @@ class Instance extends AssociativeEntityOwner
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Server
      */
     public function appServer()
     {
@@ -204,15 +206,15 @@ class Instance extends AssociativeEntityOwner
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|User
      */
     public function user()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\User');
+        return $this->hasOne(__NAMESPACE__ . '\\User');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|InstanceGuest
      */
     public function guest()
     {
@@ -220,7 +222,7 @@ class Instance extends AssociativeEntityOwner
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany|Snapshot[]
      */
     public function snapshots()
     {

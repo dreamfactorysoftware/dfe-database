@@ -41,11 +41,12 @@ class InstanceGuestArchive extends InstanceGuest
     //******************************************************************************
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|InstanceArchive
      */
+    /** @noinspection PhpMissingParentCallCommonInspection */
     public function instance()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\InstanceArchive');
+        return $this->hasOne(__NAMESPACE__ . '\\InstanceArchive');
     }
 
 }

@@ -34,19 +34,19 @@ class RouteHash extends EnterpriseModel
     //******************************************************************************
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Mount
      */
     public function mount()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\Mount');
+        return $this->hasOne(__NAMESPACE__ . '\\Mount');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Snapshot
      */
     public function snapshot()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\Snapshot');
+        return $this->hasOne(__NAMESPACE__ . '\\Snapshot');
     }
 
     /**

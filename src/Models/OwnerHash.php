@@ -25,7 +25,7 @@ class OwnerHash extends AssociativeEntityOwner
         parent::__construct($attributes);
 
         //  Servers are the owner of mounts for association
-        $this->setOwnerType(OwnerTypes::USER);
+        $this->owner_type_nbr = OwnerTypes::USER;
     }
 
     /**
@@ -35,7 +35,7 @@ class OwnerHash extends AssociativeEntityOwner
      */
     public function owners()
     {
-        return $this->hasMany(static::DEPLOY_NAMESPACE . '\\User', 'id', 'owner_id');
+        return $this->hasMany(__NAMESPACE__ . '\\User', 'id', 'owner_id');
     }
 
 }

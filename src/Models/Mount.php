@@ -44,11 +44,11 @@ class Mount extends AssociativeEntityOwner
         parent::__construct($attributes);
 
         //  Servers are the owner of mounts for association
-        $this->setOwnerType(OwnerTypes::SERVER);
+        $this->owner_type_nbr = OwnerTypes::SERVER;
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany|RouteHash[]
      */
     public function routeHashes()
     {
@@ -56,7 +56,7 @@ class Mount extends AssociativeEntityOwner
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany|Server[]
      */
     public function servers()
     {

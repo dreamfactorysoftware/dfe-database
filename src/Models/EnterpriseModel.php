@@ -1,6 +1,6 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
@@ -8,9 +8,9 @@ use Illuminate\Database\Query\Builder;
 /**
  * Base class for all DFE models
  *
- * @property int   $id
- * @property mixed $lmod_date
- * @property mixed $create_date
+ * @property int    $id
+ * @property Carbon $lmod_date
+ * @property Carbon $create_date
  *
  * @method static Builder|\Illuminate\Database\Eloquent\Builder where($column, $operator = null, $value = null, $boolean = 'and')
  * @method static Builder|\Illuminate\Database\Eloquent\Builder whereRaw($clause, $params = [])
@@ -122,10 +122,6 @@ class EnterpriseModel extends Model
     //******************************************************************************
 
     /**
-     * @type int The type of entity which can own this entity
-     */
-    protected static $_assignmentOwnerType = false;
-    /**
      * @type bool
      */
     protected static $unguarded = true;
@@ -133,47 +129,4 @@ class EnterpriseModel extends Model
      * @type string Our connection
      */
     protected $connection = 'dfe-local';
-
-    //******************************************************************************
-    //* Methods
-    //******************************************************************************
-
-    /**
-     * @param string $key
-     *
-     * @return string
-     */
-    protected function getCastType($key)
-    {
-        switch (strtolower($key)) {
-            case 'id':
-                return 'integer';
-
-            case 'lmod_date':
-            case 'create_date':
-                return 'Carbon';
-        }
-
-        return parent::getCastType($key);
-    }
-
-    /**
-     * @return int
-     */
-    public static function getAssociativeEntityOwnerType()
-    {
-        return static::$_assignmentOwnerType;
-    }
-
-    /**
-     * @param int $assignmentOwnerType
-     */
-    public static function setAssociativeEntityOwnerType($assignmentOwnerType)
-    {
-        if (!OwnerTypes::contains($assignmentOwnerType)) {
-            throw new \InvalidArgumentException('The owner type "' . $assignmentOwnerType . '" is invalid.');
-        }
-
-        static::$_assignmentOwnerType = $assignmentOwnerType;
-    }
 }

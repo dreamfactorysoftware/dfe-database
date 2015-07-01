@@ -45,23 +45,23 @@ class Server extends AssociativeEntityOwner
         parent::__construct($attributes);
 
         //  Clusters are the owner of servers for association
-        $this->setOwnerType(OwnerTypes::CLUSTER);
+        $this->owner_type_nbr = OwnerTypes::CLUSTER;
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|ServerType
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|ServerType
      */
     public function serverType()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\ServerType');
+        return $this->hasOne(__NAMESPACE__ . '\\ServerType');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|Mount
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Mount
      */
     public function mount()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\Mount');
+        return $this->hasOne(__NAMESPACE__ . '\\Mount');
     }
 
     /**

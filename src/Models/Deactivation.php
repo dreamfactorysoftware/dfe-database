@@ -12,7 +12,7 @@ use Illuminate\Database\Query\Builder;
  * @property int    user_notified_nbr
  * @property int    action_reason_nbr
  *
- * @method static Builder instanceId( int $instanceId )
+ * @method static Builder instanceId(int $instanceId)
  */
 class Deactivation extends EnterpriseModel
 {
@@ -30,19 +30,19 @@ class Deactivation extends EnterpriseModel
     //******************************************************************************
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
     public function user()
     {
-        return $this->belongsTo( static::DEPLOY_NAMESPACE . '\\User', 'user_id' );
+        return $this->hasOne(__NAMESPACE__ . '\\User');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
     public function instance()
     {
-        return $this->belongsTo( __NAMESPACE__ . '\\Instance', 'instance_id' );
+        return $this->hasOne(__NAMESPACE__ . '\\Instance');
     }
 
     /**
@@ -51,11 +51,10 @@ class Deactivation extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeUserId( $query, $userId )
+    public function scopeUserId($query, $userId)
     {
-        if ( !empty( $userId ) )
-        {
-            return $query->where( 'user_id', '=', $userId );
+        if (!empty($userId)) {
+            return $query->where('user_id', '=', $userId);
         }
 
         return $query;
@@ -67,11 +66,10 @@ class Deactivation extends EnterpriseModel
      *
      * @return Builder
      */
-    public function scopeInstanceId( $query, $instanceId )
+    public function scopeInstanceId($query, $instanceId)
     {
-        if ( !empty( $instanceId ) )
-        {
-            return $query->where( 'instance_id', '=', $instanceId );
+        if (!empty($instanceId)) {
+            return $query->where('instance_id', '=', $instanceId);
         }
 
         return $query;

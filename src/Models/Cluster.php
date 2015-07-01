@@ -9,8 +9,10 @@ use Illuminate\Database\Query\Builder;
 /**
  * cluster_t
  *
- * @property int    user_id
+ * @property int    owner_id
+ * @property int    owner_type_nbr
  * @property string cluster_id_text
+ * @property int    max_instances_nbr
  * @property string subdomain_text
  *
  * @method static \Illuminate\Database\Eloquent\Builder byNameOrId(string $clusterNameOrId)
