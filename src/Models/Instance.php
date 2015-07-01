@@ -183,7 +183,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function webServer()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Server', 'id', 'web_server_id');
+        return $this->hasOne(__NAMESPACE__ . '\\Server', 'web_server_id');
     }
 
     /**
@@ -191,7 +191,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function dbServer()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Server', 'id', 'db_server_id');
+        return $this->hasOne(__NAMESPACE__ . '\\Server', 'db_server_id');
     }
 
     /**
@@ -199,7 +199,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function appServer()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Server', 'id', 'app_server_id');
+        return $this->hasOne(__NAMESPACE__ . '\\Server', 'app_server_id');
     }
 
     /**
@@ -207,7 +207,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function user()
     {
-        return $this->hasOne(static::DEPLOY_NAMESPACE . '\\User', 'id', 'user_id');
+        return $this->hasOne(__NAMESPACE__ . '\\User');
     }
 
     /**
@@ -215,7 +215,15 @@ class Instance extends AssociativeEntityOwner
      */
     public function guest()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\InstanceGuest', 'id', 'instance_id');
+        return $this->hasOne(__NAMESPACE__ . '\\InstanceGuest');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function snapshots()
+    {
+        return $this->hasMany(__NAMESPACE__ . '\\Snapshot');
     }
 
     /**

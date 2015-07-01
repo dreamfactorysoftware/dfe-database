@@ -139,6 +139,25 @@ class EnterpriseModel extends Model
     //******************************************************************************
 
     /**
+     * @param string $key
+     *
+     * @return string
+     */
+    protected function getCastType($key)
+    {
+        switch (strtolower($key)) {
+            case 'id':
+                return 'integer';
+
+            case 'lmod_date':
+            case 'create_date':
+                return 'Carbon';
+        }
+
+        return parent::getCastType($key);
+    }
+
+    /**
      * @return int
      */
     public static function getAssociativeEntityOwnerType()

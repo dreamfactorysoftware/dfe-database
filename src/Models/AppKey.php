@@ -61,7 +61,7 @@ class AppKey extends SelfAssociativeEntity
         parent::boot();
 
         static::creating(
-            function ($row){
+            function ($row) {
                 if (empty($row->key_class_text)) {
                     $row->key_class_text = AppKeyClasses::OTHER;
                 }
@@ -85,7 +85,7 @@ class AppKey extends SelfAssociativeEntity
      */
     public function user()
     {
-        return $this->belongsTo(static::DEPLOY_NAMESPACE . '\\User', 'id', 'owner_id');
+        return $this->belongsTo(__NAMESPACE__ . '\\User', 'id', 'owner_id');
     }
 
     /**

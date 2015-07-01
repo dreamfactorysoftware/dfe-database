@@ -62,7 +62,7 @@ class Cluster extends SelfAssociativeEntity
      */
     public function user()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\ServiceUser', 'id', 'id');
+        return $this->belongsTo(__NAMESPACE__ . '\\ServiceUser', 'id', 'owner_id');
     }
 
     /**

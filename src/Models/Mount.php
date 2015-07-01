@@ -49,11 +49,19 @@ class Mount extends AssociativeEntityOwner
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function routeHashes()
+    {
+        return $this->hasMany(__NAMESPACE__ . '\\RouteHash');
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function server()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\Server', 'id', 'mount_id');
+        return $this->belongsTo(__NAMESPACE__ . '\\Server');
     }
 
     /**

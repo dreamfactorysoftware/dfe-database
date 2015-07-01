@@ -7,6 +7,7 @@ use Illuminate\Database\Query\Builder;
  *
  * @property int    $type_nbr
  * @property int    $mount_id
+ * @property int    $snapshot_id
  * @property string $hash_text
  * @property string $actual_path_text
  * @property string expireDate
@@ -19,21 +20,33 @@ class RouteHash extends EnterpriseModel
     //* Members
     //******************************************************************************
 
-    /**
-     * @type string The table name
-     */
+    /** @inheritdoc */
     protected $table = 'route_hash_t';
+    /** @inheritdoc */
+    protected $casts = [
+        'type_nbr'    => 'integer',
+        'snapshot_id' => 'integer',
+        'mount_id'    => 'integer',
+    ];
 
     //******************************************************************************
     //* Methods
     //******************************************************************************
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function mount()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Mount');
+        return $this->belongsTo(__NAMESPACE__ . '\\Mount');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function snapshot()
+    {
+        return $this->belongsTo(__NAMESPACE__ . '\\Snapshot');
     }
 
     /**
