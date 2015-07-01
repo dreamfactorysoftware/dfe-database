@@ -206,11 +206,11 @@ class Instance extends AssociativeEntityOwner
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|User
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|User
      */
     public function user()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\User');
+        return $this->hasOne(__NAMESPACE__ . '\\User');
     }
 
     /**
