@@ -1,79 +1,65 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
+use DreamFactory\Enterprise\Common\Traits\EntityLookup;
+
 /**
  * Base class for entities that refer back to themselves
  */
 class SelfAssociativeEntity extends EnterpriseModel
 {
     //******************************************************************************
+    //* Traits
+    //******************************************************************************
+
+    use EntityLookup;
+
+    //******************************************************************************
     //* Members
     //******************************************************************************
 
     /**
-     * @type string The column name holding the owner id
+     * @type \DreamFactory\Enterprise\Database\Models\Cluster|\DreamFactory\Enterprise\Database\Models\Instance|\DreamFactory\Enterprise\Database\Models\Server|\DreamFactory\Enterprise\Database\Models\User
      */
-    protected $saeColumn;
-    /**
-     * @type string The type of owner
-     */
-    protected $saeType;
+    protected $entityOwner;
 
     //******************************************************************************
     //* Methods
     //******************************************************************************
 
     /**
-     * @param int      $ownerId
-     * @param int|null $ownerType
+     * @param int        $ownerId
+     * @param int|string $ownerType
      *
      * @return $this
      */
-    public function setOwner($ownerId, $ownerType = null)
+    public function setOwner($ownerId, $ownerType)
     {
-        $this->{$this->saeColumn} = $ownerId;
-        $ownerType && isset($this->owner_type_nbr) && ($this->owner_type_nbr = $ownerType);
+        if (!empty($ownerId)) {
+            $this->owner_id = $this->owner_type_nbr = $this->entityOwner = null;
+
+            return $this;
+        }
+
+        $_owner = $this->_locateOwner($ownerId, $ownerType);
+
+        $this->entityOwner = $_owner;
+
+        $this->owner_id = $_owner->id;
+        $this->owner_type_nbr = $_owner->owner_type_nbr;
 
         return $this;
     }
 
     /**
-     * @return string
-     */
-    public function getOwnerColumn()
-    {
-        return $this->saeColumn;
-    }
-
-    /**
-     * @param string $column
+     * Returns the owner of this entity
      *
-     * @return $this
-     */
-    public function setOwnerColumn($column)
-    {
-        $this->saeColumn = $column;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getOwnerType()
-    {
-        return $this->saeType;
-    }
-
-    /**
-     * @param int $ownerType
+     * @param int        $ownerId
+     * @param int|string $ownerType
      *
-     * @return $this
+     * @return \DreamFactory\Enterprise\Database\Models\Cluster|\DreamFactory\Enterprise\Database\Models\Instance|\DreamFactory\Enterprise\Database\Models\Server|\DreamFactory\Enterprise\Database\Models\User
      */
-    public function setOwnerType($ownerType)
+    public function getOwner($ownerId, $ownerType)
     {
-        $this->saeType = $ownerType;
-
-        return $this;
+        return $this->entityOwner;
     }
-
 }

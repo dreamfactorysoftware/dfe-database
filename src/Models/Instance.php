@@ -161,11 +161,11 @@ class Instance extends AssociativeEntityOwner
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|Cluster
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Cluster
      */
     public function cluster()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\Cluster');
+        return $this->hasOne(__NAMESPACE__ . '\\Cluster', 'id', 'cluster_id');
     }
 
     /**
@@ -206,27 +206,27 @@ class Instance extends AssociativeEntityOwner
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|User
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|User
      */
     public function user()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\User');
+        return $this->hasOne(__NAMESPACE__ . '\\User', 'id', 'user_id');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne|InstanceGuest
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|InstanceGuest
      */
     public function guest()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\InstanceGuest');
+        return $this->belongsTo(__NAMESPACE__ . '\\InstanceGuest');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany|Snapshot[]
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany|Snapshot[]
      */
     public function snapshots()
     {
-        return $this->hasMany(__NAMESPACE__ . '\\Snapshot');
+        return $this->belongsToMany(__NAMESPACE__ . '\\Snapshot');
     }
 
     /**

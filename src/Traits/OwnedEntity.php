@@ -17,18 +17,36 @@ trait OwnedEntity
     use EntityLookup;
 
     //******************************************************************************
+    //* Members
+    //******************************************************************************
+
+    /**
+     * @type \DreamFactory\Enterprise\Database\Models\Cluster|\DreamFactory\Enterprise\Database\Models\Instance|\DreamFactory\Enterprise\Database\Models\Server|\DreamFactory\Enterprise\Database\Models\User
+     */
+    protected $entityOwner;
+
+    //******************************************************************************
     //* Methods
     //******************************************************************************
 
     /**
-     * @param int      $ownerId
-     * @param int|null $ownerType
+     * @param int        $ownerId
+     * @param int|string $ownerType
      *
      * @return $this
      */
-    public function setOwner($ownerId, $ownerType = null)
+    public function setOwner($ownerId, $ownerType)
     {
+        if (!empty($ownerId)) {
+            /** @noinspection PhpUndefinedFieldInspection */
+            $this->owner_id = $this->owner_type_nbr = $this->entityOwner = null;
+
+            return $this;
+        }
+
         $_owner = $this->_locateOwner($ownerId, $ownerType);
+
+        $this->entityOwner = $_owner;
 
         /** @noinspection PhpUndefinedFieldInspection */
         $this->owner_id = $_owner->id;
@@ -41,15 +59,10 @@ trait OwnedEntity
     /**
      * Returns the owner of this entity
      *
-     * @return \DreamFactory\Enterprise\Database\Models\Cluster|\DreamFactory\Enterprise\Database\Models\Instance|\DreamFactory\Enterprise\Database\Models\Server|\DreamFactory\Enterprise\Database\Models\User|null
+     * @return \DreamFactory\Enterprise\Database\Models\Cluster|\DreamFactory\Enterprise\Database\Models\Instance|\DreamFactory\Enterprise\Database\Models\Server|\DreamFactory\Enterprise\Database\Models\User
      */
     public function getOwner()
     {
-        if (!empty($this->owner_id)) {
-            /** @noinspection PhpUndefinedFieldInspection */
-            return $this->_locateOwner($this->owner_id, $this->owner_type_nbr);
-        }
-
-        return null;
+        return $this->entityOwner;
     }
 }

@@ -53,7 +53,7 @@ class Server extends AssociativeEntityOwner
      */
     public function serverType()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\ServerType');
+        return $this->belongsTo(__NAMESPACE__ . '\\ServerType');
     }
 
     /**
@@ -61,7 +61,7 @@ class Server extends AssociativeEntityOwner
      */
     public function mount()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Mount');
+        return $this->hasOne(__NAMESPACE__ . '\\Mount', 'id', 'mount_id');
     }
 
     /**

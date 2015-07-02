@@ -3,6 +3,7 @@
 use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
+use DreamFactory\Enterprise\Database\Traits\OwnedEntity;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -23,8 +24,14 @@ use Illuminate\Database\Eloquent\Builder;
  * @method static Builder byClass(string $keyClass, int $ownerId = null)
  * @method static Builder byClientId(string $clientId)
  */
-class AppKey extends SelfAssociativeEntity
+class AppKey extends EnterpriseModel
 {
+    //******************************************************************************
+    //* Traits
+    //******************************************************************************
+
+    use OwnedEntity;
+
     //******************************************************************************
     //* Constants
     //******************************************************************************
@@ -278,11 +285,10 @@ class AppKey extends SelfAssociativeEntity
      * @param int $ownerId
      * @param int $ownerType
      *
-     * @return AppKey|null
+     * @return AppKey[]|array
      */
     public static function mine($ownerId, $ownerType)
     {
-        return
-            static::byOwnerType($ownerType)->byOwner($ownerId)->firstOrFail();
+        return static::byOwner($ownerId, $ownerType)->get();
     }
 }

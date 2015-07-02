@@ -43,7 +43,7 @@ class Cluster extends SelfAssociativeEntity
     {
         parent::__construct($attributes);
 
-        $this->setOwnerType(OwnerTypes::SERVICE_USER);
+        $this->owner_type_nbr = OwnerTypes::SERVICE_USER;
     }
 
     /**
