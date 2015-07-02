@@ -1,9 +1,16 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
+use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 
-class OwnerHash extends AssociativeEntityOwner
+class OwnerHash extends EnterpriseModel
 {
+    //******************************************************************************
+    //* Traits
+    //******************************************************************************
+
+    use KeyMaster;
+
     //******************************************************************************
     //* Members
     //******************************************************************************
@@ -18,24 +25,13 @@ class OwnerHash extends AssociativeEntityOwner
     //******************************************************************************
 
     /**
-     * @param array $attributes
-     */
-    public function __construct(array $attributes = [])
-    {
-        parent::__construct($attributes);
-
-        //  Servers are the owner of mounts for association
-        $this->owner_type_nbr = OwnerTypes::USER;
-    }
-
-    /**
-     * Our owners
+     * Return the owner type of this model
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return string
      */
-    public function owners()
+    public function getMorphClass()
     {
-        return $this->hasMany(__NAMESPACE__ . '\\User', 'id', 'owner_id');
+        return OwnerTypes::USER;
     }
 
 }

@@ -8,15 +8,17 @@ use DreamFactory\Enterprise\Common\Support\Metadata;
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
 use DreamFactory\Enterprise\Common\Utility\UniqueId;
+use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\DeactivationReasons;
 use DreamFactory\Enterprise\Database\Enums\GuestLocations;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Enterprise\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
-use DreamFactory\Enterprise\Database\Traits\DataStash;
+use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use Illuminate\Database\Query\Builder;
 use League\Flysystem\Filesystem;
+use Symfony\Component\Security\Core\User\User;
 
 /**
  * instance_t
@@ -62,13 +64,13 @@ use League\Flysystem\Filesystem;
  * @method static Builder withDbName(string $dbName)
  * @method static Builder onDbServer(int $dbServerId)
  */
-class Instance extends AssociativeEntityOwner
+class Instance extends EnterpriseModel implements OwnedEntity
 {
     //******************************************************************************
     //* Traits
     //******************************************************************************
 
-    use EntityLookup, AuthorizedEntity, StaticComponentLookup, DataStash;
+    use EntityLookup, AuthorizedEntity, StaticComponentLookup, KeyMaster;
 
     //******************************************************************************
     //* Constants
@@ -110,27 +112,10 @@ class Instance extends AssociativeEntityOwner
      * @type array The template for metadata stored in
      */
     protected static $_metadataTemplate = ['storage-map' => [], 'paths' => [], 'db' => [], 'env' => [],];
-    /**
-     * @type string
-     */
-    protected $_privatePathName = '.private';
 
     //******************************************************************************
     //* Methods
     //******************************************************************************
-
-    /**
-     * @param array $attributes
-     */
-    public function __construct(array $attributes = [])
-    {
-        parent::__construct($attributes);
-
-        $this->_privatePathName = config('dfe.provisioning.private-path-name', '.private');
-
-        //  Servers are the owner of instances for association
-        $this->setOwnerType(OwnerTypes::SERVER);
-    }
 
     /**
      * Boot method to wire in our events
@@ -160,12 +145,26 @@ class Instance extends AssociativeEntityOwner
         });
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Cluster
-     */
-    public function cluster()
+    /** @inheritdoc */
+    public function owner()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Cluster', 'id', 'cluster_id');
+        return $this->belongsTo(static::MODEL_NAMESPACE . 'User', 'id', 'user_id');
+    }
+
+    /** @inheritdoc */
+    public function appKeys($localKey = null, $type = null, $id = null)
+    {
+        return $this->keyMaster('user_id');
+    }
+
+    /**
+     * Return the owner type of this model
+     *
+     * @return string
+     */
+    public function getMorphClass()
+    {
+        return OwnerTypes::USER;
     }
 
     /**
@@ -174,11 +173,19 @@ class Instance extends AssociativeEntityOwner
     public function servers()
     {
         return $this->hasManyThrough(
-            __NAMESPACE__ . '\\InstanceServer',
-            __NAMESPACE__ . '\\Server',
+            static::MODEL_NAMESPACE . 'InstanceServer',
+            static::MODEL_NAMESPACE . 'Server',
             'instance_id',
             'server_id'
         );
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Cluster
+     */
+    public function cluster()
+    {
+        return $this->hasOne(static::MODEL_NAMESPACE . 'Cluster', 'id', 'cluster_id');
     }
 
     /**
@@ -186,7 +193,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function webServer()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Server', 'id', 'web_server_id');
+        return $this->hasOne(static::MODEL_NAMESPACE . 'Server', 'id', 'web_server_id');
     }
 
     /**
@@ -194,7 +201,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function dbServer()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Server', 'id', 'db_server_id');
+        return $this->hasOne(static::MODEL_NAMESPACE . 'Server', 'id', 'db_server_id');
     }
 
     /**
@@ -202,7 +209,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function appServer()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Server', 'id', 'app_server_id');
+        return $this->hasOne(static::MODEL_NAMESPACE . 'Server', 'id', 'app_server_id');
     }
 
     /**
@@ -210,7 +217,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function user()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\User', 'id', 'user_id');
+        return $this->hasOne(static::MODEL_NAMESPACE . 'User', 'id', 'user_id');
     }
 
     /**
@@ -218,7 +225,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function guest()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\InstanceGuest');
+        return $this->belongsTo(static::MODEL_NAMESPACE . 'InstanceGuest');
     }
 
     /**
@@ -226,7 +233,7 @@ class Instance extends AssociativeEntityOwner
      */
     public function snapshots()
     {
-        return $this->belongsToMany(__NAMESPACE__ . '\\Snapshot');
+        return $this->belongsToMany(static::MODEL_NAMESPACE . 'Snapshot');
     }
 
     /**

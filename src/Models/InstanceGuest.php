@@ -52,7 +52,7 @@ class InstanceGuest extends EnterpriseModel
      */
     public function instance()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Instance');
+        return $this->hasOne(static::MODEL_NAMESPACE . 'Instance', 'id', 'instance_id');
     }
 
 }

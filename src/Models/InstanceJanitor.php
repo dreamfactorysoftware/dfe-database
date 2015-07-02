@@ -20,6 +20,6 @@ class InstanceJanitor extends EnterpriseModel
      */
     public function user()
     {
-        return $this->hasOne( __NAMESPACE__ . '\\ServiceUser', 'user_id' );
+        return $this->hasOne(static::MODEL_NAMESPACE . 'ServiceUser', 'user_id');
     }
 }

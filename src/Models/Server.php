@@ -1,7 +1,7 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Common\Enums\ServerTypes;
-use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder;
 
 /**
@@ -17,7 +17,7 @@ use Illuminate\Database\Query\Builder;
  *
  * @method static Builder|\Illuminate\Database\Eloquent\Builder byNameOrId(string $nameOrId)
  */
-class Server extends AssociativeEntityOwner
+class Server extends EnterpriseModel
 {
     //******************************************************************************
     //* Members
@@ -39,21 +39,12 @@ class Server extends AssociativeEntityOwner
     //* Methods
     //******************************************************************************
 
-    /** @inheritdoc */
-    public function __construct(array $attributes = [])
-    {
-        parent::__construct($attributes);
-
-        //  Clusters are the owner of servers for association
-        $this->owner_type_nbr = OwnerTypes::CLUSTER;
-    }
-
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne|ServerType
      */
     public function serverType()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\ServerType');
+        return $this->belongsTo(static::MODEL_NAMESPACE . 'ServerType');
     }
 
     /**
@@ -61,7 +52,7 @@ class Server extends AssociativeEntityOwner
      */
     public function mount()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Mount', 'id', 'mount_id');
+        return $this->hasOne(static::MODEL_NAMESPACE . 'Mount', 'id', 'mount_id');
     }
 
     /**
@@ -78,24 +69,13 @@ class Server extends AssociativeEntityOwner
     }
 
     /**
-     * Instances on this server
+     * Returns a list of servers assigned to me
      *
-     * @return array|static[]
+     * @return Collection|InstanceServer[]
      */
     public function instances()
     {
-        return Instance::whereRaw(
-            'id IN (SELECT isa.instance_id FROM instance_server_asgn_t isa WHERE isa.instance_id = instance_t.id AND isa.server_id = :server_id)',
-            [':server_id', '=', $this->id]
-        )->get();
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function clusterServer()
-    {
-        return $this->belongsTo('clusterServer', __NAMESPACE__ . '\\ClusterServer', 'cluster_id');
+        return InstanceServer::with('instance')->where('server_id', $this->id)->get();
     }
 
     /**

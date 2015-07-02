@@ -53,7 +53,7 @@ class Snapshot extends EnterpriseModel
      */
     public function user()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\User');
+        return $this->belongsTo(static::MODEL_NAMESPACE . 'User', 'id', 'user_id');
     }
 
     /**
@@ -61,7 +61,7 @@ class Snapshot extends EnterpriseModel
      */
     public function instance()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\Instance');
+        return $this->belongsTo(static::MODEL_NAMESPACE . 'Instance', 'id', 'instance_id');
     }
 
     /**
@@ -69,7 +69,7 @@ class Snapshot extends EnterpriseModel
      */
     public function routeHash()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\RouteHash');
+        return $this->hasOne(static::MODEL_NAMESPACE . 'RouteHash', 'id', 'route_hash_id');
     }
 
     /**
@@ -121,6 +121,8 @@ class Snapshot extends EnterpriseModel
                 static::writeStream($_fsWork, $_fs->readStream($_tempFile), $_tempFile);
 
                 //  Download the local file to client
+                /** @noinspection PhpUndefinedMethodInspection */
+
                 return response()->download($_workPath . DIRECTORY_SEPARATOR . $_tempFile, $_tempFile);
             }
 

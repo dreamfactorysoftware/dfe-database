@@ -2,9 +2,14 @@
 
 use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
+use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
-use DreamFactory\Enterprise\Database\Traits\OwnedEntity;
+use DreamFactory\Enterprise\Database\Traits\Gatekeeper;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 /**
  * app_key_t
@@ -24,13 +29,13 @@ use Illuminate\Database\Eloquent\Builder;
  * @method static Builder byClass(string $keyClass, int $ownerId = null)
  * @method static Builder byClientId(string $clientId)
  */
-class AppKey extends EnterpriseModel
+class AppKey extends EnterpriseModel implements OwnedEntity
 {
     //******************************************************************************
     //* Traits
     //******************************************************************************
 
-    use OwnedEntity;
+    use Gatekeeper;
 
     //******************************************************************************
     //* Constants
@@ -85,6 +90,16 @@ class AppKey extends EnterpriseModel
                 }
             }
         );
+    }
+
+    /**
+     * Definition of the "owner" relationship
+     *
+     * @return BelongsTo|MorphTo|MorphToMany|BelongsToMany|mixed
+     */
+    public function owner()
+    {
+        $this->morphTo(null, 'owner_type_nbr', 'owner_id');
     }
 
     /**

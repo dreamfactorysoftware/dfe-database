@@ -15,7 +15,7 @@ use Illuminate\Database\Query\Builder;
  *
  * @method static Builder|\Illuminate\Database\Eloquent\Builder byNameOrId(string $mountNameOrId)
  */
-class Mount extends AssociativeEntityOwner
+class Mount extends EnterpriseModel
 {
     //******************************************************************************
     //* Traits
@@ -37,14 +37,11 @@ class Mount extends AssociativeEntityOwner
     //******************************************************************************
 
     /**
-     * @param array $attributes
+     * @return int The owner of this entity
      */
-    public function __construct(array $attributes = [])
+    public function getMorphClass()
     {
-        parent::__construct($attributes);
-
-        //  Servers are the owner of mounts for association
-        $this->owner_type_nbr = OwnerTypes::SERVER;
+        return OwnerTypes::SERVER;
     }
 
     /**
@@ -52,7 +49,7 @@ class Mount extends AssociativeEntityOwner
      */
     public function routeHashes()
     {
-        return $this->belongsToMany(__NAMESPACE__ . '\\RouteHash');
+        return $this->belongsToMany(static::MODEL_NAMESPACE . 'RouteHash', 'id', 'mount_id');
     }
 
     /**
@@ -60,7 +57,7 @@ class Mount extends AssociativeEntityOwner
      */
     public function servers()
     {
-        return $this->belongsToMany(__NAMESPACE__ . '\\Server');
+        return $this->belongsToMany(static::MODEL_NAMESPACE . 'Server', 'id', 'mount_id');
     }
 
     /**

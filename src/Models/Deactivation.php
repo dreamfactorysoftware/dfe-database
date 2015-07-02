@@ -34,7 +34,7 @@ class Deactivation extends EnterpriseModel
      */
     public function user()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\User');
+        return $this->belongsTo(static::MODEL_NAMESPACE . 'User');
     }
 
     /**
@@ -42,7 +42,7 @@ class Deactivation extends EnterpriseModel
      */
     public function instance()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\Instance');
+        return $this->belongsTo(static::MODEL_NAMESPACE . 'Instance');
     }
 
     /**

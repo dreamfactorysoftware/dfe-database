@@ -46,7 +46,7 @@ class InstanceGuestArchive extends InstanceGuest
     /** @noinspection PhpMissingParentCallCommonInspection */
     public function instance()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\InstanceArchive');
+        return $this->hasOne(static::MODEL_NAMESPACE . 'InstanceArchive', 'id', 'instance_id');
     }
 
 }

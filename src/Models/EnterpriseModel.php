@@ -113,6 +113,10 @@ class EnterpriseModel extends Model
      */
     const DEPLOY_NAMESPACE = __NAMESPACE__;
     /**
+     * @type string The hard-coded namespace of the models with trailing slash
+     */
+    const MODEL_NAMESPACE = 'DreamFactory\\Enterprise\\Database\\Models\\';
+    /**
      * @type string
      */
     const HOSTED_SNAPSHOT_PATH = '/snapshots';

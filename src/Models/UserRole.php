@@ -26,7 +26,7 @@ class UserRole extends EnterpriseModel
      */
     public function user()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\ServiceUser', 'id', 'user_id');
+        return $this->hasOne(static::MODEL_NAMESPACE . 'ServiceUser', 'id', 'user_id');
     }
 
     /**
@@ -34,7 +34,7 @@ class UserRole extends EnterpriseModel
      */
     public function role()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Role');
+        return $this->hasOne(static::MODEL_NAMESPACE . 'Role');
     }
 
 }

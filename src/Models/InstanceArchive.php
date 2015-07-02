@@ -23,6 +23,6 @@ class InstanceArchive extends Instance
      */
     public function guest()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\InstanceGuestArchive', 'id', 'instance_id');
+        return $this->hasOne(static::MODEL_NAMESPACE . 'InstanceGuestArchive', 'id', 'instance_id');
     }
 }

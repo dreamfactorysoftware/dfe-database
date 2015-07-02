@@ -27,7 +27,7 @@ class ClusterServer extends EnterpriseModel
      */
     public function server()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Server');
+        return $this->hasOne(static::MODEL_NAMESPACE . 'Server', 'id', 'server_id');
     }
 
     /**
@@ -35,7 +35,13 @@ class ClusterServer extends EnterpriseModel
      */
     public function cluster()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Cluster');
+        return $this->hasOne(static::MODEL_NAMESPACE . 'Cluster', 'id', 'cluster_id');
+    }
+
+    /** @inheritdoc */
+    public function getKey()
+    {
+        return parent::getKey();
     }
 
 }

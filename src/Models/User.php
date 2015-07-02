@@ -2,11 +2,10 @@
 
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Common\Utility\UniqueId;
+use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
-use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Database\Traits\CheckNickname;
-use DreamFactory\Enterprise\Database\Traits\KeyHolder;
-use DreamFactory\Enterprise\Database\Traits\OwnedEntity;
+use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
@@ -52,13 +51,13 @@ use Illuminate\Database\Query\Builder;
  *
  * @method static Builder byEmail(string $email)
  */
-class User extends EnterpriseModel implements AuthenticatableContract, CanResetPasswordContract
+class User extends EnterpriseModel implements AuthenticatableContract, CanResetPasswordContract, OwnedEntity
 {
     //******************************************************************************
     //* Traits
     //******************************************************************************
 
-    use Authenticatable, AuthorizedEntity, KeyHolder, CheckNickname, OwnedEntity;
+    use Authenticatable, KeyMaster, CheckNickname;
 
     //******************************************************************************
     //* Members
@@ -81,12 +80,41 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     //* Methods
     //******************************************************************************
 
-    /** @inheritdoc */
-    public function __construct(array $attributes = [])
+    /**
+     * Boot method to wire in our events
+     */
+    public static function boot()
     {
-        parent::__construct($attributes);
+        parent::boot();
 
-        $this->owner_type_nbr = OwnerTypes::USER;
+        static::creating(function ($user/** @type User $user */) {
+            $user->checkStorageKey();
+            $user->owner_type_nbr = $user->getMorphClass();
+        });
+
+        static::updating(function (User $model) {
+            $model->checkStorageKey();
+        });
+
+        static::created(function ($model) {
+            AppKey::createKeyFromEntity($model);
+        });
+
+        static::deleted(function (EnterpriseModel $model) {
+            //AppKey::destroyKeys( $model );
+        });
+    }
+
+    /** @inheritdoc */
+    public function owner()
+    {
+        return $this->belongsTo(static::MODEL_NAMESPACE . 'User', 'id', 'owner_id');
+    }
+
+    /** @inheritdoc */
+    public function getMorphClass()
+    {
+        return $this->owner_type_nbr ?: OwnerTypes::USER;
     }
 
     /**
@@ -94,7 +122,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      */
     public function hashes()
     {
-        return $this->hasMany(__NAMESPACE__ . '\\OwnerHash', 'id', 'owner_id');
+        return $this->hasMany(static::MODEL_NAMESPACE . 'OwnerHash', 'id', 'owner_id');
     }
 
     /**
@@ -102,7 +130,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      */
     public function snapshots()
     {
-        return $this->hasMany(__NAMESPACE__ . '\\Snapshot');
+        return $this->hasMany(static::MODEL_NAMESPACE . 'Snapshot');
     }
 
     /**
@@ -110,7 +138,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      */
     public function instances()
     {
-        return $this->hasMany(__NAMESPACE__ . '\\Instances');
+        return $this->hasMany(static::MODEL_NAMESPACE . 'Instance');
     }
 
     /**
@@ -121,26 +149,6 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
         if (empty($this->storage_id_text)) {
             $this->storage_id_text = UniqueId::generate(__CLASS__);
         }
-    }
-
-    /**
-     * Boot method to wire in our events
-     */
-    public static function boot()
-    {
-        parent::boot();
-
-        static::creating(
-            function (User $model) {
-                $model->checkStorageKey();
-            }
-        );
-
-        static::updating(
-            function (User $model) {
-                $model->checkStorageKey();
-            }
-        );
     }
 
     /**
@@ -185,4 +193,45 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
         );
     }
 
+    /**
+     * Get the unique identifier for the user.
+     *
+     * @return mixed
+     */
+    public function getAuthIdentifier()
+    {
+        return $this->id;
+    }
+
+    /**
+     * Get the token value for the "remember me" session.
+     *
+     * @return string
+     */
+    public function getRememberToken()
+    {
+        return $this->remember_token;
+    }
+
+    /**
+     * Set the token value for the "remember me" session.
+     *
+     * @param  string $value
+     *
+     * @return void
+     */
+    public function setRememberToken($value)
+    {
+        $this->remember_token = $value;
+    }
+
+    /**
+     * Get the column name for the "remember me" token.
+     *
+     * @return string
+     */
+    public function getRememberTokenName()
+    {
+        return 'remember_token';
+    }
 }

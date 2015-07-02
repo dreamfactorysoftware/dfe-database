@@ -30,11 +30,11 @@ class InstanceServer extends EnterpriseModel
     //******************************************************************************
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Server
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Instance
      */
     public function instance()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Instance');
+        return $this->hasOne(static::MODEL_NAMESPACE . 'Instance', 'id', 'instance_id');
     }
 
     /**
@@ -42,7 +42,7 @@ class InstanceServer extends EnterpriseModel
      */
     public function server()
     {
-        return $this->hasOne(__NAMESPACE__ . '\\Server');
+        return $this->hasOne(static::MODEL_NAMESPACE . 'Server', 'id', 'server_id');
     }
 
 }

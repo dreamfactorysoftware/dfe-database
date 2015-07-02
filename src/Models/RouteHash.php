@@ -38,7 +38,7 @@ class RouteHash extends EnterpriseModel
      */
     public function mount()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\Mount');
+        return $this->belongsTo(static::MODEL_NAMESPACE . 'Mount');
     }
 
     /**
@@ -46,7 +46,7 @@ class RouteHash extends EnterpriseModel
      */
     public function snapshot()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\Snapshot');
+        return $this->belongsTo(static::MODEL_NAMESPACE . 'Snapshot');
     }
 
     /**

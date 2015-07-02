@@ -1,8 +1,10 @@
 <?php
 namespace DreamFactory\Enterprise\Database\Models;
 
+use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
+use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder;
 
@@ -17,13 +19,13 @@ use Illuminate\Database\Query\Builder;
  *
  * @method static \Illuminate\Database\Eloquent\Builder byNameOrId(string $clusterNameOrId)
  */
-class Cluster extends SelfAssociativeEntity
+class Cluster extends EnterpriseModel implements OwnedEntity
 {
     //******************************************************************************
     //* Traits
     //******************************************************************************
 
-    use AuthorizedEntity;
+    use AuthorizedEntity, KeyMaster;
 
     //******************************************************************************
     //* Members
@@ -38,25 +40,20 @@ class Cluster extends SelfAssociativeEntity
     //* Methods
     //******************************************************************************
 
-    /** @inheritdoc */
-    public function __construct(array $attributes = [])
+    /**
+     * Return the owner type of this model
+     *
+     * @return string
+     */
+    public function getMorphClass()
     {
-        parent::__construct($attributes);
-
-        $this->owner_type_nbr = OwnerTypes::SERVICE_USER;
+        return $this->owner_type_nbr ?: OwnerTypes::SERVICE_USER;
     }
 
-    /**
-     * Our instances relationship
-     *
-     * @return Collection
-     */
-    public function servers()
+    /** @inheritdoc */
+    public function owner()
     {
-        return Server::whereRaw(
-            'id IN ( SELECT csa.cluster_id FROM cluster_server_asgn_t csa WHERE csa.cluster_id  = :cluster_id )',
-            ['cluster_id' => $this->id]
-        )->get();
+        return $this->user();
     }
 
     /**
@@ -64,7 +61,17 @@ class Cluster extends SelfAssociativeEntity
      */
     public function user()
     {
-        return $this->belongsTo(__NAMESPACE__ . '\\ServiceUser', 'id', 'owner_id');
+        return $this->belongsTo(static::MODEL_NAMESPACE . 'ServiceUser', 'id', 'owner_id');
+    }
+
+    /**
+     * Returns a list of servers assigned to me
+     *
+     * @return Collection|ClusterServer[]
+     */
+    public function assignedServers()
+    {
+        return ClusterServer::with('server')->where('cluster_id', $this->id)->get();
     }
 
     /**
