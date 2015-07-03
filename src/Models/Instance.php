@@ -854,7 +854,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public static function makeMetadata(Instance $instance, $object = false)
     {
-        $_key = AppKey::mine($instance->user_id, OwnerTypes::USER);
+        $_key = AppKey::mine($instance->user_id, OwnerTypes::INSTANCE)->first();
         $_cluster = static::_lookupCluster($instance->cluster_id);
 
         $_md = new Metadata([], $instance->instance_name_text . '.json', $instance->getOwnerPrivateStorageMount());

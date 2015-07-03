@@ -6,6 +6,7 @@ use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Traits\Gatekeeper;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -99,7 +100,12 @@ class AppKey extends EnterpriseModel implements OwnedEntity
      */
     public function owner()
     {
-        $this->morphTo(null, 'owner_type_nbr', 'owner_id');
+        return $this->morphTo('owner', 'owner_type_nbr', 'owner_id');
+    }
+
+    public function getMorphClass()
+    {
+        return $this->owner_type_nbr;
     }
 
     /**
@@ -300,7 +306,7 @@ class AppKey extends EnterpriseModel implements OwnedEntity
      * @param int $ownerId
      * @param int $ownerType
      *
-     * @return AppKey[]|array
+     * @return AppKey[]|Collection
      */
     public static function mine($ownerId, $ownerType)
     {

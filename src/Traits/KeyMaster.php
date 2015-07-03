@@ -23,7 +23,7 @@ trait KeyMaster
      */
     public function appKeys($localKey = null, $type = null, $id = null)
     {
-        return $this->keyMaster($localKey, $type, $id);
+        return $this->keyMaster($localKey, $type, $id)->getResults();
     }
 
     /**
@@ -33,9 +33,13 @@ trait KeyMaster
      *
      * @return MorphMany
      */
-    protected function keyMaster($localKey = 'id', $type = 'owner_type_nbr', $id = 'owner_id')
+    protected function keyMaster($localKey = 'id', $type = null, $id = null)
     {
         /** @noinspection PhpUndefinedMethodInspection */
-        return $this->morphMany(EnterpriseModel::MODEL_NAMESPACE . 'AppKey', 'gatekeeper', $type, $id, $localKey);
+        return $this->morphMany(EnterpriseModel::MODEL_NAMESPACE . 'AppKey',
+            'owner',
+            $type ?: 'owner_type_nbr',
+            $id ?: 'owner_id',
+            $localKey);
     }
 }
