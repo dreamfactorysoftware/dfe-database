@@ -18,7 +18,6 @@ use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use Illuminate\Database\Query\Builder;
 use League\Flysystem\Filesystem;
-use Symfony\Component\Security\Core\User\User;
 
 /**
  * instance_t
@@ -154,7 +153,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     /** @inheritdoc */
     public function appKeys($localKey = null, $type = null, $id = null)
     {
-        return $this->keyMaster('user_id');
+        return $this->keyMaster($localKey ?: 'user_id', $type, $id);
     }
 
     /**
@@ -213,7 +212,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne|User
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|\DreamFactory\Enterprise\Database\Models\User
      */
     public function user()
     {
