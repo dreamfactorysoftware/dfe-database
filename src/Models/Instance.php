@@ -575,7 +575,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
         }
 
         if (null === $_unavailableNames && function_exists('config')) {
-            $_unavailableNames = config('dfe.forbidden-names', []);
+            $_unavailableNames = config('forbidden-names', []);
 
             if (!is_array($_unavailableNames) || empty($_unavailableNames)) {
                 $_unavailableNames = [];
@@ -740,7 +740,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
                 $_zone = null;
 
-                switch (config('dfe.provisioning.storage-zone-type')) {
+                switch (config('provisioning.storage-zone-type')) {
                     case 'dynamic':
                         switch ($this->guest_location_nbr) {
                             case GuestLocations::AMAZON_EC2:
@@ -755,7 +755,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
                         break;
 
                     case 'static':
-                        $_zone = config('dfe.provisioning.static-zone-name');
+                        $_zone = config('provisioning.static-zone-name');
                         break;
                 }
 
