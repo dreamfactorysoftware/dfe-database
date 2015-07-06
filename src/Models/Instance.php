@@ -123,21 +123,17 @@ class Instance extends EnterpriseModel implements OwnedEntity
     {
         parent::boot();
 
-        static::creating(
-            function ($instance/** @var Instance $instance */) {
-                $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
+        static::creating(function ($instance/** @var Instance $instance */) {
+            $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
 
-                $instance->checkStorageKey();
-                $instance->refreshMetadata();
-            }
-        );
+            $instance->checkStorageKey();
+            $instance->refreshMetadata();
+        });
 
-        static::updating(
-            function ($instance/** @var Instance $instance */) {
-                $instance->checkStorageKey();
-                $instance->refreshMetadata();
-            }
-        );
+        static::updating(function ($instance/** @var Instance $instance */) {
+            $instance->checkStorageKey();
+            $instance->refreshMetadata();
+        });
 
         static::deleted(function ($instance/** @var Instance $instance */) {
             AppKey::where('owner_id', $instance->id)->where('owner_type_nbr', OwnerTypes::INSTANCE)->delete();
@@ -171,12 +167,10 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public function servers()
     {
-        return $this->hasManyThrough(
-            static::MODEL_NAMESPACE . 'InstanceServer',
+        return $this->hasManyThrough(static::MODEL_NAMESPACE . 'InstanceServer',
             static::MODEL_NAMESPACE . 'Server',
             'instance_id',
-            'server_id'
-        );
+            'server_id');
     }
 
     /**
@@ -387,14 +381,12 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public function scopeByNameOrId($query, $instanceNameOrId)
     {
-        return $query->whereRaw(
-            'instance_name_text = :instance_name_text OR instance_id_text = :instance_id_text or id = :id',
+        return $query->whereRaw('instance_name_text = :instance_name_text OR instance_id_text = :instance_id_text or id = :id',
             [
                 ':instance_name_text' => $instanceNameOrId,
                 ':instance_id_text'   => $instanceNameOrId,
                 ':id'                 => $instanceNameOrId,
-            ]
-        );
+            ]);
     }
 
     /**
@@ -466,11 +458,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         //  Do we belong to a server?
         if ($this->belongsToServer($_server->id)) {
-            return
-                1 == InstanceServer::whereRaw(
-                    'server_id = :server_id AND instance_id = :instance_id',
-                    [':server_id' => $_server->id, ':instance_id' => $this->id]
-                )->delete();
+            return 1 == InstanceServer::whereRaw('server_id = :server_id AND instance_id = :instance_id',
+                [':server_id' => $_server->id, ':instance_id' => $this->id])->delete();
         }
 
         //  Not currently assigned...
@@ -501,13 +490,11 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         /** @noinspection PhpUndefinedMethodInspection */
 
-        return 0 != InstanceServer::whereRaw(
-            'server_id = :server_id AND instance_id = :instance_id',
+        return 0 != InstanceServer::whereRaw('server_id = :server_id AND instance_id = :instance_id',
             [
                 ':server_id'   => $_server->id,
                 ':instance_id' => $this->id,
-            ]
-        )->count();
+            ])->count();
     }
 
     /**
@@ -558,17 +545,12 @@ class Instance extends EnterpriseModel implements OwnedEntity
         }
 
         //	This replaces any disallowed characters with dashes
-        $_clean = str_replace(
-            [' ', '_'],
+        $_clean = str_replace([' ', '_'],
             '-',
-            trim(str_replace('--', '-', preg_replace(static::CHARACTER_PATTERN, '-', $name)), ' -_')
-        );
+            trim(str_replace('--', '-', preg_replace(static::CHARACTER_PATTERN, '-', $name)), ' -_'));
 
         //  Ensure non-admin user instances are prefixed
-        $_prefix =
-            function_exists('config')
-                ? config('dfe.instance-prefix')
-                : 'dfe-';
+        $_prefix = function_exists('config') ? config('dfe.instance-prefix') : 'dfe-';
 
         if ($_prefix != substr($_clean, 0, strlen($_prefix))) {
             $_clean = trim(str_replace('--', '-', $_prefix . $_clean), ' -_');
@@ -665,7 +647,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     }
 
     /**
-     * Returns the ROOT storage path for all instances with optional appendage
+     * Returns the ROOT storage path for a user. Under which is all instances and private areas
      *
      * @param string $append
      *
@@ -687,8 +669,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
                 default:
                     $_map = $this->getStorageMap();
                     $_path =
-                        implode(DIRECTORY_SEPARATOR, [$_map['zone'], $_map['partition'], $_map['root-hash']]) .
-                        ($append ? DIRECTORY_SEPARATOR . ltrim($append, ' ' . DIRECTORY_SEPARATOR) : null);
+                        implode(DIRECTORY_SEPARATOR, [$_map['zone'], $_map['partition'], $_map['root-hash']]) . ($append
+                            ? DIRECTORY_SEPARATOR . ltrim($append, ' ' . DIRECTORY_SEPARATOR) : null);
                     break;
             }
 
@@ -721,10 +703,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
                 if ($this->user) {
                     $_userKey = $this->user->storage_id_text;
                 } else {
-                    $_userKey = \DB::select(
-                        'SELECT storage_id_text FROM user_t WHERE id = :id',
-                        [':id' => $this->user_id]
-                    );
+                    $_userKey = \DB::select('SELECT storage_id_text FROM user_t WHERE id = :id',
+                        [':id' => $this->user_id]);
 
                     if ($_userKey) {
                         $_userKey = $_userKey[0]->storage_id_text;
@@ -856,31 +836,67 @@ class Instance extends EnterpriseModel implements OwnedEntity
         $_key = AppKey::mine($instance->user_id, OwnerTypes::INSTANCE)->first();
         $_cluster = static::_lookupCluster($instance->cluster_id);
 
-        $_md = new Metadata([], $instance->instance_name_text . '.json', $instance->getOwnerPrivateStorageMount());
-        $_md->set('storage-map', $instance->getStorageMap(false))
-            ->set('env',
-                [
-                    'cluster-id'       => $_cluster->cluster_id_text,
-                    'default-domain'   => $_cluster->subdomain_text,
-                    'signature-method' => config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
-                    'storage-root'     => EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH,
-                    'console-api-url'  => config('dfe.security.console-api-url'),
-                    'console-api-key'  => config('dfe.security.console-api-key'),
-                    'client-id'        => $_key->client_id,
-                    'client-secret'    => $_key->client_secret,
-                ])
-            ->set('db',
-                [
-                    $instance->instance_name_text => static::buildConnectionArray($instance),
-                ])
-            ->set('paths',
-                [
-                    'private-path'       => $instance->instance_name_text . DIRECTORY_SEPARATOR . '.private',
-                    'owner-private-path' => '.private',
-                    'snapshot-path'      => '.private' . DIRECTORY_SEPARATOR . 'snapshots',
-                ]);
+        $_md = new Metadata([
+            'storage-map' => $instance->getStorageMap(false),
+            'env'         => static::buildEnvironmentMetadata($_cluster, $_key),
+            'db'          => static::buildDatabaseMetadata($instance),
+            'paths'       => static::buildPathMetadata($instance),
+        ], $instance->instance_name_text . '.json', $instance->getOwnerPrivateStorageMount());
 
         return $object ? $_md : $_md->toArray();
+    }
+
+    /**
+     * Build the 'paths' section of the metadata
+     *
+     * @param \DreamFactory\Enterprise\Database\Models\Instance $instance
+     *
+     * @return array
+     */
+    protected static function buildPathMetadata(Instance $instance)
+    {
+        return [
+            'private-path'       => $instance->getPrivatePath(),
+            'owner-private-path' => $instance->getOwnerPrivatePath(),
+            'snapshot-path'      => $instance->getSnapshotPath(),
+            'storage-root'       => $instance->getRootStoragePath(),
+        ];
+    }
+
+    /**
+     * Build the 'db' section of the metadata
+     *
+     * @param \DreamFactory\Enterprise\Database\Models\Instance $instance
+     *
+     * @return array
+     */
+    public static function buildDatabaseMetadata(Instance $instance)
+    {
+        return [
+            $instance->instance_name_text => static::buildConnectionArray($instance),
+        ];
+    }
+
+    /**
+     * Build the 'env' section of the metadata
+     *
+     * @param \DreamFactory\Enterprise\Database\Models\Cluster $cluster
+     * @param \DreamFactory\Enterprise\Database\Models\AppKey  $key
+     *
+     * @return array
+     */
+    public static function buildEnvironmentMetadata(Cluster $cluster, AppKey $key)
+    {
+        return [
+            'cluster-id'       => $cluster->cluster_id_text,
+            'default-domain'   => $cluster->subdomain_text,
+            'signature-method' => config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
+            'storage-root'     => EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH,
+            'console-api-url'  => config('dfe.security.console-api-url'),
+            'console-api-key'  => config('dfe.security.console-api-key'),
+            'client-id'        => $key->client_id,
+            'client-secret'    => $key->client_secret,
+        ];
     }
 
     /**
@@ -891,8 +907,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     protected static function buildConnectionArray(Instance $instance)
     {
         return [
-            'id'                    => $instance->dbServer
-                ? $instance->dbServer->server_id_text
+            'id'                    => $instance->dbServer ? $instance->dbServer->server_id_text
                 : $instance->db_server_id,
             'host'                  => $instance->db_host_text,
             'port'                  => $instance->db_port_nbr,
