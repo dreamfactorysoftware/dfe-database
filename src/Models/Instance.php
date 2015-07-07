@@ -591,7 +591,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
      *
      * @return array
      */
-    public function getMetadata($sync = true, $key = null)
+    public function getMetadata($sync = false, $key = null)
     {
         $_data = $this->instance_data_text;
 
