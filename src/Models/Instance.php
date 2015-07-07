@@ -610,13 +610,9 @@ class Instance extends EnterpriseModel implements OwnedEntity
      *
      * @return Instance
      */
-    public function setMetadata($md)
+    public function setMetadata($md = [])
     {
-        if ($md instanceof Metadata) {
-            $this->instance_data_text = $md->toArray();
-        } elseif (is_array($md)) {
-            $this->instance_data_text = $md;
-        }
+        $this->instance_data_text = ($md instanceof Metadata) ? $md->toArray() : $md;
 
         return $this;
     }
@@ -856,10 +852,10 @@ class Instance extends EnterpriseModel implements OwnedEntity
     protected static function buildPathMetadata(Instance $instance)
     {
         return [
+            'storage-root'       => $instance->getRootStoragePath(),
             'private-path'       => $instance->getPrivatePath(),
             'owner-private-path' => $instance->getOwnerPrivatePath(),
             'snapshot-path'      => $instance->getSnapshotPath(),
-            'storage-root'       => $instance->getRootStoragePath(),
         ];
     }
 
