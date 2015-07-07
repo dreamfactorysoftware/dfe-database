@@ -596,8 +596,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
         $_data = $this->instance_data_text;
 
         if (empty($_data)) {
-            $_data = static::makeMetadata($this)->toArray();
-            ($sync && !$key) && $this->update(['instance_data_text' => $_data]);
+            $this->refreshMetadata($sync);
+            $_data = $this->instance_data_text;
         }
 
         return $key ? array_get($_data, $key) : $_data;
@@ -832,12 +832,17 @@ class Instance extends EnterpriseModel implements OwnedEntity
         $_key = AppKey::mine($instance->user_id, OwnerTypes::INSTANCE)->first();
         $_cluster = static::_lookupCluster($instance->cluster_id);
 
-        $_md = new Metadata([
-            'storage-map' => $instance->getStorageMap(false),
-            'env'         => static::buildEnvironmentMetadata($_cluster, $_key),
-            'db'          => static::buildDatabaseMetadata($instance),
-            'paths'       => static::buildPathMetadata($instance),
-        ], $instance->instance_name_text . '.json', $instance->getOwnerPrivateStorageMount());
+        $_md = new Metadata(
+            array_merge(
+                static::$_metadataTemplate,
+                [
+                    'storage-map' => $instance->getStorageMap(false),
+                    'env'         => static::buildEnvironmentMetadata($_cluster, $_key),
+                    'db'          => static::buildDatabaseMetadata($instance),
+                    'paths'       => static::buildPathMetadata($instance),
+                ]),
+            $instance->instance_name_text . '.json', $instance->getOwnerPrivateStorageMount()
+        );
 
         return $object ? $_md : $_md->toArray();
     }
