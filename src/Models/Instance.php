@@ -123,19 +123,19 @@ class Instance extends EnterpriseModel implements OwnedEntity
     {
         parent::boot();
 
-        static::creating(function ($instance/** @var Instance $instance */) {
+        static::creating(function ($instance/** @var Instance $instance */){
             $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
 
             $instance->checkStorageKey();
             $instance->refreshMetadata();
         });
 
-        static::updating(function ($instance/** @var Instance $instance */) {
+        static::updating(function ($instance/** @var Instance $instance */){
             $instance->checkStorageKey();
             $instance->refreshMetadata();
         });
 
-        static::deleted(function ($instance/** @var Instance $instance */) {
+        static::deleted(function ($instance/** @var Instance $instance */){
             AppKey::where('owner_id', $instance->id)->where('owner_type_nbr', OwnerTypes::INSTANCE)->delete();
         });
     }
@@ -655,6 +655,41 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         $_ck = hash(EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD,
             'rsp.' . $this->id . ($append ? DIRECTORY_SEPARATOR . $append : $append));
+
+        if (null === ($_path = array_get($_cache, $_ck))) {
+            switch ($this->guest_location_nbr) {
+                case GuestLocations::LOCAL:
+                    $_path = storage_path($append);
+                    break;
+
+                default:
+                    $_map = $this->getStorageMap();
+                    $_path =
+                        implode(DIRECTORY_SEPARATOR, [$_map['zone'], $_map['partition'], $_map['root-hash']]) . ($append
+                            ? DIRECTORY_SEPARATOR . ltrim($append, ' ' . DIRECTORY_SEPARATOR) : null);
+                    break;
+            }
+
+            $_cache[$_ck] = $_path;
+        }
+
+        return $_path;
+    }
+
+    /**
+     * Returns the ROOT storage path for a user. Under which is all instances and private areas
+     *
+     * @param string $append
+     *
+     * @return mixed|string
+     */
+    public function getWorkPath($append = null)
+    {
+        static $_cache = [];
+
+        $_ck =
+            hash(config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
+                'rsp.' . $this->id . ($append ? DIRECTORY_SEPARATOR . $append : $append));
 
         if (null === ($_path = array_get($_cache, $_ck))) {
             switch ($this->guest_location_nbr) {
