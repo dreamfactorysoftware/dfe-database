@@ -110,7 +110,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     /**
      * @type array The template for metadata stored in
      */
-    protected static $_metadataTemplate = ['storage-map' => [], 'paths' => [], 'db' => [], 'env' => [],];
+    protected static $_metadataTemplate = ['storage-map' => [], 'paths' => [], 'db' => [], 'env' => [], 'audit' => []];
 
     //******************************************************************************
     //* Methods
