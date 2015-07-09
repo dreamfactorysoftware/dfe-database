@@ -157,6 +157,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
      *
      * @return string
      */
+    /** @noinspection PhpMissingParentCallCommonInspection */
     public function getMorphClass()
     {
         return OwnerTypes::USER;
@@ -424,6 +425,16 @@ class Instance extends EnterpriseModel implements OwnedEntity
     public function getPrivatePath()
     {
         return InstanceStorage::getPrivatePath($this);
+    }
+
+    public function getWorkPath()
+    {
+        return InstanceStorage::getWorkPath($this);
+    }
+
+    public function deleteWorkPath()
+    {
+        return InstanceStorage::deleteWorkPath($this);
     }
 
     /**
