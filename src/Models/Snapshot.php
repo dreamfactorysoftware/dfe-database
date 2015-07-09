@@ -115,7 +115,7 @@ class Snapshot extends EnterpriseModel
                 $_tempFile = $_routeHash->actual_path_text;
 
                 //  Delete any file with the same name...
-                @unlink($_workPath . DIRECTORY_SEPARATOR . $_tempFile);
+                file_exists($_workPath . DIRECTORY_SEPARATOR . $_tempFile) && @unlink($_workPath . DIRECTORY_SEPARATOR . $_tempFile);
 
                 //  Download the snapshot to local temp
                 static::writeStream($_fsWork, $_fs->readStream($_tempFile), $_tempFile);
