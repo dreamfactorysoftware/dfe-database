@@ -57,11 +57,11 @@ class Snapshot extends EnterpriseModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|Instance
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|Instance
      */
     public function instance()
     {
-        return $this->belongsTo(static::MODEL_NAMESPACE . 'Instance', 'id', 'instance_id');
+        return $this->hasOne(static::MODEL_NAMESPACE . 'Instance', 'id', 'instance_id');
     }
 
     /**
