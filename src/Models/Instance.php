@@ -859,6 +859,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     {
         return [
             'storage-root'       => $instance->getRootStoragePath(),
+            'storage-path'       => $instance->getStoragePath(),
             'private-path'       => $instance->getPrivatePath(),
             'owner-private-path' => $instance->getOwnerPrivatePath(),
             'snapshot-path'      => $instance->getSnapshotPath(),
