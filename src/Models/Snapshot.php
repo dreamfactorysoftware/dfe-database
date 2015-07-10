@@ -104,10 +104,15 @@ class Snapshot extends EnterpriseModel
          */
 
         try {
-            if (null !== ($_routeHash = RouteHash::byHash($hash)->firstOrFail())) {
+            if (null !== ($_routeHash = RouteHash::byHash($hash)->with(['snapshot'])->firstOrFail())) {
                 //  Look up the snapshot and get an instance of the file system
-                $_snapshot = $_routeHash->snapshot ?: static::fromHash($hash)->firstOrFail();
-                $_fs = $_snapshot->instance->getSnapshotMount();
+                $_snapshot = $_routeHash->snapshot ?: static::fromHash($hash)->with(['instance'])->firstOrFail();
+
+                if (null === ($_fs = $_snapshot->instance ? $_snapshot->instance->getSnapshotMount() : null)) {
+                    throw new ModelNotFoundException('No instance found for snapshot "' .
+                        $_snapshot->snapshot_id_text .
+                        '"');
+                }
 
                 //  Get some work space to download the snapshot
                 $_workPath = static::getWorkPath('snapshot-download', true);
@@ -115,7 +120,8 @@ class Snapshot extends EnterpriseModel
                 $_tempFile = $_routeHash->actual_path_text;
 
                 //  Delete any file with the same name...
-                file_exists($_workPath . DIRECTORY_SEPARATOR . $_tempFile) && @unlink($_workPath . DIRECTORY_SEPARATOR . $_tempFile);
+                file_exists($_workPath . DIRECTORY_SEPARATOR . $_tempFile) &&
+                @unlink($_workPath . DIRECTORY_SEPARATOR . $_tempFile);
 
                 //  Download the snapshot to local temp
                 static::writeStream($_fsWork, $_fs->readStream($_tempFile), $_tempFile);
@@ -128,7 +134,7 @@ class Snapshot extends EnterpriseModel
 
             throw new ModelNotFoundException();
         } catch (\Exception $_ex) {
-            \Log::error('error retrieving download location: ' . $_ex->getMessage());
+            \Log::error('route hash "' . $hash . '" not found: ' . $_ex->getMessage());
 
             abort(Response::HTTP_NOT_FOUND);
         }
