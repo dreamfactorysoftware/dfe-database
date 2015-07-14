@@ -87,20 +87,20 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     {
         parent::boot();
 
-        static::creating(function ($user/** @type User $user */) {
+        static::creating(function ($user/** @type User $user */){
             $user->checkStorageKey();
             $user->owner_type_nbr = $user->getMorphClass();
         });
 
-        static::updating(function (User $model) {
+        static::updating(function (User $model){
             $model->checkStorageKey();
         });
 
-        static::created(function ($model) {
+        static::created(function ($model){
             AppKey::createKeyFromEntity($model);
         });
 
-        static::deleted(function (EnterpriseModel $model) {
+        static::deleted(function (EnterpriseModel $model){
             //AppKey::destroyKeys( $model );
         });
     }
@@ -233,5 +233,17 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     public function getRememberTokenName()
     {
         return 'remember_token';
+    }
+
+    public function getSnapshotPath($append = null)
+    {
+    }
+
+    public function getSnapshotMount()
+    {
+    }
+
+    public function getOwnerPrivatePath($append = null)
+    {
     }
 }
