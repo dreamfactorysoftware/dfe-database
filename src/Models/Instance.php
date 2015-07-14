@@ -924,6 +924,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     {
         return [
             'cluster-id'       => $cluster->cluster_id_text,
+            'instance-id' => $instance->instance_name_text,
             'default-domain'   => $cluster->subdomain_text,
             'signature-method' => config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
             'storage-root'     => EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH,
