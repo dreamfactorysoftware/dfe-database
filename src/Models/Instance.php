@@ -110,7 +110,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     /**
      * @type array The template for metadata stored in
      */
-    protected static $_metadataTemplate = ['storage-map' => [], 'paths' => [], 'db' => [], 'env' => [], 'audit' => []];
+    protected static $_metadataTemplate = ['storage-map' => [], 'paths' => [], 'db' => [], 'env' => [], 'audit' => [], 'limits' => []];
 
     //******************************************************************************
     //* Methods
@@ -852,6 +852,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
                     'db'          => static::buildDatabaseMetadata($instance),
                     'paths'       => static::buildPathMetadata($instance),
                     'audit'       => static::buildAuditMetadata($instance),
+                    'limits'      => static::buildLimitsMetadata($instance),
                 ]),
             $instance->instance_name_text . '.json', $instance->getOwnerPrivateStorageMount()
         );
@@ -957,6 +958,30 @@ class Instance extends EnterpriseModel implements OwnedEntity
             'prefix'                => '',
             'db-server-id'          => $instance->dbServer ? $instance->dbServer->server_id_text
                 : $instance->db_server_id,
+        ];
+    }
+
+    /**
+     * Build the limits array
+     *
+     * @param \DreamFactory\Enterprise\Database\Models\Instance $instance
+     *
+     * @return array
+     */
+    public static function buildLimitsMetadata(Instance $instance)
+    {
+        $_limits = Limit::byClusterInstance( $instance->instance_id_text, $instance->cluster->cluster_id_text )->get();
+
+        $_limits_array = [];
+
+        foreach ( $_limits as $_limit )
+        {
+            $_api_array[] = [$_limit->limit_key_text => ['limit' => $_limit->limit_value, 'period' => $_limit->period_value]];
+        }
+
+        // In the future, there could be additional keys, such as 'bandwidth' or 'storage'
+        return [
+            'api' => $_api_array
         ];
     }
 
