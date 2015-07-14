@@ -110,7 +110,14 @@ class Instance extends EnterpriseModel implements OwnedEntity
     /**
      * @type array The template for metadata stored in
      */
-    protected static $_metadataTemplate = ['storage-map' => [], 'paths' => [], 'db' => [], 'env' => [], 'audit' => [], 'limits' => []];
+    protected static $_metadataTemplate = [
+        'storage-map' => [],
+        'paths'       => [],
+        'db'          => [],
+        'env'         => [],
+        'audit'       => [],
+        'limits'      => []
+    ];
 
     //******************************************************************************
     //* Methods
@@ -123,19 +130,19 @@ class Instance extends EnterpriseModel implements OwnedEntity
     {
         parent::boot();
 
-        static::creating(function ($instance/** @var Instance $instance */) {
+        static::creating(function ($instance/** @var Instance $instance */){
             $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
 
             $instance->checkStorageKey();
             $instance->refreshMetadata();
         });
 
-        static::updating(function ($instance/** @var Instance $instance */) {
+        static::updating(function ($instance/** @var Instance $instance */){
             $instance->checkStorageKey();
             $instance->refreshMetadata();
         });
 
-        static::deleted(function ($instance/** @var Instance $instance */) {
+        static::deleted(function ($instance/** @var Instance $instance */){
             AppKey::where('owner_id', $instance->id)->where('owner_type_nbr', OwnerTypes::INSTANCE)->delete();
         });
     }
@@ -925,7 +932,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     {
         return [
             'cluster-id'       => $cluster->cluster_id_text,
-            'instance-id' => $instance->instance_name_text,
+            'instance-id'      => $instance->instance_name_text,
             'default-domain'   => $cluster->subdomain_text,
             'signature-method' => config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
             'storage-root'     => EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH,
@@ -970,13 +977,13 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public static function buildLimitsMetadata(Instance $instance)
     {
-        $_limits = Limit::byClusterInstance( $instance->instance_id_text, $instance->cluster->cluster_id_text )->get();
+        $_limits = Limit::byClusterInstance($instance->instance_id_text, $instance->cluster->cluster_id_text)->get();
 
-        $_limits_array = [];
+        $_api_array = [];
 
-        foreach ( $_limits as $_limit )
-        {
-            $_api_array[] = [$_limit->limit_key_text => ['limit' => $_limit->limit_value, 'period' => $_limit->period_value]];
+        foreach ($_limits as $_limit) {
+            $_api_array[] =
+                [$_limit->limit_key_text => ['limit' => $_limit->limit_value, 'period' => $_limit->period_value]];
         }
 
         // In the future, there could be additional keys, such as 'bandwidth' or 'storage'
