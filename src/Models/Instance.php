@@ -62,6 +62,7 @@ use League\Flysystem\Filesystem;
  * @method static Builder userId(int $userId)
  * @method static Builder withDbName(string $dbName)
  * @method static Builder onDbServer(int $dbServerId)
+ * @method static Builder byOwner(mixed $ownerId, mixed $ownerType = null)
  */
 class Instance extends EnterpriseModel implements OwnedEntity
 {
@@ -837,6 +838,12 @@ class Instance extends EnterpriseModel implements OwnedEntity
         $this->instance_data_text = static::makeMetadata($this);
 
         return $save ? $this->save() : $this->instance_data_text;
+    }
+
+    /** @inheritdoc */
+    public function scopeByOwner($query, $ownerId, $ownerType = null)
+    {
+        return $query->where('user_id', $ownerId)->where('owner_type_nbr', $ownerType ?: OwnerTypes::USER);
     }
 
     /**
