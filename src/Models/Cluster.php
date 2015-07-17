@@ -88,4 +88,10 @@ class Cluster extends EnterpriseModel implements OwnedEntity
         );
     }
 
+    /** @inheritdoc */
+    public function scopeByOwner($query, $ownerId, $ownerType = null)
+    {
+        return $query->where('user_id', $ownerId)->where('owner_type_nbr', $ownerType ?: OwnerTypes::USER);
+    }
+
 }
