@@ -63,6 +63,7 @@ use League\Flysystem\Filesystem;
  * @method static Builder withDbName(string $dbName)
  * @method static Builder onDbServer(int $dbServerId)
  * @method static Builder byOwner(mixed $ownerId, mixed $ownerType = null)
+ * @method static Builder byClusterId(int $clusterId)
  */
 class Instance extends EnterpriseModel implements OwnedEntity
 {
@@ -117,7 +118,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
         'db'          => [],
         'env'         => [],
         'audit'       => [],
-        'limits'      => []
+        'limits'      => [],
     ];
 
     //******************************************************************************
@@ -131,19 +132,19 @@ class Instance extends EnterpriseModel implements OwnedEntity
     {
         parent::boot();
 
-        static::creating(function ($instance/** @var Instance $instance */){
+        static::creating(function ($instance/** @var Instance $instance */) {
             $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
 
             $instance->checkStorageKey();
             $instance->refreshMetadata();
         });
 
-        static::updating(function ($instance/** @var Instance $instance */){
+        static::updating(function ($instance/** @var Instance $instance */) {
             $instance->checkStorageKey();
             $instance->refreshMetadata();
         });
 
-        static::deleted(function ($instance/** @var Instance $instance */){
+        static::deleted(function ($instance/** @var Instance $instance */) {
             AppKey::where('owner_id', $instance->id)->where('owner_type_nbr', OwnerTypes::INSTANCE)->delete();
         });
     }
@@ -396,6 +397,17 @@ class Instance extends EnterpriseModel implements OwnedEntity
                 ':instance_id_text'   => $instanceNameOrId,
                 ':id'                 => $instanceNameOrId,
             ]);
+    }
+
+    /**
+     * @param Builder $query
+     * @param int     $clusterId
+     *
+     * @return Builder
+     */
+    public function scopeByClusterId($query, $clusterId)
+    {
+        return $query->where('cluster_id', $clusterId);
     }
 
     /**
@@ -991,12 +1003,12 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         foreach ($_limits as $_limit) {
             $_api_array[] =
-                [$_limit->limit_key_text => ['limit' => $_limit->limit_value, 'period' => $_limit->period_value]];
+                [$_limit->limit_key_text => ['limit' => $_limit->value_nbr, 'period' => $_limit->period_nbr]];
         }
 
         // In the future, there could be additional keys, such as 'bandwidth' or 'storage'
         return [
-            'api' => $_api_array
+            'api' => $_api_array,
         ];
     }
 

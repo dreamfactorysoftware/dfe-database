@@ -8,8 +8,8 @@ use Illuminate\Database\Query\Builder;
  * @property integer cluster_id
  * @property integer instance_id
  * @property string  limit_key_text
- * @property integer limit_value
- * @property integer period_value
+ * @property integer value_nbr
+ * @property integer period_nbr
  *
  * @method static Builder byClusterInstance(string $instanceId, string $clusterId)
  */
@@ -24,6 +24,10 @@ class Limit extends EnterpriseModel
      */
     protected $table = 'limit_t';
 
+    //******************************************************************************
+    //* Methods
+    //******************************************************************************
+
     /**
      * @param Builder $query
      * @param integer $clusterId
@@ -33,6 +37,6 @@ class Limit extends EnterpriseModel
      */
     public function scopeByClusterInstance($query, $clusterId, $instanceId)
     {
-        return $query->where('cluster_id', '=' . $clusterId)->where('instance_id', '=', $instanceId);
+        return $query->where('cluster_id', $clusterId)->where('instance_id', $instanceId);
     }
 }
