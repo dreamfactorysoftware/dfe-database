@@ -1,6 +1,6 @@
-<?php
-namespace DreamFactory\Enterprise\Database\Models;
+<?php namespace DreamFactory\Enterprise\Database\Models;
 
+use DreamFactory\Enterprise\Common\Enums\ServerTypes;
 use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
@@ -17,7 +17,7 @@ use Illuminate\Database\Query\Builder;
  * @property int    max_instances_nbr
  * @property string subdomain_text
  *
- * @method static \Illuminate\Database\Eloquent\Builder byNameOrId(string $clusterNameOrId)
+ * @method static Builder byNameOrId(string $clusterNameOrId)
  */
 class Cluster extends EnterpriseModel implements OwnedEntity
 {
@@ -88,10 +88,15 @@ class Cluster extends EnterpriseModel implements OwnedEntity
         );
     }
 
-    /** @inheritdoc */
+    /**
+     * @param Builder  $query
+     * @param int      $ownerId
+     * @param int|null $ownerType
+     *
+     * @return Builder
+     */
     public function scopeByOwner($query, $ownerId, $ownerType = null)
     {
         return $query->where('user_id', $ownerId)->where('owner_type_nbr', $ownerType ?: OwnerTypes::USER);
     }
-
 }
