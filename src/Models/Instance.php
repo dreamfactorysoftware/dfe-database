@@ -135,6 +135,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
         static::creating(function ($instance/** @var Instance $instance */) {
             $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
             $instance->checkStorageKey();
+            $instance->refreshMetadata();
         });
 
         static::updating(function ($instance/** @var Instance $instance */) {
@@ -945,7 +946,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
      *
      * @return array
      */
-    public static function buildEnvironmentMetadata(Instance $instance, Cluster $cluster, AppKey $key)
+    public static function buildEnvironmentMetadata(Instance $instance, Cluster $cluster, AppKey $key = null)
     {
         return [
             'cluster-id'       => $cluster->cluster_id_text,
@@ -955,8 +956,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
             'storage-root'     => EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH,
             'console-api-url'  => config('dfe.security.console-api-url'),
             'console-api-key'  => config('dfe.security.console-api-key'),
-            'client-id'        => $key->client_id,
-            'client-secret'    => $key->client_secret,
+            'client-id'        => $key ? $key->client_id : null,
+            'client-secret'    => $key ? $key->client_secret : null,
         ];
     }
 
