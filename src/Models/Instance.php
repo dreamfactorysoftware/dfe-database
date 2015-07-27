@@ -134,9 +134,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         static::creating(function ($instance/** @var Instance $instance */) {
             $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
-
             $instance->checkStorageKey();
-            $instance->refreshMetadata();
         });
 
         static::updating(function ($instance/** @var Instance $instance */) {
