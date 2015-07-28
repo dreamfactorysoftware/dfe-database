@@ -1,5 +1,6 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
+use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Common\Enums\EnterprisePaths;
 use DreamFactory\Enterprise\Common\Enums\OperationalStates;
@@ -865,7 +866,22 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public static function makeMetadata(Instance $instance, $object = false)
     {
-        $_key = AppKey::mine($instance->user_id, OwnerTypes::INSTANCE)->first();
+        if (null === ($_key = AppKey::mine($instance->user_id, OwnerTypes::INSTANCE)->first())) {
+            //  Create an instance key
+            $_key = AppKey::create(
+                [
+                    'key_class_text' => AppKeyClasses::INSTANCE,
+                    'owner_id'       => $instance->id,
+                    'owner_type_nbr' => OwnerTypes::INSTANCE,
+                    'server_secret'  => config('dfe.security.console-api-key'),
+                ]
+            );
+
+            if (null === $_key) {
+                throw new \RuntimeException('Instance is unlicensed.');
+            }
+        }
+
         $_cluster = static::_lookupCluster($instance->cluster_id);
 
         $_md = new Metadata(
