@@ -1,11 +1,9 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Enterprise\Common\Enums\ServerTypes;
 use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder;
 
 /**
@@ -67,7 +65,9 @@ class Cluster extends EnterpriseModel implements OwnedEntity
     /**
      * Returns a list of servers assigned to me
      *
-     * @return Collection|ClusterServer[]
+     * @param array $columns The columns to retrieve from server_t
+     *
+     * @return \DreamFactory\Enterprise\Database\Models\ClusterServer[]|\Illuminate\Database\Eloquent\Collection
      */
     public function assignedServers()
     {
@@ -82,10 +82,8 @@ class Cluster extends EnterpriseModel implements OwnedEntity
      */
     public function scopeByNameOrId($query, $clusterNameOrId)
     {
-        return $query->whereRaw(
-            'cluster_id_text = :cluster_id_text OR id = :id',
-            [':cluster_id_text' => $clusterNameOrId, ':id' => $clusterNameOrId]
-        );
+        return $query->whereRaw('cluster_id_text = :cluster_id_text OR id = :id',
+            [':cluster_id_text' => $clusterNameOrId, ':id' => $clusterNameOrId]);
     }
 
     /**
