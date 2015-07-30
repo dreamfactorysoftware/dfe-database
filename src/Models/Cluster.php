@@ -65,8 +65,6 @@ class Cluster extends EnterpriseModel implements OwnedEntity
     /**
      * Returns a list of servers assigned to me
      *
-     * @param array $columns The columns to retrieve from server_t
-     *
      * @return \DreamFactory\Enterprise\Database\Models\ClusterServer[]|\Illuminate\Database\Eloquent\Collection
      */
     public function assignedServers()
