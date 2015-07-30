@@ -7,6 +7,7 @@ use DreamFactory\Enterprise\Common\Enums\OperationalStates;
 use DreamFactory\Enterprise\Common\Facades\InstanceStorage;
 use DreamFactory\Enterprise\Common\Support\Metadata;
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
+use DreamFactory\Enterprise\Common\Traits\Guzzler;
 use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
 use DreamFactory\Enterprise\Common\Utility\UniqueId;
 use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
@@ -18,6 +19,7 @@ use DreamFactory\Enterprise\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Http\Request;
 use League\Flysystem\Filesystem;
 
 /**
@@ -27,6 +29,7 @@ use League\Flysystem\Filesystem;
  * @property integer $cluster_id
  * @property integer $guest_location_nbr
  * @property string  $instance_id_text
+ * @property string  $instance_name_text
  * @property array   $instance_data_text
  * @property int     $app_server_id
  * @property int     $db_server_id
@@ -72,7 +75,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     //* Traits
     //******************************************************************************
 
-    use EntityLookup, AuthorizedEntity, StaticComponentLookup, KeyMaster;
+    use EntityLookup, AuthorizedEntity, StaticComponentLookup, KeyMaster, Guzzler;
 
     //******************************************************************************
     //* Constants
@@ -868,14 +871,12 @@ class Instance extends EnterpriseModel implements OwnedEntity
     {
         if (null === ($_key = AppKey::mine($instance->user_id, OwnerTypes::INSTANCE)->first())) {
             //  Create an instance key
-            $_key = AppKey::create(
-                [
-                    'key_class_text' => AppKeyClasses::INSTANCE,
-                    'owner_id'       => $instance->id,
-                    'owner_type_nbr' => OwnerTypes::INSTANCE,
-                    'server_secret'  => config('dfe.security.console-api-key'),
-                ]
-            );
+            $_key = AppKey::create([
+                'key_class_text' => AppKeyClasses::INSTANCE,
+                'owner_id'       => $instance->id,
+                'owner_type_nbr' => OwnerTypes::INSTANCE,
+                'server_secret'  => config('dfe.security.console-api-key'),
+            ]);
 
             if (null === $_key) {
                 throw new \RuntimeException('Instance is unlicensed.');
@@ -884,19 +885,15 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         $_cluster = static::_lookupCluster($instance->cluster_id);
 
-        $_md = new Metadata(
-            array_merge(
-                static::$_metadataTemplate,
-                [
-                    'storage-map' => $instance->getStorageMap(false),
-                    'env'         => static::buildEnvironmentMetadata($instance, $_cluster, $_key),
-                    'db'          => static::buildDatabaseMetadata($instance),
-                    'paths'       => static::buildPathMetadata($instance),
-                    'audit'       => static::buildAuditMetadata($instance),
-                    'limits'      => static::buildLimitsMetadata($instance),
-                ]),
-            $instance->instance_name_text . '.json', $instance->getOwnerPrivateStorageMount()
-        );
+        $_md = new Metadata(array_merge(static::$_metadataTemplate,
+            [
+                'storage-map' => $instance->getStorageMap(false),
+                'env'         => static::buildEnvironmentMetadata($instance, $_cluster, $_key),
+                'db'          => static::buildDatabaseMetadata($instance),
+                'paths'       => static::buildPathMetadata($instance),
+                'audit'       => static::buildAuditMetadata($instance),
+                'limits'      => static::buildLimitsMetadata($instance),
+            ]), $instance->instance_name_text . '.json', $instance->getOwnerPrivateStorageMount());
 
         return $object ? $_md : $_md->toArray();
     }
@@ -1041,5 +1038,30 @@ class Instance extends EnterpriseModel implements OwnedEntity
         \Config::set('database.connections.' . $_id, static::buildConnectionArray($instance));
 
         return \DB::connection($_id);
+    }
+
+    /**
+     * Returns the endpoint of a provisioned instance
+     *
+     * @return string
+     */
+    public function getProvisionedEndpoint()
+    {
+        return 'http://' . $this->instance_name_text . '.' . trim($this->cluster->subdomain_text, '.');
+    }
+
+    /**
+     * Makes a shout out to an instance's private back-end. Should be called bootyCall()  ;)
+     *
+     * @param string $uri     The REST uri (i.e. "/db", "/system/users", etc.) to retrieve from the instance
+     * @param array  $payload Any payload to send with request
+     * @param array  $options Any options to pass to transport layer
+     * @param string $method  The HTTP method. Defaults to "POST"
+     *
+     * @return array|bool|\stdClass
+     */
+    public function call($uri, $payload = [], $options = [], $method = Request::METHOD_POST)
+    {
+        return $this->guzzleAny($this->getProvisionedEndpoint() . '/' . ltrim($uri, '/'), $payload, $options, $method);
     }
 }
