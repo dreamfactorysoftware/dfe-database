@@ -139,6 +139,9 @@ class Instance extends EnterpriseModel implements OwnedEntity
         static::creating(function ($instance/** @var Instance $instance */) {
             $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
             $instance->checkStorageKey();
+        });
+
+        static::created(function ($instance/** @var Instance $instance */) {
             $instance->refreshMetadata();
         });
 
@@ -563,11 +566,10 @@ class Instance extends EnterpriseModel implements OwnedEntity
      * Ensures the instance name meets quality standards
      *
      * @param string $name
-     * @param bool   $isAdmin
      *
      * @return string
      */
-    public static function sanitizeName($name, $isAdmin = false)
+    public static function sanitizeName($name)
     {
         static $_sanitized = [];
         static $_unavailableNames = null;
@@ -584,10 +586,14 @@ class Instance extends EnterpriseModel implements OwnedEntity
             trim(str_replace('--', '-', preg_replace(static::CHARACTER_PATTERN, '-', $name)), ' -_'));
 
         //  Ensure non-admin user instances are prefixed
-        $_prefix = function_exists('config') ? config('dfe.instance-prefix') : 'dfe-';
+        if (\Auth::user()->admin_ind) {
+            $_prefix = null;
+        } else {
+            $_prefix = function_exists('config') ? config('dfe.instance-prefix') : 'dfe-';
 
-        if ($_prefix != substr($_clean, 0, strlen($_prefix))) {
-            $_clean = trim(str_replace('--', '-', $_prefix . $_clean), ' -_');
+            if ($_prefix != substr($_clean, 0, strlen($_prefix))) {
+                $_clean = trim(str_replace('--', '-', $_prefix . $_clean), ' -_');
+            }
         }
 
         if (null === $_unavailableNames && function_exists('config')) {
@@ -855,7 +861,13 @@ class Instance extends EnterpriseModel implements OwnedEntity
         return $save ? $this->save() : $this->instance_data_text;
     }
 
-    /** @inheritdoc */
+    /**
+     * @param Builder $query
+     * @param int     $ownerId
+     * @param int     $ownerType
+     *
+     * @return mixed
+     */
     public function scopeByOwner($query, $ownerId, $ownerType = null)
     {
         return $query->where('user_id', $ownerId)->where('owner_type_nbr', $ownerType ?: OwnerTypes::USER);
