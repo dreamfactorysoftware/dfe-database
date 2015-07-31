@@ -73,24 +73,22 @@ class AppKey extends EnterpriseModel implements OwnedEntity
     {
         parent::boot();
 
-        static::creating(
-            function ($row) {
-                if (empty($row->key_class_text)) {
-                    $row->key_class_text = AppKeyClasses::OTHER;
-                }
-
-                if (null === $row->server_secret) {
-                    $row->server_secret = config('dfe.security.console-api-key', 'this-value-is-not-set');
-                }
-
-                if (empty($row->client_id) || empty($row->client_secret)) {
-                    $_algorithm = config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD);
-
-                    $row->client_id = hash_hmac($_algorithm, str_random(40), $row->server_secret);
-                    $row->client_secret = hash_hmac($_algorithm, str_random(40), $row->server_secret . $row->client_id);
-                }
+        static::creating(function ($row) {
+            if (empty($row->key_class_text)) {
+                $row->key_class_text = AppKeyClasses::OTHER;
             }
-        );
+
+            if (null === $row->server_secret) {
+                $row->server_secret = config('dfe.security.console-api-key', 'this-value-is-not-set');
+            }
+
+            if (empty($row->client_id) || empty($row->client_secret)) {
+                $_algorithm = config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD);
+
+                $row->client_id = hash_hmac($_algorithm, str_random(40), $row->server_secret);
+                $row->client_secret = hash_hmac($_algorithm, str_random(40), $row->server_secret . $row->client_id);
+            }
+        });
     }
 
     /**
@@ -204,16 +202,12 @@ class AppKey extends EnterpriseModel implements OwnedEntity
     protected static function _makeKey($ownerId, $ownerType, $keyClass, $fill = [])
     {
         $_model = new static();
-        $_model->fill(
-            array_merge(
-                $fill,
+        $_model->fill(array_merge($fill,
                 [
                     'owner_id'       => $ownerId,
                     'owner_type_nbr' => $ownerType,
                     'key_class_text' => $keyClass,
-                ]
-            )
-        );
+                ]));
 
         if (!$_model->save()) {
             throw new \LogicException('Key creation fail');
@@ -310,6 +304,6 @@ class AppKey extends EnterpriseModel implements OwnedEntity
      */
     public static function mine($ownerId, $ownerType)
     {
-        return static::byOwner($ownerId, $ownerType)->get();
+        return static::byOwner($ownerId, $ownerType)->first();
     }
 }

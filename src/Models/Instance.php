@@ -883,7 +883,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public static function makeMetadata(Instance $instance, $object = false)
     {
-        if (null === ($_key = AppKey::mine($instance->user_id, OwnerTypes::INSTANCE)->first())) {
+        if (null === ($_key = AppKey::mine($instance->id, OwnerTypes::INSTANCE))) {
             //  Create an instance key
             $_key = AppKey::create([
                 'key_class_text' => AppKeyClasses::INSTANCE,
