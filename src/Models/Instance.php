@@ -550,12 +550,13 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
     /**
      * @param string $name
+     * @param bool   $isAdmin
      *
      * @return bool|string Returns the sanitized name or FALSE if not available
      */
-    public static function isNameAvailable($name)
+    public static function isNameAvailable($name, $isAdmin = false)
     {
-        if (false === ($_sanitized = static::sanitizeName($name))) {
+        if (false === ($_sanitized = static::sanitizeName($name, $isAdmin))) {
             return false;
         }
 
@@ -566,10 +567,11 @@ class Instance extends EnterpriseModel implements OwnedEntity
      * Ensures the instance name meets quality standards
      *
      * @param string $name
+     * @param bool   $isAdmin Set to true if owner is admin
      *
      * @return string
      */
-    public static function sanitizeName($name)
+    public static function sanitizeName($name, $isAdmin = false)
     {
         static $_sanitized = [];
         static $_unavailableNames = null;
@@ -586,7 +588,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
             trim(str_replace('--', '-', preg_replace(static::CHARACTER_PATTERN, '-', $name)), ' -_'));
 
         //  Ensure non-admin user instances are prefixed
-        if (\Auth::user()->admin_ind) {
+        if ($isAdmin) {
             $_prefix = null;
         } else {
             $_prefix = function_exists('config') ? config('dfe.instance-prefix') : 'dfe-';
