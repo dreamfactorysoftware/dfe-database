@@ -9,6 +9,7 @@ use DreamFactory\Enterprise\Common\Support\Metadata;
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use DreamFactory\Enterprise\Common\Traits\Guzzler;
 use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
+use DreamFactory\Enterprise\Common\Utility\Disk;
 use DreamFactory\Enterprise\Common\Utility\UniqueId;
 use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\DeactivationReasons;
@@ -695,20 +696,17 @@ class Instance extends EnterpriseModel implements OwnedEntity
     {
         static $_cache = [];
 
-        $_ck = hash(EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD,
-            'rsp.' . $this->id . ($append ? DIRECTORY_SEPARATOR . $append : $append));
+        $_ck = hash(EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD, 'rsp.' . $this->id . Disk::segment($append));
 
         if (null === ($_path = array_get($_cache, $_ck))) {
             switch ($this->guest_location_nbr) {
-                case GuestLocations::LOCAL:
-                    $_path = storage_path($append);
+                case GuestLocations::DFE_CLUSTER:
+                    $_map = $this->getStorageMap();
+                    $_path = Disk::path([$_map['zone'], $_map['partition'], $_map['root-hash'], $append]);
                     break;
 
                 default:
-                    $_map = $this->getStorageMap();
-                    $_path =
-                        implode(DIRECTORY_SEPARATOR, [$_map['zone'], $_map['partition'], $_map['root-hash']]) . ($append
-                            ? DIRECTORY_SEPARATOR . ltrim($append, ' ' . DIRECTORY_SEPARATOR) : null);
+                    $_path = storage_path($append);
                     break;
             }
 

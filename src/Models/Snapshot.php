@@ -19,6 +19,7 @@ use League\Flysystem\Filesystem;
  * @property string $expire_date
  *
  * @method static \Illuminate\Database\Eloquent\Builder fromHash(string $hash)
+ * @method static \Illuminate\Database\Eloquent\Builder bySnapshotId(string $snapshotId)
  */
 class Snapshot extends EnterpriseModel
 {
@@ -89,6 +90,18 @@ class Snapshot extends EnterpriseModel
     }
 
     /**
+     * @param Builder    $query
+     * @param string|int $snapshotId
+     *
+     * @return Builder
+     */
+    public function scopeBySnapshotId($query, $snapshotId)
+    {
+        return $query->whereRaw('id = :id OR snapshot_id_text = :snapshot_id_text',
+            ['id' => $snapshotId, 'snapshot_id_text' => $snapshotId]);
+    }
+
+    /**
      * Hijacks the request and resumes as a file download of a snapshot
      *
      * @param string $hash
@@ -109,9 +122,7 @@ class Snapshot extends EnterpriseModel
                 $_snapshot = $_routeHash->snapshot ?: static::fromHash($hash)->with(['instance'])->firstOrFail();
 
                 if (null === ($_fs = $_snapshot->instance ? $_snapshot->instance->getSnapshotMount() : null)) {
-                    throw new ModelNotFoundException('No instance found for snapshot "' .
-                        $_snapshot->snapshot_id_text .
-                        '"');
+                    throw new ModelNotFoundException('No instance found for snapshot "' . $_snapshot->snapshot_id_text . '"');
                 }
 
                 //  Get some work space to download the snapshot
@@ -120,8 +131,7 @@ class Snapshot extends EnterpriseModel
                 $_tempFile = $_routeHash->actual_path_text;
 
                 //  Delete any file with the same name...
-                file_exists($_workPath . DIRECTORY_SEPARATOR . $_tempFile) &&
-                @unlink($_workPath . DIRECTORY_SEPARATOR . $_tempFile);
+                file_exists($_workPath . DIRECTORY_SEPARATOR . $_tempFile) && @unlink($_workPath . DIRECTORY_SEPARATOR . $_tempFile);
 
                 //  Download the snapshot to local temp
                 static::writeStream($_fsWork, $_fs->readStream($_tempFile), $_tempFile);
