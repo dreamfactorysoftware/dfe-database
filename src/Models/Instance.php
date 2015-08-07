@@ -117,14 +117,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     /**
      * @type array The template for metadata stored in
      */
-    protected static $_metadataTemplate = [
-        'storage-map' => [],
-        'paths'       => [],
-        'db'          => [],
-        'env'         => [],
-        'audit'       => [],
-        'limits'      => [],
-    ];
+    protected static $metadataTemplate;
 
     //******************************************************************************
     //* Methods
@@ -136,6 +129,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
     public static function boot()
     {
         parent::boot();
+
+        static::buildMetadataTemplate();
 
         static::creating(function ($instance/** @var Instance $instance */) {
             $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
@@ -244,6 +239,31 @@ class Instance extends EnterpriseModel implements OwnedEntity
     public function snapshots()
     {
         return $this->belongsToMany(static::MODEL_NAMESPACE . 'Snapshot');
+    }
+
+    /**
+     * @param string $operation The operation performed
+     * @param array  $data      Any data to support the operation
+     *
+     * @return bool
+     */
+    public function addOperation($operation, $data = [])
+    {
+        if (is_object($data) && method_exists($data, 'toArray')) {
+            $data = $data->toArray();
+        }
+
+        if (!is_array($data)) {
+            $data = [];
+        }
+
+        $_md = $this->instance_data_text ?: [];
+        $_ops = array_get($_md, Metadata::OPERATIONS_LOG_KEY, []);
+        $_ops[] = [$operation => array_merge($data, ['timestamp' => date('c')])];
+        $_md[Metadata::OPERATIONS_LOG_KEY] = $_ops;
+        $this->instance_data_text = $_md;
+
+        return $this->save();
     }
 
     /**
@@ -647,6 +667,16 @@ class Instance extends EnterpriseModel implements OwnedEntity
     }
 
     /**
+     * Retrieves an instances' metadata in object form.
+     *
+     * @return Metadata
+     */
+    public function getMetadataObject()
+    {
+        return new Metadata($this->getMetadata());
+    }
+
+    /**
      * Sets an instances metadata
      *
      * @param Metadata|array $md The metadata to set
@@ -897,7 +927,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         $_cluster = static::_lookupCluster($instance->cluster_id);
 
-        $_md = new Metadata(array_merge(static::$_metadataTemplate,
+        $_md = new Metadata(array_merge(static::$metadataTemplate,
             [
                 'storage-map' => $instance->getStorageMap(false),
                 'env'         => static::buildEnvironmentMetadata($instance, $_cluster, $_key),
@@ -1075,5 +1105,20 @@ class Instance extends EnterpriseModel implements OwnedEntity
     public function call($uri, $payload = [], $options = [], $method = Request::METHOD_POST)
     {
         return $this->guzzleAny($this->getProvisionedEndpoint() . '/' . ltrim($uri, '/'), $payload, $options, $method);
+    }
+
+    /**
+     * Builds the metadata template based on the allowed keys of the Metadata class
+     */
+    protected static function buildMetadataTemplate()
+    {
+        $_md = new Metadata();
+        $_base = [];
+
+        foreach ($_md->getAllowedKeys() as $_key) {
+            $_base[$_key] = [];
+        }
+
+        static::$metadataTemplate = $_base;
     }
 }
