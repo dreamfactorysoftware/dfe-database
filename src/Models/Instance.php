@@ -19,6 +19,7 @@ use DreamFactory\Enterprise\Database\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Enterprise\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
+use DreamFactory\Enterprise\Services\Facades\Snapshot;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use League\Flysystem\Filesystem;
@@ -457,6 +458,28 @@ class Instance extends EnterpriseModel implements OwnedEntity
     }
 
     /**
+     * @param string|null $append Optional path to append
+     *
+     * @return string
+     * @throws \DreamFactory\Enterprise\Common\Exceptions\DiskException
+     */
+    public function getTrashPath($append = null)
+    {
+        return InstanceStorage::getTrashPath($this, $append);
+    }
+
+    /**
+     * @param string|null $append Optional path to append
+     * @param bool        $create Create if non-existent
+     *
+     * @return \League\Flysystem\Filesystem
+     */
+    public function getTrashMount($append = null, $create = true)
+    {
+        return InstanceStorage::getTrashMount($this, $append, $create);
+    }
+
+    /**
      * @return string
      */
     public function getSnapshotPath()
@@ -731,8 +754,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
         if (null === ($_path = array_get($_cache, $_ck))) {
             switch ($this->guest_location_nbr) {
                 case GuestLocations::DFE_CLUSTER:
-                    $_map = $this->getStorageMap();
-                    $_path = Disk::path([$_map['zone'], $_map['partition'], $_map['root-hash'], $append]);
+                    $_path = Disk::path([$this->getSubRootHash(), $append]);
                     break;
 
                 default:
@@ -1120,5 +1142,20 @@ class Instance extends EnterpriseModel implements OwnedEntity
         }
 
         static::$metadataTemplate = $_base;
+    }
+
+    /**
+     * Creates a sub-path (think "identifier") that may be used under any "root"
+     * to uniquely identify an owner's area
+     *
+     * @param array|null $map The instance storage map
+     *
+     * @return string A $separator delimited identifier/path under a root for an instance
+     */
+    protected function getSubRootHash($map = null)
+    {
+        $map = !is_array($map) ? $this->getStorageMap(false) : $map;
+
+        return Disk::segment(array_only($map, ['zone', 'partition', 'root-hash']), false);
     }
 }
