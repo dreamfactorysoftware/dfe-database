@@ -54,5 +54,4 @@ class InstanceGuest extends EnterpriseModel
     {
         return $this->hasOne(static::MODEL_NAMESPACE . 'Instance', 'id', 'instance_id');
     }
-
 }

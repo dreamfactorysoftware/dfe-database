@@ -749,7 +749,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     {
         static $_cache = [];
 
-        $_ck = hash(EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD, 'rsp.' . $this->id . Disk::segment($append));
+        $_ck = hash(EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD, 'rsp.' . $this->id . Disk::segment($append, true));
 
         if (null === ($_path = array_get($_cache, $_ck))) {
             switch ($this->guest_location_nbr) {
@@ -1156,7 +1156,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     {
         $map = !is_array($map) ? $this->getStorageMap(false) : $map;
 
-        return Disk::segment(array_only($map, ['zone', 'partition', 'root-hash']), false);
+        return Disk::segment(array_only($map, ['zone', 'partition', 'root-hash']));
     }
 
     /**
