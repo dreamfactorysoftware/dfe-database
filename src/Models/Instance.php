@@ -1158,4 +1158,16 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         return Disk::segment(array_only($map, ['zone', 'partition', 'root-hash']), false);
     }
+
+    /**
+     * Construct and returns the fully qualify URL of an instance
+     *
+     * @return string
+     */
+    protected function buildInstanceUrl()
+    {
+        return
+            config('dfe.default-domain-protocol')
+            . '://' . $this->instance_id_text . config('dfe.default-domain');
+    }
 }
