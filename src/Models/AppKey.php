@@ -16,13 +16,15 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
  * app_key_t
  *
  * @property int    $id
- * @property string key_class_text
- * @property string client_id
- * @property string client_secret
- * @property int    owner_id
- * @property int    owner_type_nbr
- * @property string created_at
- * @property string updated_at
+ * @property string $key_class_text
+ * @property string $client_id
+ * @property string $client_secret
+ * @property int    $owner_id
+ * @property int    $owner_type_nbr
+ * @property string $label_text
+ * @property int    $active_ind
+ * @property string $created_at
+ * @property string $updated_at
  *
  * @method static Builder forInstance(int $instanceId)
  * @method static Builder byOwner(int $ownerId, int $ownerType = null)
@@ -60,6 +62,7 @@ class AppKey extends EnterpriseModel implements OwnedEntity
         'id'             => 'integer',
         'owner_id'       => 'integer',
         'owner_type_nbr' => 'integer',
+        'active_ind'     => 'boolean',
     ];
 
     //******************************************************************************
@@ -73,13 +76,18 @@ class AppKey extends EnterpriseModel implements OwnedEntity
     {
         parent::boot();
 
-        static::creating(function ($row) {
-            if (empty($row->key_class_text)) {
-                $row->key_class_text = AppKeyClasses::OTHER;
-            }
+        //  Fired before creating or updating...
+        static::saving(function ($row) {
+            static::enforceBusinessLogic($row);
 
             if (null === $row->server_secret) {
                 $row->server_secret = config('dfe.security.console-api-key', 'this-value-is-not-set');
+            }
+        });
+
+        static::creating(function ($row) {
+            if (empty($row->key_class_text)) {
+                $row->key_class_text = AppKeyClasses::OTHER;
             }
 
             if (empty($row->client_id) || empty($row->client_secret)) {
@@ -203,11 +211,11 @@ class AppKey extends EnterpriseModel implements OwnedEntity
     {
         $_model = new static();
         $_model->fill(array_merge($fill,
-                [
-                    'owner_id'       => $ownerId,
-                    'owner_type_nbr' => $ownerType,
-                    'key_class_text' => $keyClass,
-                ]));
+            [
+                'owner_id'       => $ownerId,
+                'owner_type_nbr' => $ownerType,
+                'key_class_text' => $keyClass,
+            ]));
 
         if (!$_model->save()) {
             throw new \LogicException('Key creation fail');
@@ -305,5 +313,12 @@ class AppKey extends EnterpriseModel implements OwnedEntity
     public static function mine($ownerId, $ownerType)
     {
         return static::byOwner($ownerId, $ownerType)->first();
+    }
+
+    /** @inheritdoc */
+    protected static function enforceBusinessLogic($row)
+    {
+        //  If there is no owner, there can't be a type.
+        null === $row->owner_id && $row->owner_type_nbr = null;
     }
 }

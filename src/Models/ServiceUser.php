@@ -1,6 +1,5 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Traits\CheckNickname;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
@@ -60,15 +59,20 @@ class ServiceUser extends EnterpriseModel implements AuthenticatableContract, Ca
     {
         parent::boot();
 
-        static::creating(function ($user/** @type ServiceUser $user */) {
-            $user->owner_type_nbr = $user->getMorphClass();
-        });
+        static::created(function (ServiceUser $model) {
+            logger('** service_user_t created: ' . $model->toJson() . PHP_EOL . '**             back-trace: ' . PHP_EOL . json_encode(debug_backtrace(),
+                    JSON_PRETTY_PRINT));
 
-        static::created(function ($model) {
             AppKey::createKeyFromEntity($model);
         });
 
-        static::deleted(function (EnterpriseModel $model) {
+        //  [20150812-gha] Logging added to discover why password is changing
+        static::updated(function (ServiceUser $model) {
+            logger('** service_user_t updated: ' . $model->toJson() . PHP_EOL . '**             back-trace: ' . PHP_EOL . json_encode(debug_backtrace(),
+                    JSON_PRETTY_PRINT));
+        });
+
+        static::deleted(function ($model) {
             //AppKey::destroyKeys( $model );
         });
     }
@@ -80,6 +84,7 @@ class ServiceUser extends EnterpriseModel implements AuthenticatableContract, Ca
     }
 
     /** @inheritdoc */
+    /** @noinspection PhpMissingParentCallCommonInspection */
     public function getMorphClass()
     {
         return $this->owner_type_nbr ?: OwnerTypes::SERVICE_USER;
@@ -117,11 +122,8 @@ class ServiceUser extends EnterpriseModel implements AuthenticatableContract, Ca
         $_role = ($roleId instanceof Role) ? $roleId : $this->_getRole($roleId);
 
         if ($this->hasRole($_role->id)) {
-            return
-                1 == UserRole::whereRaw(
-                    'role_id = :role_id AND user_id = :user_id',
-                    [':role_id' => $_role->id, ':user_id' => $this->id]
-                )->delete();
+            return 1 == UserRole::whereRaw('role_id = :role_id AND user_id = :user_id',
+                [':role_id' => $_role->id, ':user_id' => $this->id])->delete();
         }
 
         return false;

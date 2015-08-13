@@ -135,7 +135,6 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         static::creating(function ($instance/** @var Instance $instance */) {
             $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
-            $instance->checkStorageKey();
         });
 
         static::created(function ($instance/** @var Instance $instance */) {
@@ -143,13 +142,22 @@ class Instance extends EnterpriseModel implements OwnedEntity
         });
 
         static::updating(function ($instance/** @var Instance $instance */) {
-            $instance->checkStorageKey();
             $instance->refreshMetadata();
         });
 
         static::deleted(function ($instance/** @var Instance $instance */) {
             AppKey::where('owner_id', $instance->id)->where('owner_type_nbr', OwnerTypes::INSTANCE)->delete();
         });
+    }
+
+    /**
+     * @param \DreamFactory\Enterprise\Database\Models\EnterpriseModel|mixed $row
+     */
+    protected static function enforceBusinessLogic($row)
+    {
+        parent::enforceBusinessLogic($row);
+
+        $row->checkStorageKey();
     }
 
     /** @inheritdoc */
@@ -1166,8 +1174,6 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     protected function buildInstanceUrl()
     {
-        return
-            config('dfe.default-domain-protocol')
-            . '://' . $this->instance_id_text . config('dfe.default-domain');
+        return config('dfe.default-domain-protocol') . '://' . $this->instance_id_text . config('dfe.default-domain');
     }
 }

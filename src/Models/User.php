@@ -12,42 +12,37 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Query\Builder;
 
 /**
- * 2015-04-13 GHA: This model was moved to Deploy from Auth
- *
+ * [20150812-gha] Corrected the property list to reflect the current data model
+ * [20150413-gha] This model was moved to Deploy from Auth
  *
  * user_t table
  *
- * @property string api_token_text
- * @property string first_name_text
- * @property string last_name_text
- * @property string nickname_text
- * @property string email_addr_text
- * @property string password_text
- * @property int    external_id
- * @property string external_password_text
- * @property int    owner_id
- * @property int    owner_type_nbr
- * @property string company_name_text
- * @property string title_text
- * @property string city_text
- * @property string state_province_text
- * @property string country_text
- * @property string postal_code_text
- * @property string phone_text
- * @property int    opt_in_ind
- * @property int    agree_ind
- * @property string valid_email_hash_text
- * @property int    valid_email_hash_expire_time
- * @property string valid_email_date
- * @property string recover_hash_text
- * @property int    recover_hash_expire_time
- * @property string last_login_date
- * @property string last_login_ip_text
- * @property int    admin_ind
- * @property string storage_id_text
- * @property int    activate_ind
- * @property int    active_ind
- * @property string remember_token
+ * @property string $email_addr_text
+ * @property string $password_text
+ * @property string $remember_token
+ * @property string $first_name_text
+ * @property string $last_name_text
+ * @property string $nickname_text
+ * @property string $api_token_text
+ * @property string $storage_id_text
+ * @property string $external_id_text
+ * @property string $external_password_text
+ * @property int    $owner_id
+ * @property int    $owner_type_nbr
+ * @property string $company_name_text
+ * @property string $title_text
+ * @property string $city_text
+ * @property string $state_province_text
+ * @property string $country_text
+ * @property string $postal_code_text
+ * @property string $phone_text
+ * @property int    $opt_in_ind
+ * @property int    $agree_ind
+ * @property string $last_login_date
+ * @property string $last_login_ip_text
+ * @property int    $admin_ind
+ * @property int    $activate_ind
+ * @property int    $active_ind
  *
  * @method static Builder byEmail(string $email)
  */
@@ -67,13 +62,19 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      * @type string The table name
      */
     protected $table = 'user_t';
-    /** @inheritdoc */
+    /**
+     * @inheritdoc
+     * [20150812-gha] Corrected incorrect casts.
+     */
     protected $casts = [
-        'cluster_id'    => 'integer',
-        'app_server_id' => 'integer',
-        'db_server_id'  => 'integer',
-        'web_server_id' => 'integer',
-        'owner_id'      => 'integer',
+        'id'             => 'integer',
+        'owner_id'       => 'integer',
+        'owner_type_nbr' => 'integer',
+        'active_ind'     => 'boolean',
+        'activate_ind'   => 'boolean',
+        'admin_ind'      => 'boolean',
+        'opt_in_ind'     => 'boolean',
+        'agree_ind'      => 'boolean',
     ];
 
     //******************************************************************************
@@ -87,22 +88,30 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     {
         parent::boot();
 
-        static::creating(function ($user/** @type User $user */){
-            $user->checkStorageKey();
-            $user->owner_type_nbr = $user->getMorphClass();
-        });
+        //  [20150812-gha] Logging added to discover why password is changing
+        static::created(function (User $model) {
+            logger('** user_t created: ' . $model->toJson() . PHP_EOL . '**     back-trace: ' . PHP_EOL . json_encode(debug_backtrace(),
+                    JSON_PRETTY_PRINT));
 
-        static::updating(function (User $model){
-            $model->checkStorageKey();
-        });
-
-        static::created(function ($model){
             AppKey::createKeyFromEntity($model);
         });
 
-        static::deleted(function (EnterpriseModel $model){
+        static::updated(function (User $model) {
+            logger('** user_t updated: ' . $model->toJson() . PHP_EOL . '**     back-trace: ' . PHP_EOL . json_encode(debug_backtrace(),
+                    JSON_PRETTY_PRINT));
+        });
+
+        static::deleted(function (User $model) {
             //AppKey::destroyKeys( $model );
         });
+    }
+
+    /** @inheritdoc */
+    protected static function enforceBusinessLogic($row)
+    {
+        parent::enforceBusinessLogic($row);
+
+        $row->checkStorageKey();
     }
 
     /** @inheritdoc */
@@ -112,6 +121,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     }
 
     /** @inheritdoc */
+    /** @noinspection PhpMissingParentCallCommonInspection */
     public function getMorphClass()
     {
         return $this->owner_type_nbr ?: OwnerTypes::USER;
@@ -187,10 +197,8 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      */
     public function getHash()
     {
-        return hash(
-            config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
-            $this->storage_id_text
-        );
+        return hash(config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
+            $this->storage_id_text);
     }
 
     /**

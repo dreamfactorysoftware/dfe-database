@@ -133,4 +133,35 @@ class EnterpriseModel extends Model
      * @type string Our connection
      */
     protected $connection = 'dfe-local';
+
+    //******************************************************************************
+    //* Methods
+    //******************************************************************************
+    /**
+     * The "booting" method of the model.
+     *
+     * @return void
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        //  Called before inserting and updating
+        static::saving(function (EnterpriseModel $row) {
+            static::enforceBusinessLogic($row);
+        });
+    }
+
+    /**
+     * @param \DreamFactory\Enterprise\Database\Models\EnterpriseModel|mixed $row
+     */
+    protected static function enforceBusinessLogic($row)
+    {
+        //  Make sure owner type is set properly
+        if (isset($row->owner_id, $row->owner_type_nbr)) {
+            if (null !== $row->owner_id && null === $row->owner_type_nbr) {
+                $row->owner_type_nbr = $row->getMorphClass();
+            }
+        }
+    }
 }
