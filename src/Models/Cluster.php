@@ -15,7 +15,7 @@ use Illuminate\Database\Query\Builder;
  * @property int    max_instances_nbr
  * @property string subdomain_text
  *
- * @method static Builder byNameOrId(string $clusterNameOrId)
+ * @method static \Illuminate\Database\Eloquent\Builder byNameOrId(string $clusterNameOrId)
  */
 class Cluster extends EnterpriseModel implements OwnedEntity
 {

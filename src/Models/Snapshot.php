@@ -1,6 +1,7 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Common\Traits\Archivist;
+use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Response;
@@ -27,7 +28,7 @@ class Snapshot extends EnterpriseModel
     //* Traits
     //******************************************************************************
 
-    use Archivist;
+    use Archivist, EntityLookup;
 
     //******************************************************************************
     //* Members
@@ -121,8 +122,14 @@ class Snapshot extends EnterpriseModel
                 //  Look up the snapshot and get an instance of the file system
                 $_snapshot = $_routeHash->snapshot ?: static::fromHash($hash)->with(['instance'])->firstOrFail();
 
-                if (null === ($_fs = $_snapshot->instance ? $_snapshot->instance->getSnapshotMount() : null)) {
-                    throw new ModelNotFoundException('No instance found for snapshot "' . $_snapshot->snapshot_id_text . '"');
+                try {
+                    $_instance = static::_locateInstance($_snapshot->instance_id);
+                } catch (ModelNotFoundException $_ex) {
+                    throw new ModelNotFoundException('Instance not found for snapshot "' . $_snapshot->snapshot_id_text . '"');
+                }
+
+                if (null === ($_fs = $_instance->getSnapshotMount())) {
+                    throw new ModelNotFoundException('Snapshot storage area is not available.');
                 }
 
                 //  Get some work space to download the snapshot
