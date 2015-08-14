@@ -43,7 +43,7 @@ class GuestLocations extends FactoryEnum
     /**
      * @type array
      */
-    protected static $_tags = [
+    protected static $tags = [
         self::AMAZON_EC2      => 'amazon',
         self::DFE_CLUSTER     => 'rave',
         self::MICROSOFT_AZURE => 'azure',
@@ -61,18 +61,16 @@ class GuestLocations extends FactoryEnum
      *
      * @return mixed
      */
-    public static function resolve( $constant )
+    public static function resolve($constant)
     {
-        if ( is_numeric( $constant ) && isset( static::$_tags[$constant] ) )
-        {
-            return static::$_tags[$constant];
+        if (is_numeric($constant) && isset(static::$tags[$constant])) {
+            return static::$tags[$constant];
         }
 
-        if ( !is_numeric( $constant ) && is_string( $constant ) )
-        {
+        if (!is_numeric($constant) && is_string($constant)) {
             return $constant;
         }
 
-        throw new \InvalidArgumentException( 'The $constant "' . $constant . '" is invalid.' );
+        throw new \InvalidArgumentException('The $constant "' . $constant . '" is invalid.');
     }
 }
