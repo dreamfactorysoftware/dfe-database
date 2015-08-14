@@ -753,20 +753,20 @@ class Instance extends EnterpriseModel implements OwnedEntity
      *
      * @return mixed|string
      */
-    public function getRootStoragePath($append = null)
+    public function getBaseStoragePath($append = null)
     {
         static $_cache = [];
 
         $_ck = hash(EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD, 'rsp.' . $this->id . Disk::segment($append, true));
 
         if (!is_numeric($this->guest_location_nbr)) {
-            $this->guest_location_nbr = GuestLocations::resolve($this->guest_location_nbr);
+            $this->guest_location_nbr = GuestLocations::resolve($this->guest_location_nbr, true);
         }
 
         if (null === ($_path = array_get($_cache, $_ck))) {
             switch ($this->guest_location_nbr) {
                 case GuestLocations::DFE_CLUSTER:
-                    $_path = Disk::path([$this->getSubRootHash(), $append]);
+                    $_path = Disk::path([config('provisioning.storage-root'), $this->getSubRootHash(), $append]);
                     break;
 
                 default:
@@ -777,7 +777,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
             $_cache[$_ck] = $_path;
         }
 
-        \Log::debug('root storage path made: ' . $_path);
+        \Log::debug('storage path: ' . $_path);
 
         return $_path;
     }
@@ -986,7 +986,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     protected static function buildPathMetadata(Instance $instance)
     {
         return [
-            'storage-root'       => $instance->getRootStoragePath(),
+            'storage-root'       => InstanceStorage::getStorageRoot(),
             'storage-path'       => $instance->getStoragePath(),
             'private-path'       => $instance->getPrivatePath(),
             'owner-private-path' => $instance->getOwnerPrivatePath(),
@@ -1044,7 +1044,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
             'instance-id'      => $instance->instance_name_text,
             'default-domain'   => $cluster->subdomain_text,
             'signature-method' => config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
-            'storage-root'     => EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH,
+            'storage-root'     => config('provisioning.storage-root',
+                EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH),
             'console-api-url'  => config('dfe.security.console-api-url'),
             'console-api-key'  => config('dfe.security.console-api-key'),
             'client-id'        => $key ? $key->client_id : null,
@@ -1144,6 +1145,21 @@ class Instance extends EnterpriseModel implements OwnedEntity
     }
 
     /**
+     * Creates a sub-path (think "identifier") that may be used under any "root"
+     * to uniquely identify an owner's area
+     *
+     * @param array|null $map The instance storage map
+     *
+     * @return string A $separator delimited identifier/path under a root for an instance
+     */
+    public function getSubRootHash($map = null)
+    {
+        $map = !is_array($map) ? $this->getStorageMap(false) : $map;
+
+        return Disk::segment(array_only($map, ['zone', 'partition', 'root-hash']));
+    }
+
+    /**
      * Builds the metadata template based on the allowed keys of the Metadata class
      */
     protected static function buildMetadataTemplate()
@@ -1156,21 +1172,6 @@ class Instance extends EnterpriseModel implements OwnedEntity
         }
 
         static::$metadataTemplate = $_base;
-    }
-
-    /**
-     * Creates a sub-path (think "identifier") that may be used under any "root"
-     * to uniquely identify an owner's area
-     *
-     * @param array|null $map The instance storage map
-     *
-     * @return string A $separator delimited identifier/path under a root for an instance
-     */
-    protected function getSubRootHash($map = null)
-    {
-        $map = !is_array($map) ? $this->getStorageMap(false) : $map;
-
-        return Disk::segment(array_only($map, ['zone', 'partition', 'root-hash']));
     }
 
     /**
