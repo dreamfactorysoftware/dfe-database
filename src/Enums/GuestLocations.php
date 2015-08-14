@@ -57,17 +57,33 @@ class GuestLocations extends FactoryEnum
     //******************************************************************************
 
     /**
-     * @param int $constant
+     * Given a guest location id or name (i.e. "rave"), return the associated $tag (string).
      *
-     * @return mixed
+     * @param int  $constant      The constant value
+     * @param bool $bidirectional If true, converts numeric constant to string and vice versa
+     *
+     * @return string
      */
-    public static function resolve($constant)
+    public static function resolve($constant, $bidirectional = false)
     {
         if (is_numeric($constant) && isset(static::$tags[$constant])) {
             return static::$tags[$constant];
         }
 
-        if (!is_numeric($constant) && is_string($constant)) {
+        if ($bidirectional) {
+            //  String, not id
+            if (is_string($constant) && !is_numeric($constant)) {
+                //  If we have a matching tag, return the value
+                if (in_array($constant, array_values(static::$tags))) {
+                    return array_get(array_flip(static::$tags), $constant);
+                }
+
+                //  Otherwise check the constants
+                if (false !== ($_value = static::contains($constant, true))) {
+                    return $_value;
+                }
+            }
+        } else if (!is_numeric($constant) && is_string($constant)) {
             return $constant;
         }
 
