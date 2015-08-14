@@ -759,6 +759,10 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         $_ck = hash(EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD, 'rsp.' . $this->id . Disk::segment($append, true));
 
+        if (!is_numeric($this->guest_location_nbr)) {
+            $this->guest_location_nbr = GuestLocations::resolve($this->guest_location_nbr);
+        }
+
         if (null === ($_path = array_get($_cache, $_ck))) {
             switch ($this->guest_location_nbr) {
                 case GuestLocations::DFE_CLUSTER:
@@ -772,6 +776,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
             $_cache[$_ck] = $_path;
         }
+
+        \Log::debug('root storage path made: ' . $_path);
 
         return $_path;
     }
