@@ -9,7 +9,6 @@ use DreamFactory\Enterprise\Common\Support\Metadata;
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use DreamFactory\Enterprise\Common\Traits\Guzzler;
 use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
-use DreamFactory\Enterprise\Common\Utility\Disk;
 use DreamFactory\Enterprise\Common\Utility\UniqueId;
 use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\DeactivationReasons;
@@ -20,6 +19,7 @@ use DreamFactory\Enterprise\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use DreamFactory\Enterprise\Services\Facades\Snapshot;
+use DreamFactory\Library\Utility\Disk;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use League\Flysystem\Filesystem;
@@ -108,12 +108,15 @@ class Instance extends EnterpriseModel implements OwnedEntity
         'web_server_id'      => 'integer',
         'app_server_id'      => 'integer',
         'user_id'            => 'integer',
+        'environment_id'     => 'integer',
+        'db_port_nbr'        => 'integer',
         'state_nbr'          => 'integer',
         'platform_state_nbr' => 'integer',
         'ready_state_nbr'    => 'integer',
         'provision_ind'      => 'boolean',
         'deprovision_ind'    => 'boolean',
         'trial_instance_ind' => 'boolean',
+        'activate_ind'       => 'boolean',
     ];
     /**
      * @type array The template for metadata stored in
@@ -133,20 +136,20 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         static::buildMetadataTemplate();
 
-        static::creating(function ($instance/** @var Instance $instance */) {
+        static::creating(function (Instance $instance){
             $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
         });
 
-        static::created(function ($instance/** @var Instance $instance */) {
+        static::created(function (Instance $instance){
             $instance->refreshMetadata();
         });
 
-        static::updating(function ($instance/** @var Instance $instance */) {
+        static::updating(function (Instance $instance){
             $instance->refreshMetadata();
         });
 
-        static::deleted(function ($instance/** @var Instance $instance */) {
-            AppKey::where('owner_id', $instance->id)->where('owner_type_nbr', OwnerTypes::INSTANCE)->delete();
+        static::deleted(function (Instance $instance){
+            AppKey::byOwner($instance->id, OwnerTypes::INSTANCE)->delete();
         });
     }
 
@@ -469,7 +472,6 @@ class Instance extends EnterpriseModel implements OwnedEntity
      * @param string|null $append Optional path to append
      *
      * @return string
-     * @throws \DreamFactory\Enterprise\Common\Exceptions\DiskException
      */
     public function getTrashPath($append = null)
     {
@@ -757,7 +759,9 @@ class Instance extends EnterpriseModel implements OwnedEntity
     {
         static $_cache = [];
 
-        $_ck = hash(EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD, 'rsp.' . $this->id . Disk::segment($append, true));
+        $_ck =
+            hash(config('dfe.signature-method', EnterpriseDefaults::SIGNATURE_METHOD),
+                'rsp.' . $this->id . Disk::segment($append, true));
 
         if (!is_numeric($this->guest_location_nbr)) {
             $this->guest_location_nbr = GuestLocations::resolve($this->guest_location_nbr, true);
