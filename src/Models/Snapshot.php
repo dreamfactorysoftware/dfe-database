@@ -19,6 +19,7 @@ use League\Flysystem\Filesystem;
  * @property string $public_url_text
  * @property string $expire_date
  *
+ * @method static \Illuminate\Database\Eloquent\Builder byUserId(string $userId)
  * @method static \Illuminate\Database\Eloquent\Builder fromHash(string $hash)
  * @method static \Illuminate\Database\Eloquent\Builder bySnapshotId(string $snapshotId)
  */
@@ -88,6 +89,17 @@ class Snapshot extends EnterpriseModel
         }
 
         return $query;
+    }
+
+    /**
+     * @param Builder $query
+     * @param int     $userId
+     *
+     * @return Builder
+     */
+    public function scopeByUserId($query, $userId)
+    {
+        return $query->where('user_id', $userId);
     }
 
     /**
