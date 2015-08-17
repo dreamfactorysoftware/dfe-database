@@ -1,7 +1,6 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
-use DreamFactory\Enterprise\Common\Support\DebugHelper;
 use DreamFactory\Enterprise\Common\Utility\UniqueId;
 use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
@@ -89,23 +88,9 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     {
         parent::boot();
 
-        //  [20150812-gha] Logging added to discover why password is changing
         static::created(function (User $model){
-            logger('** user_t created: ' . $model->toJson());
-            logger('**     back-trace: ' . json_encode(DebugHelper::backtrace(), JSON_PRETTY_PRINT));
-
             AppKey::createKeyFromEntity($model);
         });
-
-        static::updated(function (User $model){
-            logger('** user_t updated: ' . $model->toJson());
-            logger('**     back-trace: ' . json_encode(DebugHelper::backtrace(), JSON_PRETTY_PRINT));
-        });
-
-//  Enforced via trigger
-//        static::deleted(function (User $model){
-//            //AppKey::destroyKeys( $model );
-//        });
     }
 
     /** @inheritdoc */

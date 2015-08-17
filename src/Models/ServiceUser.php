@@ -1,6 +1,5 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Enterprise\Common\Support\DebugHelper;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Traits\CheckNickname;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
@@ -61,22 +60,8 @@ class ServiceUser extends EnterpriseModel implements AuthenticatableContract, Ca
         parent::boot();
 
         static::created(function (ServiceUser $model){
-            logger('** service_user_t created: ' . $model->toJson());
-            logger('**             back-trace: ' . json_encode(DebugHelper::backtrace(), JSON_PRETTY_PRINT));
-
             AppKey::createKeyFromEntity($model);
         });
-
-        //  [20150812-gha] Logging added to discover why password is changing
-        static::updated(function (ServiceUser $model){
-            logger('** service_user_t updated: ' . $model->toJson());
-            logger('**             back-trace: ' . json_encode(DebugHelper::backtrace(), JSON_PRETTY_PRINT));
-        });
-
-//  Enforced by trigger
-//        static::deleted(function ($model){
-//            //AppKey::destroyKeys( $model );
-//        });
     }
 
     /** @inheritdoc */
