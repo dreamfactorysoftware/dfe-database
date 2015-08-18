@@ -490,11 +490,14 @@ class Instance extends EnterpriseModel implements OwnedEntity
     }
 
     /**
+     * @param string|null $append
+     * @param bool        $create
+     *
      * @return string
      */
-    public function getSnapshotPath()
+    public function getSnapshotPath($append = null, $create = false)
     {
-        return InstanceStorage::getSnapshotPath($this);
+        return InstanceStorage::getSnapshotPath($append, $create);
     }
 
     /**
@@ -512,9 +515,14 @@ class Instance extends EnterpriseModel implements OwnedEntity
         return InstanceStorage::getWorkPath($this);
     }
 
-    public function deleteWorkPath()
+    /**
+     * @param string $workPath
+     *
+     * @return string
+     */
+    public function deleteWorkPath($workPath)
     {
-        return InstanceStorage::deleteWorkPath($this);
+        return InstanceStorage::deleteWorkPath($workPath);
     }
 
     /**
@@ -524,7 +532,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public function getOwnerPrivatePath()
     {
-        return InstanceStorage::getOwnerPrivatePath($this);
+        return InstanceStorage::getOwnerPrivatePath();
     }
 
     /**
@@ -770,7 +778,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
         if (null === ($_path = array_get($_cache, $_ck))) {
             switch ($this->guest_location_nbr) {
                 case GuestLocations::DFE_CLUSTER:
-                    $_path = Disk::path([config('provisioning.storage-root'), $this->getSubRootHash(), $append]);
+                    $_path = Disk::path([InstanceStorage::getStorageRoot(), $this->getSubRootHash(), $append]);
                     break;
 
                 default:
@@ -806,24 +814,9 @@ class Instance extends EnterpriseModel implements OwnedEntity
                     'root-hash' => null,
                 ];
             } else {
-                if ($this->user) {
-                    $_userKey = $this->user->storage_id_text;
-                } else {
-                    $_userKey = \DB::select('SELECT storage_id_text FROM user_t WHERE id = :id',
-                        [':id' => $this->user_id]);
-
-                    if ($_userKey) {
-                        $_userKey = $_userKey[0]->storage_id_text;
-                    }
-                }
-
-                if (empty($_userKey)) {
-                    throw new \RuntimeException('Cannot locate owner record of instance.');
-                }
-
-                $_rootHash = hash(config('dfe.signature-method', EnterpriseDefaults::SIGNATURE_METHOD), $_userKey);
-                $_partition = substr($_rootHash, 0, 2);
-
+                /** @type User $_user */
+                $_user = $this->user ?: User::findOrFail($this->user_id);
+                $_map = array_merge(['zone' => null,], $_user->getStorageMap());
                 $_zone = null;
 
                 switch (config('provisioning.storage-zone-type')) {
@@ -845,15 +838,11 @@ class Instance extends EnterpriseModel implements OwnedEntity
                         break;
                 }
 
-                if (empty($_zone) || empty($_partition)) {
-                    throw new \RuntimeException('Zone and/or partition unknown. Cannot provision storage.');
+                if (empty($_zone)) {
+                    throw new \RuntimeException('Storage zone or type invalid. Cannot provision storage.');
                 }
 
-                $_map = [
-                    'zone'      => $_zone,
-                    'partition' => $_partition,
-                    'root-hash' => $_rootHash,
-                ];
+                $_map['zone'] = $_zone;
             }
 
             //  save the map into the metadata
@@ -871,24 +860,14 @@ class Instance extends EnterpriseModel implements OwnedEntity
      *
      * @return Filesystem
      */
-    public function getRootStorageMount($tag = null)
-    {
-        return InstanceStorage::getRootStorageMount($this, $tag);
-    }
-
-    /**
-     * Returns the relative root directory of this instance's storage
-     *
-     * @param string $tag
-     *
-     * @return Filesystem
-     */
     public function getSnapshotMount($tag = null)
     {
         return InstanceStorage::getSnapshotMount($this, $tag);
     }
 
     /**
+     * Returns the instance's storage area as a filesystem
+     *
      * @param string $tag
      *
      * @return Filesystem

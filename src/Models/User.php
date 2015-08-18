@@ -44,7 +44,7 @@ use Illuminate\Database\Query\Builder;
  * @property int    $activate_ind
  * @property int    $active_ind
  *
- * @method static Builder byEmail(string $email)
+ * @method static \Illuminate\Database\Eloquent\Builder byEmail(string $email)
  */
 class User extends EnterpriseModel implements AuthenticatableContract, CanResetPasswordContract, OwnedEntity
 {
@@ -240,5 +240,28 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
 
     public function getOwnerPrivatePath($append = null)
     {
+    }
+
+    /**
+     * Determine a user's storage map
+     *
+     * @return array
+     */
+    public function getStorageMap()
+    {
+        static $_map;
+
+        if (empty($_map)) {
+            $_rootHash = hash(config('dfe.signature-method', EnterpriseDefaults::SIGNATURE_METHOD),
+                $this->storage_id_text);
+            $_partition = substr($_rootHash, 0, 2);
+
+            $_map = [
+                'partition' => $_partition,
+                'root-hash' => $_rootHash,
+            ];
+        }
+
+        return $_map;
     }
 }
