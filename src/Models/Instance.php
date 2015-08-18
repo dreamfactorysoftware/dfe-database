@@ -461,81 +461,6 @@ class Instance extends EnterpriseModel implements OwnedEntity
     }
 
     /**
-     * @return string
-     */
-    public function getStoragePath()
-    {
-        return InstanceStorage::getStoragePath($this);
-    }
-
-    /**
-     * @param string|null $append Optional path to append
-     *
-     * @return string
-     */
-    public function getTrashPath($append = null)
-    {
-        return InstanceStorage::getTrashPath($this, $append);
-    }
-
-    /**
-     * @param string|null $append Optional path to append
-     * @param bool        $create Create if non-existent
-     *
-     * @return \League\Flysystem\Filesystem
-     */
-    public function getTrashMount($append = null, $create = true)
-    {
-        return InstanceStorage::getTrashMount($this, $append, $create);
-    }
-
-    /**
-     * @param string|null $append
-     * @param bool        $create
-     *
-     * @return string
-     */
-    public function getSnapshotPath($append = null, $create = false)
-    {
-        return InstanceStorage::getSnapshotPath($append, $create);
-    }
-
-    /**
-     * We want the private path of the instance to point to the user's area. Instances have no "private path" per se.
-     *
-     * @return mixed
-     */
-    public function getPrivatePath()
-    {
-        return InstanceStorage::getPrivatePath($this);
-    }
-
-    public function getWorkPath()
-    {
-        return InstanceStorage::getWorkPath($this);
-    }
-
-    /**
-     * @param string $workPath
-     *
-     * @return string
-     */
-    public function deleteWorkPath($workPath)
-    {
-        return InstanceStorage::deleteWorkPath($workPath);
-    }
-
-    /**
-     * Return the instance owner's private path
-     *
-     * @return mixed
-     */
-    public function getOwnerPrivatePath()
-    {
-        return InstanceStorage::getOwnerPrivatePath();
-    }
-
-    /**
      * Ensures that a storage key has been assigned
      */
     public function checkStorageKey()
@@ -757,41 +682,94 @@ class Instance extends EnterpriseModel implements OwnedEntity
     }
 
     /**
-     * Returns the ROOT storage path for a user. Under which is all instances and private areas
+     * Returns the base storage path for a USER (not an instance). Under which is all instances and private areas
      *
-     * @param string $append
+     * @param string|null $append
+     * @param bool        $create
      *
      * @return mixed|string
      */
-    public function getBaseStoragePath($append = null)
+    public function getUserStoragePath($append = null, $create = true)
     {
-        static $_cache = [];
+        return InstanceStorage::getUserStoragePath($this, $append, $create);
+    }
 
-        $_ck =
-            hash(config('dfe.signature-method', EnterpriseDefaults::SIGNATURE_METHOD),
-                'rsp.' . $this->id . Disk::segment($append, true));
+    /**
+     * @param string|null $append
+     * @param bool        $create
+     *
+     * @return string
+     */
+    public function getStoragePath($append = null, $create = false)
+    {
+        return InstanceStorage::getStoragePath($this, $append, $create);
+    }
 
-        if (!is_numeric($this->guest_location_nbr)) {
-            $this->guest_location_nbr = GuestLocations::resolve($this->guest_location_nbr, true);
-        }
+    /**
+     * @param string|null $append Optional path to append
+     *
+     * @return string
+     */
+    public function getTrashPath($append = null)
+    {
+        return InstanceStorage::getTrashPath($this, $append);
+    }
 
-        if (null === ($_path = array_get($_cache, $_ck))) {
-            switch ($this->guest_location_nbr) {
-                case GuestLocations::DFE_CLUSTER:
-                    $_path = Disk::path([InstanceStorage::getStorageRoot(), $this->getSubRootHash(), $append]);
-                    break;
+    /**
+     * @param string|null $append Optional path to append
+     * @param bool        $create Create if non-existent
+     *
+     * @return \League\Flysystem\Filesystem
+     */
+    public function getTrashMount($append = null, $create = true)
+    {
+        return InstanceStorage::getTrashMount($this, $append, $create);
+    }
 
-                default:
-                    $_path = storage_path($append);
-                    break;
-            }
+    /**
+     * @param string|null $append
+     * @param bool        $create
+     *
+     * @return string
+     */
+    public function getSnapshotPath($append = null, $create = false)
+    {
+        return InstanceStorage::getSnapshotPath($append, $create);
+    }
 
-            $_cache[$_ck] = $_path;
-        }
+    /**
+     * We want the private path of the instance to point to the user's area. Instances have no "private path" per se.
+     *
+     * @return mixed
+     */
+    public function getPrivatePath()
+    {
+        return InstanceStorage::getPrivatePath($this);
+    }
 
-        \Log::debug('storage path: ' . $_path);
+    public function getWorkPath()
+    {
+        return InstanceStorage::getWorkPath($this);
+    }
 
-        return $_path;
+    /**
+     * @param string $workPath
+     *
+     * @return string
+     */
+    public function deleteWorkPath($workPath)
+    {
+        return InstanceStorage::deleteWorkPath($workPath);
+    }
+
+    /**
+     * Return the instance owner's private path
+     *
+     * @return mixed
+     */
+    public function getOwnerPrivatePath()
+    {
+        return InstanceStorage::getOwnerPrivatePath();
     }
 
     /**
