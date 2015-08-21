@@ -12,14 +12,12 @@ use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
 use DreamFactory\Enterprise\Common\Utility\UniqueId;
 use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\DeactivationReasons;
-use DreamFactory\Enterprise\Database\Enums\GuestLocations;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Enterprise\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use DreamFactory\Enterprise\Services\Facades\Snapshot;
-use DreamFactory\Library\Utility\Disk;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use League\Flysystem\Filesystem;
@@ -461,13 +459,26 @@ class Instance extends EnterpriseModel implements OwnedEntity
     }
 
     /**
+     * @param Builder $query
+     * @param int     $ownerId
+     * @param int     $ownerType
+     *
+     * @return mixed
+     */
+    public function scopeByOwner($query, $ownerId, $ownerType = null)
+    {
+        return $query->where('user_id', $ownerId)->where('owner_type_nbr', $ownerType ?: OwnerTypes::USER);
+    }
+
+    /**
      * Ensures that a storage key has been assigned
      */
     public function checkStorageKey()
     {
         if (empty($this->storage_id_text)) {
             $this->storage_id_text = UniqueId::generate(__CLASS__);
-            $this->getStorageMap();
+
+            $this->user && InstanceStorage::buildStorageMap($this->user->storage_id_text);
         }
     }
 
@@ -657,42 +668,18 @@ class Instance extends EnterpriseModel implements OwnedEntity
     }
 
     /**
-     * Merges fresh metadata with the existing
+     * Returns the hash (storage's "root-hash") for the user
      *
-     * @param Metadata|array $md The metadata to merge
-     *
-     * @return Instance
+     * @return string|null
      */
-    public function mergeMetadata($md)
+    public function getOwnerHash()
     {
-        $_data = $this->instance_data_text;
-        empty($_data) && ($_data = []);
-
-        if ($md instanceof Metadata) {
-            $_md = $md->toArray();
-        } elseif (is_array($md)) {
-            $_md = $md;
-        } else {
-            throw new \InvalidArgumentException();
-        }
-
-        $this->instance_data_text = array_merge($_data, $_md);
-
-        return $this;
+        return $this->user && $this->user->getHash() || null;
     }
 
-    /**
-     * Returns the base storage path for a USER (not an instance). Under which is all instances and private areas
-     *
-     * @param string|null $append
-     * @param bool        $create
-     *
-     * @return mixed|string
-     */
-    public function getUserStoragePath($append = null, $create = true)
-    {
-        return InstanceStorage::getUserStoragePath($this, $append, $create);
-    }
+    /*------------------------------------------------------------------------------*/
+    /* Paths & Mounts                                                               */
+    /*------------------------------------------------------------------------------*/
 
     /**
      * @param string|null $append
@@ -712,29 +699,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public function getTrashPath($append = null)
     {
-        return InstanceStorage::getTrashPath($this, $append);
-    }
-
-    /**
-     * @param string|null $append Optional path to append
-     * @param bool        $create Create if non-existent
-     *
-     * @return \League\Flysystem\Filesystem
-     */
-    public function getTrashMount($append = null, $create = true)
-    {
-        return InstanceStorage::getTrashMount($this, $append, $create);
-    }
-
-    /**
-     * @param string|null $append
-     * @param bool        $create
-     *
-     * @return string
-     */
-    public function getSnapshotPath($append = null, $create = false)
-    {
-        return InstanceStorage::getSnapshotPath($append, $create);
+        return InstanceStorage::getTrashPath($append);
     }
 
     /**
@@ -747,9 +712,37 @@ class Instance extends EnterpriseModel implements OwnedEntity
         return InstanceStorage::getPrivatePath($this);
     }
 
-    public function getWorkPath()
+    /**
+     * Return the instance owner's private path
+     *
+     * @return mixed
+     */
+    public function getOwnerPrivatePath()
     {
-        return InstanceStorage::getWorkPath($this);
+        return InstanceStorage::getOwnerPrivatePath($this);
+    }
+
+    /**
+     * @param string|null $append
+     * @param bool        $create
+     *
+     * @return string
+     */
+    public function getSnapshotPath($append = null, $create = false)
+    {
+        return InstanceStorage::getSnapshotPath($this, $append, $create);
+    }
+
+    /**
+     * Returns a path where you can write instance-specific temporary data
+     *
+     * @param string|null $append Optional appendage to path
+     *
+     * @return string
+     */
+    public function getWorkPath($append = null)
+    {
+        return InstanceStorage::getWorkPath($this, $append);
     }
 
     /**
@@ -763,77 +756,17 @@ class Instance extends EnterpriseModel implements OwnedEntity
     }
 
     /**
-     * Return the instance owner's private path
+     * @param string|null $append Optional path to append
+     * @param bool        $create Create if non-existent
      *
-     * @return mixed
+     * @return \League\Flysystem\Filesystem
      */
-    public function getOwnerPrivatePath()
+    public function getTrashMount($append = null, $create = true)
     {
-        return InstanceStorage::getOwnerPrivatePath();
+        return InstanceStorage::getTrashMount($append, $create);
     }
 
     /**
-     * @param bool $update If true (default), the metadata will be updated with this new map
-     *
-     * @return array
-     */
-    public function getStorageMap($update = true)
-    {
-        $_data = $this->instance_data_text;
-        empty($_data) && ($_data = []);
-        $_map = array_get($_data, 'storage-map', []);
-
-        if (empty($_map)) {
-            //  Non-hosted has no structure, just storage
-            if (GuestLocations::LOCAL == $this->guest_location_nbr) {
-                $_map = [
-                    'zone'      => null,
-                    'partition' => null,
-                    'root-hash' => null,
-                ];
-            } else {
-                /** @type User $_user */
-                $_user = $this->user ?: User::findOrFail($this->user_id);
-                $_map = array_merge(['zone' => null,], $_user->getStorageMap());
-                $_zone = null;
-
-                switch (config('provisioning.storage-zone-type')) {
-                    case 'dynamic':
-                        switch ($this->guest_location_nbr) {
-                            case GuestLocations::AMAZON_EC2:
-                            case GuestLocations::DFE_CLUSTER:
-                                if (file_exists('/usr/bin/ec2metadata')) {
-                                    $_zone = str_replace('availability-zone: ',
-                                        null,
-                                        `/usr/bin/ec2metadata | grep zone`);
-                                }
-                                break;
-                        }
-                        break;
-
-                    case 'static':
-                        $_zone = config('provisioning.static-zone-name');
-                        break;
-                }
-
-                if (empty($_zone)) {
-                    throw new \RuntimeException('Storage zone or type invalid. Cannot provision storage.');
-                }
-
-                $_map['zone'] = $_zone;
-            }
-
-            //  save the map into the metadata
-            $_data['storage-map'] = $_map;
-            $update && ($this->instance_data_text = $_data);
-        }
-
-        return $_map;
-    }
-
-    /**
-     * Returns the relative root directory of this instance's storage
-     *
      * @param string $tag
      *
      * @return Filesystem
@@ -841,6 +774,16 @@ class Instance extends EnterpriseModel implements OwnedEntity
     public function getSnapshotMount($tag = null)
     {
         return InstanceStorage::getSnapshotMount($this, $tag);
+    }
+
+    /**
+     * @param string $tag
+     *
+     * @return \League\Flysystem\Filesystem
+     */
+    public function getStorageRootMount($tag = null)
+    {
+        return InstanceStorage::getStorageRootMount($this, $tag);
     }
 
     /**
@@ -875,6 +818,25 @@ class Instance extends EnterpriseModel implements OwnedEntity
         return InstanceStorage::getOwnerPrivateStorageMount($this, $tag);
     }
 
+    /*------------------------------------------------------------------------------*/
+    /* Metadata                                                                        */
+    /*------------------------------------------------------------------------------*/
+
+    /**
+     * Builds the metadata template based on the allowed keys of the Metadata class
+     */
+    protected static function buildMetadataTemplate()
+    {
+        $_md = new Metadata();
+        $_base = [];
+
+        foreach ($_md->getAllowedKeys() as $_key) {
+            $_base[$_key] = [];
+        }
+
+        static::$metadataTemplate = $_base;
+    }
+
     /**
      * @param bool $save
      *
@@ -886,18 +848,6 @@ class Instance extends EnterpriseModel implements OwnedEntity
         $this->instance_data_text = static::makeMetadata($this);
 
         return $save ? $this->save() : $this->instance_data_text;
-    }
-
-    /**
-     * @param Builder $query
-     * @param int     $ownerId
-     * @param int     $ownerType
-     *
-     * @return mixed
-     */
-    public function scopeByOwner($query, $ownerId, $ownerType = null)
-    {
-        return $query->where('user_id', $ownerId)->where('owner_type_nbr', $ownerType ?: OwnerTypes::USER);
     }
 
     /**
@@ -926,7 +876,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         $_md = new Metadata(array_merge(static::$metadataTemplate,
             [
-                'storage-map' => $instance->getStorageMap(false),
+                'storage-map' => InstanceStorage::buildStorageMap($instance->user->storage_id_text),
                 'env'         => static::buildEnvironmentMetadata($instance, $_cluster, $_key),
                 'db'          => static::buildDatabaseMetadata($instance),
                 'paths'       => static::buildPathMetadata($instance),
@@ -947,11 +897,12 @@ class Instance extends EnterpriseModel implements OwnedEntity
     protected static function buildPathMetadata(Instance $instance)
     {
         return [
-            'storage-root'       => InstanceStorage::getStorageRoot(),
+            'storage-root'       => InstanceStorage::getStorageRootPath(),
             'storage-path'       => $instance->getStoragePath(),
             'private-path'       => $instance->getPrivatePath(),
             'owner-private-path' => $instance->getOwnerPrivatePath(),
             'snapshot-path'      => $instance->getSnapshotPath(),
+            'trash-path'         => $instance->getTrashPath(),
         ];
     }
 
@@ -1015,31 +966,6 @@ class Instance extends EnterpriseModel implements OwnedEntity
     }
 
     /**
-     * @param Instance $instance
-     *
-     * @return array
-     */
-    protected static function buildConnectionArray(Instance $instance)
-    {
-        return [
-            'id'                    => $instance->dbServer ? $instance->dbServer->server_id_text
-                : $instance->db_server_id,
-            'host'                  => $instance->db_host_text,
-            'port'                  => $instance->db_port_nbr,
-            'username'              => $instance->db_user_text,
-            'password'              => $instance->db_password_text,
-            'driver'                => 'mysql',
-            'default-database-name' => '',
-            'database'              => $instance->db_name_text,
-            'charset'               => 'utf8',
-            'collation'             => 'utf8_unicode_ci',
-            'prefix'                => '',
-            'db-server-id'          => $instance->dbServer ? $instance->dbServer->server_id_text
-                : $instance->db_server_id,
-        ];
-    }
-
-    /**
      * Build the limits array
      *
      * @param \DreamFactory\Enterprise\Database\Models\Instance $instance
@@ -1061,6 +987,31 @@ class Instance extends EnterpriseModel implements OwnedEntity
         // In the future, there could be additional keys, such as 'bandwidth' or 'storage'
         return [
             'api' => $_api_array,
+        ];
+    }
+
+    /**
+     * @param Instance $instance
+     *
+     * @return array
+     */
+    protected static function buildConnectionArray(Instance $instance)
+    {
+        return [
+            'id'                    => $instance->dbServer ? $instance->dbServer->server_id_text
+                : $instance->db_server_id,
+            'host'                  => $instance->db_host_text,
+            'port'                  => $instance->db_port_nbr,
+            'username'              => $instance->db_user_text,
+            'password'              => $instance->db_password_text,
+            'driver'                => 'mysql',
+            'default-database-name' => '',
+            'database'              => $instance->db_name_text,
+            'charset'               => 'utf8',
+            'collation'             => 'utf8_unicode_ci',
+            'prefix'                => '',
+            'db-server-id'          => $instance->dbServer ? $instance->dbServer->server_id_text
+                : $instance->db_server_id,
         ];
     }
 
@@ -1103,36 +1054,6 @@ class Instance extends EnterpriseModel implements OwnedEntity
     public function call($uri, $payload = [], $options = [], $method = Request::METHOD_POST)
     {
         return $this->guzzleAny($this->getProvisionedEndpoint() . '/' . ltrim($uri, '/'), $payload, $options, $method);
-    }
-
-    /**
-     * Creates a sub-path (think "identifier") that may be used under any "root"
-     * to uniquely identify an owner's area
-     *
-     * @param array|null $map The instance storage map
-     *
-     * @return string A $separator delimited identifier/path under a root for an instance
-     */
-    public function getSubRootHash($map = null)
-    {
-        $map = !is_array($map) ? $this->getStorageMap(false) : $map;
-
-        return Disk::segment(array_only($map, ['zone', 'partition', 'root-hash']));
-    }
-
-    /**
-     * Builds the metadata template based on the allowed keys of the Metadata class
-     */
-    protected static function buildMetadataTemplate()
-    {
-        $_md = new Metadata();
-        $_base = [];
-
-        foreach ($_md->getAllowedKeys() as $_key) {
-            $_base[$_key] = [];
-        }
-
-        static::$metadataTemplate = $_base;
     }
 
     /**
