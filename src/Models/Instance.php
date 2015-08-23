@@ -12,12 +12,14 @@ use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
 use DreamFactory\Enterprise\Common\Utility\UniqueId;
 use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\DeactivationReasons;
+use DreamFactory\Enterprise\Database\Enums\GuestLocations;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Enterprise\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use DreamFactory\Enterprise\Services\Facades\Snapshot;
+use DreamFactory\Library\Utility\Uri;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use League\Flysystem\Filesystem;
@@ -1038,13 +1040,48 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public function getProvisionedEndpoint()
     {
-        return 'http://' . $this->instance_name_text . '.' . trim($this->cluster->subdomain_text, '.');
+        $_proto = config('dfe.default-domain-protocol', EnterpriseDefaults::DEFAULT_DOMAIN_PROTOCOL);
+
+        return $_proto . '://' . $this->instance_name_text . '.' . trim($this->cluster->subdomain_text, '.');
+    }
+
+    /**
+     * Creates token to talk to the instance
+     *
+     * @return string
+     */
+    public function generateToken()
+    {
+        $_md = $this->getMetadata(false, 'env');
+        $_token = hash('sha256', $_hash = $_md['cluster-id'] . $_md['instance-id']);
+        logger('generated token "' . $_token . '" for "' . $_hash . '"');
+
+        return $_token;
+    }
+
+    /**
+     * @param string $resource A resource to retrieve
+     * @param array  $payload  Any payload to send
+     * @param array  $options  Any guzzle options to use
+     * @param string $method   The HTTP method to use
+     *
+     * @return array|bool|\stdClass
+     */
+    public function getResource($resource, $payload = [], $options = [], $method = Request::METHOD_GET)
+    {
+        static $_prefix;
+
+        !$_prefix &&
+        $_prefix =
+            config('provisioners.hosts.' . GuestLocations::resolve($this->guest_location_nbr) . '.resource-prefix');
+
+        return $this->call(Uri::segment([$_prefix, $resource]), $payload, $options, $method);
     }
 
     /**
      * Makes a shout out to an instance's private back-end. Should be called bootyCall()  ;)
      *
-     * @param string $uri     The REST uri (i.e. "/db", "/system/users", etc.) to retrieve from the instance
+     * @param string $uri     The REST uri (i.e. "/[rest|api][/v[1|2]]/db", "/rest/system/users", etc.) to retrieve from the instance
      * @param array  $payload Any payload to send with request
      * @param array  $options Any options to pass to transport layer
      * @param string $method  The HTTP method. Defaults to "POST"
@@ -1053,16 +1090,20 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public function call($uri, $payload = [], $options = [], $method = Request::METHOD_POST)
     {
-        return $this->guzzleAny($this->getProvisionedEndpoint() . '/' . ltrim($uri, '/'), $payload, $options, $method);
-    }
+        static $_token;
 
-    /**
-     * Construct and returns the fully qualify URL of an instance
-     *
-     * @return string
-     */
-    protected function buildInstanceUrl()
-    {
-        return config('dfe.default-domain-protocol') . '://' . $this->instance_id_text . config('dfe.default-domain');
+        !$_token && $_token = $this->generateToken();
+
+        $options['headers'] = array_merge(array_get($options, 'headers', []),
+            [
+                EnterpriseDefaults::CONSOLE_X_HEADER => $_token,
+            ]);
+
+        return $this->guzzleAny(
+            Uri::segment([$this->getProvisionedEndpoint(), $uri], false),
+            $payload,
+            $options,
+            $method
+        );
     }
 }

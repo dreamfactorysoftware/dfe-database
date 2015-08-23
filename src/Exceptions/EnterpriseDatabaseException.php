@@ -3,6 +3,6 @@
 /**
  * Our base exception
  */
-class EnterpriseDatabaseException extends \Exception
+abstract class EnterpriseDatabaseException extends \Exception
 {
 }
