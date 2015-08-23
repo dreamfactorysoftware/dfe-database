@@ -18,10 +18,11 @@ use DreamFactory\Enterprise\Database\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Enterprise\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
-use DreamFactory\Enterprise\Services\Facades\Snapshot;
 use DreamFactory\Library\Utility\Uri;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use League\Flysystem\Filesystem;
 
 /**
@@ -246,7 +247,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany|Snapshot[]
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany|\DreamFactory\Enterprise\Database\Models\Snapshot[]
      */
     public function snapshots()
     {
@@ -607,14 +608,14 @@ class Instance extends EnterpriseModel implements OwnedEntity
         }
 
         if (in_array($_clean, $_unavailableNames)) {
-            \Log::error('Attempt to register forbidden instance name: ' . $name . ' => ' . $_clean);
+            Log::error('Attempt to register forbidden instance name: ' . $name . ' => ' . $_clean);
 
             return false;
         }
 
         //	Check host name
         if (preg_match(static::HOST_NAME_PATTERN, $_clean)) {
-            \Log::notice('Non-standard instance name "' . $_clean . '" being provisioned');
+            Log::notice('Non-standard instance name "' . $_clean . '" being provisioned');
         }
 
         //  Cache it...
@@ -1028,9 +1029,9 @@ class Instance extends EnterpriseModel implements OwnedEntity
     {
         $_id = 'database.connections.' . $instance->instance_id_text;
 
-        \Config::set('database.connections.' . $_id, static::buildConnectionArray($instance));
+        config(['database.connections.' . $_id => static::buildConnectionArray($instance)]);
 
-        return \DB::connection($_id);
+        return DB::connection($_id);
     }
 
     /**
@@ -1053,8 +1054,11 @@ class Instance extends EnterpriseModel implements OwnedEntity
     public function generateToken()
     {
         $_md = $this->getMetadata(false, 'env');
-        $_token = hash('sha256', $_hash = $_md['cluster-id'] . $_md['instance-id']);
-        logger('generated token "' . $_token . '" for "' . $_hash . '"');
+        $_token =
+            hash(config('dfe.signature-method', EnterpriseDefaults::SIGNATURE_METHOD),
+                $_md['cluster-id'] . $_md['instance-id']);
+
+        //logger('generated token "' . $_token . '" for "' . $_hash . '"');
 
         return $_token;
     }
@@ -1105,5 +1109,13 @@ class Instance extends EnterpriseModel implements OwnedEntity
             $options,
             $method
         );
+    }
+
+    /**
+     * @return string the base resource URI to use
+     */
+    public function getResourceUri()
+    {
+        return config('provisioners.hosts.' . GuestLocations::resolve($this->guest_location_nbr) . '.resource-uri');
     }
 }
