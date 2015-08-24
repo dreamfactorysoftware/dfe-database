@@ -2,7 +2,7 @@
 <phpdoc>
 	<title>DreamFactory Enterprise&trade; Database Library</title>
 	<parser>
-		<default-package-name>DreamFactory\Library\Fabric\Database</default-package-name>
+		<default-package-name>DreamFactory\Enterprise\Database</default-package-name>
 		<target>build/doc</target>
 		<markers>
 			<item>TODO</item>

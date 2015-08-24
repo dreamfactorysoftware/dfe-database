@@ -6,3 +6,4 @@ tests/vendor/
 tests/log/
 phpunit.xml
 phpdoc.xml
+composer.lock
