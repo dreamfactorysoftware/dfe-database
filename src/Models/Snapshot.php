@@ -2,6 +2,7 @@
 
 use DreamFactory\Enterprise\Common\Traits\Archivist;
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Response;
@@ -19,9 +20,9 @@ use League\Flysystem\Filesystem;
  * @property string $public_url_text
  * @property string $expire_date
  *
- * @method static \Illuminate\Database\Eloquent\Builder byUserId(string $userId)
- * @method static \Illuminate\Database\Eloquent\Builder fromHash(string $hash)
- * @method static \Illuminate\Database\Eloquent\Builder bySnapshotId(string $snapshotId)
+ * @method static Builder|EloquentBuilder byUserId(string $userId)
+ * @method static Builder|EloquentBuilder fromHash(string $hash)
+ * @method static Builder|EloquentBuilder bySnapshotId(string $snapshotId)
  */
 class Snapshot extends EnterpriseModel
 {
@@ -111,7 +112,8 @@ class Snapshot extends EnterpriseModel
     public function scopeBySnapshotId($query, $snapshotId)
     {
         return $query->whereRaw('id = :id OR snapshot_id_text = :snapshot_id_text',
-            ['id' => $snapshotId, 'snapshot_id_text' => $snapshotId]);
+            ['id' => $snapshotId, 'snapshot_id_text' => $snapshotId]
+        );
     }
 
     /**
@@ -137,7 +139,10 @@ class Snapshot extends EnterpriseModel
                 try {
                     $_instance = static::_locateInstance($_snapshot->instance_id);
                 } catch (ModelNotFoundException $_ex) {
-                    throw new ModelNotFoundException('Instance not found for snapshot "' . $_snapshot->snapshot_id_text . '"');
+                    throw new ModelNotFoundException('Instance not found for snapshot "' .
+                        $_snapshot->snapshot_id_text .
+                        '"'
+                    );
                 }
 
                 if (null === ($_fs = $_instance->getSnapshotMount())) {
@@ -150,7 +155,8 @@ class Snapshot extends EnterpriseModel
                 $_tempFile = $_routeHash->actual_path_text;
 
                 //  Delete any file with the same name...
-                file_exists($_workPath . DIRECTORY_SEPARATOR . $_tempFile) && @unlink($_workPath . DIRECTORY_SEPARATOR . $_tempFile);
+                file_exists($_workPath . DIRECTORY_SEPARATOR . $_tempFile) &&
+                @unlink($_workPath . DIRECTORY_SEPARATOR . $_tempFile);
 
                 //  Download the snapshot to local temp
                 static::writeStream($_fsWork, $_fs->readStream($_tempFile), $_tempFile);

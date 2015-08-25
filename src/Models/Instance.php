@@ -19,6 +19,7 @@ use DreamFactory\Enterprise\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use DreamFactory\Library\Utility\Uri;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -64,13 +65,13 @@ use League\Flysystem\Filesystem;
  * @property Server  $dbServer
  * @property Server  $webServer
  *
- * @method static Builder instanceName(string $instanceName)
- * @method static Builder|\Illuminate\Database\Eloquent\Builder byNameOrId(string $instanceNameOrId)
- * @method static Builder userId(int $userId)
- * @method static Builder withDbName(string $dbName)
- * @method static Builder onDbServer(int $dbServerId)
- * @method static Builder byOwner(mixed $ownerId, mixed $ownerType = null)
- * @method static Builder byClusterId(int $clusterId)
+ * @method static Builder|EloquentBuilder instanceName(string $instanceName)
+ * @method static Builder|EloquentBuilder byNameOrId(string $instanceNameOrId)
+ * @method static Builder|EloquentBuilder userId(int $userId)
+ * @method static Builder|EloquentBuilder withDbName(string $dbName)
+ * @method static Builder|EloquentBuilder onDbServer(int $dbServerId)
+ * @method static Builder|EloquentBuilder byOwner(mixed $ownerId, mixed $ownerType = null)
+ * @method static Builder|EloquentBuilder byClusterId(int $clusterId)
  */
 class Instance extends EnterpriseModel implements OwnedEntity
 {
@@ -354,14 +355,14 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
     /**
      * @param Builder $query
-     * @param         $userId
+     * @param int     $userId
      *
      * @return Builder
      */
     public function scopeUserId($query, $userId)
     {
         if (!empty($userId)) {
-            return $query->where('user_id', '=', $userId);
+            return $query->where('user_id', $userId);
         }
 
         return $query;
@@ -1054,9 +1055,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
     public function generateToken()
     {
         $_md = $this->getMetadata(false, 'env');
-        $_token =
-            hash(config('dfe.signature-method', EnterpriseDefaults::SIGNATURE_METHOD),
-                $_md['cluster-id'] . $_md['instance-id']);
+        $_token = hash(config('dfe.signature-method', EnterpriseDefaults::SIGNATURE_METHOD),
+            $_md['cluster-id'] . $_md['instance-id']);
 
         //logger('generated token "' . $_token . '" for "' . $_hash . '"');
 
@@ -1103,12 +1103,10 @@ class Instance extends EnterpriseModel implements OwnedEntity
                 EnterpriseDefaults::CONSOLE_X_HEADER => $_token,
             ]);
 
-        return $this->guzzleAny(
-            Uri::segment([$this->getProvisionedEndpoint(), $uri], false),
+        return $this->guzzleAny(Uri::segment([$this->getProvisionedEndpoint(), $uri], false),
             $payload,
             $options,
-            $method
-        );
+            $method);
     }
 
     /**
