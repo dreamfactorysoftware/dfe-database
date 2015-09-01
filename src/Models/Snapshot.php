@@ -53,11 +53,11 @@ class Snapshot extends EnterpriseModel
     //******************************************************************************
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|User
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|User
      */
     public function user()
     {
-        return $this->belongsTo(static::MODEL_NAMESPACE . 'User', 'id', 'user_id');
+        return $this->hasOne(static::MODEL_NAMESPACE . 'User', 'id', 'user_id');
     }
 
     /**
@@ -112,8 +112,7 @@ class Snapshot extends EnterpriseModel
     public function scopeBySnapshotId($query, $snapshotId)
     {
         return $query->whereRaw('id = :id OR snapshot_id_text = :snapshot_id_text',
-            ['id' => $snapshotId, 'snapshot_id_text' => $snapshotId]
-        );
+            ['id' => $snapshotId, 'snapshot_id_text' => $snapshotId]);
     }
 
     /**
@@ -141,8 +140,7 @@ class Snapshot extends EnterpriseModel
                 } catch (ModelNotFoundException $_ex) {
                     throw new ModelNotFoundException('Instance not found for snapshot "' .
                         $_snapshot->snapshot_id_text .
-                        '"'
-                    );
+                        '"');
                 }
 
                 if (null === ($_fs = $_instance->getSnapshotMount())) {
