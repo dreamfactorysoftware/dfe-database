@@ -979,7 +979,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     public static function buildLimitsMetadata(Instance $instance)
     {
         /** @type Limit[] $_limits */
-        $_limits = Limit::byClusterInstance($instance->id, $instance->cluster_id)->get();
+        $_limits = Limit::byClusterInstance($instance->cluster_id, $instance->id)->get();
 
         $_api_array = [];
 
