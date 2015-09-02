@@ -2,12 +2,14 @@
 
 use DreamFactory\Enterprise\Common\Traits\Archivist;
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
+use DreamFactory\Library\Utility\Disk;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Response;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
+use League\Flysystem\ZipArchive\ZipArchiveAdapter;
 
 /**
  * snapshot_t
@@ -19,6 +21,8 @@ use League\Flysystem\Filesystem;
  * @property int    $public_ind
  * @property string $public_url_text
  * @property string $expire_date
+ *
+ * @property User   $user
  *
  * @method static Builder|EloquentBuilder byUserId(string $userId)
  * @method static Builder|EloquentBuilder fromHash(string $hash)
@@ -176,4 +180,23 @@ class Snapshot extends EnterpriseModel
         return false;
     }
 
+    /**
+     * Returns the mount to the snapshot itself if it exists here otherwise returns mount to user's snapshot path
+     *
+     * @return \League\Flysystem\Filesystem|null
+     */
+    public function getMount()
+    {
+        if ($this->user) {
+            if (!is_dir($_path = $this->user->getSnapshotPath())) {
+                return $this->user->getSnapshotMount();
+            }
+
+            if (file_exists($_file = Disk::segment([$_path, $this->snapshot_id_text . '.snapshot.zip'], true))) {
+                return new Filesystem(new ZipArchiveAdapter($_file));
+            }
+        }
+
+        return null;
+    }
 }

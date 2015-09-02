@@ -1,15 +1,19 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
+use DreamFactory\Enterprise\Common\Facades\InstanceStorage;
 use DreamFactory\Enterprise\Common\Utility\UniqueId;
 use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Traits\CheckNickname;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
+use DreamFactory\Library\Utility\Disk;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Query\Builder;
+use League\Flysystem\Adapter\Local;
+use League\Flysystem\Filesystem;
 
 /**
  * [20150812-gha] Corrected the property list to reflect the current data model
@@ -230,38 +234,48 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
         return 'remember_token';
     }
 
+    /**
+     * @param string|array|null $append
+     *
+     * @return string
+     */
     public function getSnapshotPath($append = null)
     {
-    }
-
-    public function getSnapshotMount()
-    {
-    }
-
-    public function getOwnerPrivatePath($append = null)
-    {
+        return Disk::path([
+            $this->getOwnerPrivatePath(config('snapshot.storage-path', EnterpriseDefaults::SNAPSHOT_PATH_NAME), false),
+            $append,
+        ],
+            true);
     }
 
     /**
-     * Determine a user's storage map
-     *
-     * @return array
+     * @return \League\Flysystem\Filesystem
      */
-    public function getStorageMap()
+    public function getSnapshotMount()
     {
-        static $_map;
+        return new Filesystem(new Local($this->getSnapshotPath()));
+    }
 
-        if (empty($_map)) {
-            $_rootHash = hash(config('dfe.signature-method', EnterpriseDefaults::SIGNATURE_METHOD),
-                $this->storage_id_text);
-            $_partition = substr($_rootHash, 0, 2);
+    /**
+     * @param string|array|null $append
+     * @param bool|true         $create
+     * @param int               $mode
+     * @param bool|true         $recursive
+     *
+     * @return string
+     */
+    public function getOwnerPrivatePath($append = null, $create = true, $mode = 0777, $recursive = true)
+    {
+        InstanceStorage::buildStorageMap($this->storage_id_text);
 
-            $_map = [
-                'partition' => $_partition,
-                'root-hash' => $_rootHash,
-            ];
-        }
-
-        return $_map;
+        return Disk::path([
+            config('provisioning.storage-root', EnterpriseDefaults::STORAGE_ROOT),
+            InstanceStorage::getStorageRootPath(),
+            InstanceStorage::getPrivatePathName(),
+            $append,
+        ],
+            $create,
+            $mode,
+            $recursive);
     }
 }
