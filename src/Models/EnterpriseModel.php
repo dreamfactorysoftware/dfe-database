@@ -9,9 +9,9 @@ use Illuminate\Database\Query\Builder;
 /**
  * Base class for all DFE models
  *
- * @property int    $id
- * @property Carbon $lmod_date
- * @property Carbon $create_date
+ * @property int|double $id
+ * @property Carbon     $lmod_date
+ * @property Carbon     $create_date
  *
  * @method static Builder|EloquentBuilder where($column, $operator = null, $value = null, $boolean = 'and')
  * @method static Builder|EloquentBuilder whereRaw($clause, $params = [])
@@ -150,8 +150,7 @@ class EnterpriseModel extends Model
         //  Called before inserting and updating
         static::saving(function (EnterpriseModel $row){
             static::enforceBusinessLogic($row);
-        }
-        );
+        });
     }
 
     /**
