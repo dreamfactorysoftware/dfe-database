@@ -1088,10 +1088,11 @@ class Instance extends EnterpriseModel implements OwnedEntity
      * @param array  $payload Any payload to send with request
      * @param array  $options Any options to pass to transport layer
      * @param string $method  The HTTP method. Defaults to "POST"
+     * @param bool   $object  If true, the default, the response is returned as an object. If false, an array is returned.
      *
      * @return array|bool|\stdClass
      */
-    public function call($uri, $payload = [], $options = [], $method = Request::METHOD_POST)
+    public function call($uri, $payload = [], $options = [], $method = Request::METHOD_POST, $object = true)
     {
         static $_token;
 
@@ -1100,12 +1101,15 @@ class Instance extends EnterpriseModel implements OwnedEntity
         $options['headers'] = array_merge(array_get($options, 'headers', []),
             [
                 EnterpriseDefaults::CONSOLE_X_HEADER => $_token,
+                'Content-Type'                       => 'application/json',
+                'Accept'                             => 'application/json',
             ]);
 
         return $this->guzzleAny(Uri::segment([$this->getProvisionedEndpoint(), $uri], false),
             $payload,
             $options,
-            $method);
+            $method,
+            $object);
     }
 
     /**
