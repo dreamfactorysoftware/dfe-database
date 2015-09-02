@@ -989,7 +989,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         // In the future, there could be additional keys, such as 'bandwidth' or 'storage'
         return [
-            'api' => $_api_array,
+            'api' => (array)$_api_array,
         ];
     }
 
