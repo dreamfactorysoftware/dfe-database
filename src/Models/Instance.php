@@ -984,13 +984,12 @@ class Instance extends EnterpriseModel implements OwnedEntity
         $_api_array = [];
 
         foreach ($_limits as $_limit) {
-            $_api_array[] =
-                [$_limit->limit_key_text => ['limit' => $_limit->value_nbr, 'period' => $_limit->period_nbr]];
+            $_api_array[$_limit->limit_key_text] = ['limit' => $_limit->limit_nbr, 'period' => $_limit->period_nbr];
         }
 
         // In the future, there could be additional keys, such as 'bandwidth' or 'storage'
         return [
-            'api' => $_api_array,
+            'api' => (array)$_api_array,
         ];
     }
 
