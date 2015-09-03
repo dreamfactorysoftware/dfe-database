@@ -5,11 +5,13 @@ use Illuminate\Database\Query\Builder;
 /**
  * limit_t
  *
- * @property integer cluster_id
- * @property integer instance_id
- * @property string  limit_key_text
- * @property integer value_nbr
- * @property integer period_nbr
+ * @property integer $cluster_id
+ * @property integer $instance_id
+ * @property string  $limit_key_text
+ * @property integer $limit_nbr
+ * @property integer $period_nbr
+ * @property string  $label_text
+ * @property boolean $active_ind
  *
  * @method static Builder byClusterInstance(string $instanceId, string $clusterId)
  */
@@ -19,10 +21,16 @@ class Limit extends EnterpriseModel
     //* Members
     //******************************************************************************
 
-    /**
-     * @type string The table name
-     */
+    /** @inheritdoc */
     protected $table = 'limit_t';
+    /** @inheritdoc */
+    protected $casts = [
+        'cluster_id'  => 'integer',
+        'instance_id' => 'integer',
+        'limit_nbr'   => 'integer',
+        'period_nbr'  => 'integer',
+        'active_ind'  => 'boolean',
+    ];
 
     //******************************************************************************
     //* Methods

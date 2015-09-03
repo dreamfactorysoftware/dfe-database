@@ -1105,11 +1105,15 @@ class Instance extends EnterpriseModel implements OwnedEntity
                 'Accept'                             => 'application/json',
             ]);
 
-        return $this->guzzleAny(Uri::segment([$this->getProvisionedEndpoint(), $uri], false),
-            $payload,
-            $options,
-            $method,
-            $object);
+        try {
+            return $this->guzzleAny(Uri::segment([$this->getProvisionedEndpoint(), $uri], false),
+                $payload,
+                $options,
+                $method,
+                $object);
+        } catch (\Exception $_ex) {
+            return false;
+        }
     }
 
     /**
