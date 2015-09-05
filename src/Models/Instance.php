@@ -29,41 +29,42 @@ use League\Flysystem\Filesystem;
 /**
  * instance_t
  *
- * @property integer $user_id
- * @property integer $cluster_id
- * @property integer $guest_location_nbr
- * @property string  $instance_id_text
- * @property string  $instance_name_text
- * @property array   $instance_data_text
- * @property int     $app_server_id
- * @property int     $db_server_id
- * @property int     $web_server_id
- * @property string  $db_host_text
- * @property int     $db_port_nbr
- * @property string  $db_name_text
- * @property string  $db_user_text
- * @property string  $db_password_text
- * @property string  $storage_id_text
- * @property string  $request_id_text
- * @property string  $request_date
- * @property integer $deprovision_ind
- * @property integer $provision_ind
- * @property integer $trial_instance_ind
- * @property integer $state_nbr
- * @property integer $platform_state_nbr
- * @property integer $ready_state_nbr
- * @property integer $environment_id
- * @property integer $activate_ind
- * @property string  $start_date
- * @property string  $end_date
- * @property string  $terminate_date
+ * @property integer       $user_id
+ * @property integer       $cluster_id
+ * @property integer       $guest_location_nbr
+ * @property string        $instance_id_text
+ * @property string        $instance_name_text
+ * @property array         $instance_data_text
+ * @property int           $app_server_id
+ * @property int           $db_server_id
+ * @property int           $web_server_id
+ * @property string        $db_host_text
+ * @property int           $db_port_nbr
+ * @property string        $db_name_text
+ * @property string        $db_user_text
+ * @property string        $db_password_text
+ * @property string        $storage_id_text
+ * @property string        $request_id_text
+ * @property string        $request_date
+ * @property integer       $deprovision_ind
+ * @property integer       $provision_ind
+ * @property integer       $trial_instance_ind
+ * @property integer       $state_nbr
+ * @property integer       $platform_state_nbr
+ * @property integer       $ready_state_nbr
+ * @property integer       $environment_id
+ * @property integer       $activate_ind
+ * @property string        $start_date
+ * @property string        $end_date
+ * @property string        $terminate_date
  *
  * Relations:
  *
- * @property User    $user
- * @property Server  $appServer
- * @property Server  $dbServer
- * @property Server  $webServer
+ * @property User          $user
+ * @property InstanceGuest $guest
+ * @property Server        $appServer
+ * @property Server        $dbServer
+ * @property Server        $webServer
  *
  * @method static Builder|EloquentBuilder instanceName(string $instanceName)
  * @method static Builder|EloquentBuilder byNameOrId(string $instanceNameOrId)
