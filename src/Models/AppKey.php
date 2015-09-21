@@ -2,6 +2,7 @@
 
 use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
+use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
 use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Traits\Gatekeeper;
@@ -38,7 +39,7 @@ class AppKey extends EnterpriseModel implements OwnedEntity
     //* Traits
     //******************************************************************************
 
-    use Gatekeeper;
+    use Gatekeeper, StaticComponentLookup;
 
     //******************************************************************************
     //* Constants
@@ -212,11 +213,12 @@ class AppKey extends EnterpriseModel implements OwnedEntity
     protected static function _makeKey($ownerId, $ownerType, $keyClass, $fill = [])
     {
         $_model = new static();
-        $_model->fill(array_merge($fill, [
-            'owner_id'       => $ownerId,
-            'owner_type_nbr' => $ownerType,
-            'key_class_text' => $keyClass,
-        ]));
+        $_model->fill(array_merge($fill,
+            [
+                'owner_id'       => $ownerId,
+                'owner_type_nbr' => $ownerType,
+                'key_class_text' => $keyClass,
+            ]));
 
         if (!$_model->save()) {
             throw new \LogicException('Key creation fail');
@@ -228,19 +230,38 @@ class AppKey extends EnterpriseModel implements OwnedEntity
     /**
      * @param EnterpriseModel $entity
      *
-     * @return bool|AppKey False if entity is not authorized otherwise the created AppKey model is returned
+     * @return bool|AppKey return a new key for the $entity or false if the entity is not recognized
      */
-    public static function createKeyFromEntity(EnterpriseModel $entity)
+    public static function createKeyForEntity(EnterpriseModel $entity)
     {
-        list($_ownerId, $_ownerType) = static::_getOwnerType($entity);
-
-        if (null === $_ownerId && null === $_ownerType) {
-            \Log::debug('authorization key NOT created for new row: ' . $entity->getTable());
+        if (null === ($_type = static::_getOwnerTypeFromEntity($entity))) {
+            \Log::error('Entity "' . get_class($entity) . '" has no associated OWNER TYPE.');
 
             return false;
         }
 
-        return static::_makeKey($_ownerId, $_ownerType, AppKeyClasses::fromOwnerType($_ownerType));
+        if (OwnerTypes::INSTANCE == $_type) {
+            $_ownerId = $entity->user_id;
+        } elseif (property_exists($entity, 'owner_id')) {
+            $_ownerId = $entity->owner_id;
+        } else {
+            \Log::error('Entity "' . get_class($entity) . '" has no "owner_id" column.');
+
+            return false;
+        }
+
+        return static::_makeKey($_ownerId, $_type, AppKeyClasses::fromOwnerType($_type));
+    }
+
+    /**
+     * @param EnterpriseModel $entity
+     *
+     * @return bool|AppKey False if entity is not authorized otherwise the created AppKey model is returned
+     * @deprecated All calling code should use static::createKeyForEntity
+     */
+    public static function createKeyFromEntity(EnterpriseModel $entity)
+    {
+        return static::createKeyForEntity($entity);
     }
 
     /**

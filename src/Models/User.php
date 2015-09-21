@@ -93,7 +93,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
         parent::boot();
 
         static::created(function (User $model){
-            AppKey::createKeyFromEntity($model);
+            AppKey::createKeyForEntity($model);
         });
     }
 
