@@ -26,11 +26,11 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
  * @property string $created_at
  * @property string $updated_at
  *
- * @method static Builder forInstance(int $instanceId)
- * @method static Builder byOwner(int $ownerId, int $ownerType = null)
- * @method static Builder byOwnerType(int $ownerType)
- * @method static Builder byClass(string $keyClass, int $ownerId = null)
- * @method static Builder byClientId(string $clientId)
+ * @method static Builder forInstance($instanceId)
+ * @method static Builder byOwner($ownerId, $ownerType = null)
+ * @method static Builder byOwnerType($ownerType)
+ * @method static Builder byClass($keyClass, $ownerId = null)
+ * @method static Builder byClientId($clientId)
  */
 class AppKey extends EnterpriseModel implements OwnedEntity
 {
@@ -77,7 +77,7 @@ class AppKey extends EnterpriseModel implements OwnedEntity
         parent::boot();
 
         //  Fired before creating or updating...
-        static::saving(function ($row) {
+        static::saving(function ($row){
             static::enforceBusinessLogic($row);
 
             if (null === $row->server_secret) {
@@ -85,7 +85,7 @@ class AppKey extends EnterpriseModel implements OwnedEntity
             }
         });
 
-        static::creating(function ($row) {
+        static::creating(function ($row){
             if (empty($row->key_class_text)) {
                 $row->key_class_text = AppKeyClasses::OTHER;
             }
@@ -109,6 +109,8 @@ class AppKey extends EnterpriseModel implements OwnedEntity
         return $this->morphTo('owner', 'owner_type_nbr', 'owner_id');
     }
 
+    /** @inheritdoc */
+    /** @noinspection PhpMissingParentCallCommonInspection */
     public function getMorphClass()
     {
         return $this->owner_type_nbr;
@@ -210,12 +212,11 @@ class AppKey extends EnterpriseModel implements OwnedEntity
     protected static function _makeKey($ownerId, $ownerType, $keyClass, $fill = [])
     {
         $_model = new static();
-        $_model->fill(array_merge($fill,
-            [
-                'owner_id'       => $ownerId,
-                'owner_type_nbr' => $ownerType,
-                'key_class_text' => $keyClass,
-            ]));
+        $_model->fill(array_merge($fill, [
+            'owner_id'       => $ownerId,
+            'owner_type_nbr' => $ownerType,
+            'key_class_text' => $keyClass,
+        ]));
 
         if (!$_model->save()) {
             throw new \LogicException('Key creation fail');
@@ -270,6 +271,15 @@ class AppKey extends EnterpriseModel implements OwnedEntity
     {
         //  Don't bother with archive or assignment tables
         if (!in_array(substr($entity->getTable(), -7), ['_asgn_t', '_arch_t'])) {
+            //  Try user/service_user first
+            if ($entity instanceof User) {
+                return [$entity->id, OwnerTypes::USER];
+            }
+
+            if ($entity instanceof ServiceUser) {
+                return [$entity->id, OwnerTypes::SERVICE_USER];
+            }
+
             //  Anything with owner and type get tagged
             if (isset($entity->owner_id, $entity->owner_type_nbr)) {
                 //  No owner to speak of...
@@ -315,6 +325,7 @@ class AppKey extends EnterpriseModel implements OwnedEntity
         return static::byOwner($ownerId, $ownerType)->first();
     }
 
+    /** @noinspection PhpMissingParentCallCommonInspection */
     /** @inheritdoc */
     protected static function enforceBusinessLogic($row)
     {
