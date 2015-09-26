@@ -62,9 +62,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     //* Members
     //******************************************************************************
 
-    /**
-     * @type string The table name
-     */
+    /** @inheritdoc */
     protected $table = 'user_t';
     /**
      * @inheritdoc
@@ -80,6 +78,8 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
         'opt_in_ind'     => 'boolean',
         'agree_ind'      => 'boolean',
     ];
+    /** @inheritdoc */
+    protected $hidden = ['password_text', 'external_password_text', 'remember_token',];
 
     //******************************************************************************
     //* Methods
