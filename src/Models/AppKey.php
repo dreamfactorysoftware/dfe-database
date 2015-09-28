@@ -208,23 +208,22 @@ class AppKey extends EnterpriseModel implements OwnedEntity
      * @param string     $keyClass
      * @param array      $fill Any extra attributes to update
      *
-     * @return bool|AppKey False if owner is not authorized or on error, otherwise the created AppKey model is returned
+     * @return bool|\DreamFactory\Enterprise\Database\Models\AppKey False if owner is not authorized or on error, otherwise the created AppKey model is returned
+     * @throws \Exception
      */
     protected static function _makeKey($ownerId, $ownerType, $keyClass, $fill = [])
     {
-        $_model = new static();
-        $_model->fill(array_merge($fill,
-            [
-                'owner_id'       => $ownerId,
-                'owner_type_nbr' => $ownerType,
-                'key_class_text' => $keyClass,
-            ]));
-
-        if (!$_model->save()) {
-            throw new \LogicException('Key creation fail');
+        try {
+            return static::create(array_merge($fill,
+                [
+                    'owner_id'       => $ownerId,
+                    'owner_type_nbr' => $ownerType,
+                    'key_class_text' => $keyClass,
+                ]));
+        } catch (\Exception $_ex) {
+            \Log::error('Error creating app_key for ownerId ' . $ownerId);
+            throw $_ex;
         }
-
-        return $_model;
     }
 
     /**
@@ -240,15 +239,7 @@ class AppKey extends EnterpriseModel implements OwnedEntity
             return false;
         }
 
-        if (OwnerTypes::INSTANCE == $_type) {
-            $_ownerId = $entity->user_id;
-        } elseif (property_exists($entity, 'owner_id')) {
-            $_ownerId = $entity->owner_id;
-        } else {
-            \Log::error('Entity "' . get_class($entity) . '" has no "owner_id" column.');
-
-            return false;
-        }
+        $_ownerId = $entity->id;
 
         return static::_makeKey($_ownerId, $_type, AppKeyClasses::fromOwnerType($_type));
     }
