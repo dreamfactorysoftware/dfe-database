@@ -330,7 +330,7 @@ class AppKey extends EnterpriseModel implements OwnedEntity
      * @param int $ownerId
      * @param int $ownerType
      *
-     * @return AppKey[]|Collection
+     * @return AppKey
      */
     public static function mine($ownerId, $ownerType)
     {
