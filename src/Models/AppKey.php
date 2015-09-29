@@ -7,11 +7,11 @@ use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Traits\Gatekeeper;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Support\Facades\Log;
 
 /**
  * app_key_t
@@ -228,13 +228,18 @@ class AppKey extends EnterpriseModel implements OwnedEntity
 
     /**
      * @param EnterpriseModel $entity
+     * @param int|null        $ownerType
      *
-     * @return bool|AppKey return a new key for the $entity or false if the entity is not recognized
+     * @return bool|\DreamFactory\Enterprise\Database\Models\AppKey return a new key for the $entity or false if the entity is not recognized
+     * @throws \Exception
      */
-    public static function createKeyForEntity(EnterpriseModel $entity)
+    public static function createKeyForEntity(EnterpriseModel $entity, $ownerType = null)
     {
-        if (null === ($_type = static::_getOwnerTypeFromEntity($entity))) {
-            \Log::error('Entity "' . get_class($entity) . '" has no associated OWNER TYPE.');
+        $_type = $ownerType ?: static::_getOwnerTypeFromEntity($entity);
+
+        if (empty($_type)) {
+            /** @noinspection PhpUndefinedMethodInspection */
+            Log::error('Entity "' . get_class($entity) . '" has no associated OWNER TYPE.');
 
             return false;
         }

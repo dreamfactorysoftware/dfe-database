@@ -48,7 +48,7 @@ use League\Flysystem\Filesystem;
  * @property int    $activate_ind
  * @property int    $active_ind
  *
- * @method static \Illuminate\Database\Eloquent\Builder byEmail(string $email)
+ * @method static \Illuminate\Database\Eloquent\Builder byEmail($email)
  */
 class User extends EnterpriseModel implements AuthenticatableContract, CanResetPasswordContract, OwnedEntity
 {
@@ -93,7 +93,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
         parent::boot();
 
         static::created(function (User $model){
-            AppKey::createKeyForEntity($model);
+            AppKey::createKeyForEntity($model, OwnerTypes::USER);
         });
     }
 
