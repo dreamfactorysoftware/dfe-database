@@ -1,12 +1,12 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
-use DreamFactory\Enterprise\Common\Facades\InstanceStorage;
 use DreamFactory\Enterprise\Common\Utility\UniqueId;
 use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Traits\CheckNickname;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
+use DreamFactory\Enterprise\Storage\Facades\InstanceStorage;
 use DreamFactory\Library\Utility\Disk;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
@@ -244,8 +244,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
         return Disk::path([
             $this->getOwnerPrivatePath(config('snapshot.storage-path', EnterpriseDefaults::SNAPSHOT_PATH_NAME), false),
             $append,
-        ],
-            true);
+        ], true);
     }
 
     /**
@@ -273,9 +272,6 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
             InstanceStorage::getStorageRootPath(),
             InstanceStorage::getPrivatePathName(),
             $append,
-        ],
-            $create,
-            $mode,
-            $recursive);
+        ], $create, $mode, $recursive);
     }
 }

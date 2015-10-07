@@ -4,7 +4,6 @@ use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Common\Enums\EnterprisePaths;
 use DreamFactory\Enterprise\Common\Enums\OperationalStates;
-use DreamFactory\Enterprise\Common\Facades\InstanceStorage;
 use DreamFactory\Enterprise\Common\Support\Metadata;
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use DreamFactory\Enterprise\Common\Traits\Guzzler;
@@ -18,12 +17,11 @@ use DreamFactory\Enterprise\Database\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Enterprise\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
+use DreamFactory\Enterprise\Storage\Facades\InstanceStorage;
 use DreamFactory\Library\Utility\Uri;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use League\Flysystem\Filesystem;
 
 /**
@@ -66,13 +64,13 @@ use League\Flysystem\Filesystem;
  * @property Server        $dbServer
  * @property Server        $webServer
  *
- * @method static Builder|EloquentBuilder instanceName(string $instanceName)
- * @method static Builder|EloquentBuilder byNameOrId(string $instanceNameOrId)
- * @method static Builder|EloquentBuilder userId(int $userId)
- * @method static Builder|EloquentBuilder withDbName(string $dbName)
- * @method static Builder|EloquentBuilder onDbServer(int $dbServerId)
- * @method static Builder|EloquentBuilder byOwner(mixed $ownerId, mixed $ownerType = null)
- * @method static Builder|EloquentBuilder byClusterId(int $clusterId)
+ * @method static Builder|EloquentBuilder instanceName($instanceName)
+ * @method static Builder|EloquentBuilder byNameOrId($instanceNameOrId)
+ * @method static Builder|EloquentBuilder userId($userId)
+ * @method static Builder|EloquentBuilder withDbName($dbName)
+ * @method static Builder|EloquentBuilder onDbServer($dbServerId)
+ * @method static Builder|EloquentBuilder byOwner($ownerId, $ownerType = null)
+ * @method static Builder|EloquentBuilder byClusterId($clusterId)
  */
 class Instance extends EnterpriseModel implements OwnedEntity
 {
@@ -194,10 +192,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public function servers()
     {
-        return $this->hasManyThrough(static::MODEL_NAMESPACE . 'InstanceServer',
-            static::MODEL_NAMESPACE . 'Server',
-            'instance_id',
-            'server_id');
+        return $this->hasManyThrough(static::MODEL_NAMESPACE . 'InstanceServer', static::MODEL_NAMESPACE . 'Server',
+            'instance_id', 'server_id');
     }
 
     /**
@@ -498,7 +494,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         //  Do we belong to a server?
         if ($this->belongsToServer($_server->id)) {
-            return 1 == InstanceServer::whereRaw('server_id = :server_id AND instance_id = :instance_id',
+            return 1 ==
+            InstanceServer::whereRaw('server_id = :server_id AND instance_id = :instance_id',
                 [':server_id' => $_server->id, ':instance_id' => $this->id])->delete();
         }
 
@@ -530,11 +527,10 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         /** @noinspection PhpUndefinedMethodInspection */
 
-        return 0 != InstanceServer::whereRaw('server_id = :server_id AND instance_id = :instance_id',
-            [
-                ':server_id'   => $_server->id,
-                ':instance_id' => $this->id,
-            ])->count();
+        return 0 != InstanceServer::whereRaw('server_id = :server_id AND instance_id = :instance_id', [
+            ':server_id'   => $_server->id,
+            ':instance_id' => $this->id,
+        ])->count();
     }
 
     /**
@@ -586,9 +582,9 @@ class Instance extends EnterpriseModel implements OwnedEntity
         }
 
         //	This replaces any disallowed characters with dashes
-        $_clean = str_replace([' ', '_'],
-            '-',
-            trim(str_replace('--', '-', preg_replace(static::CHARACTER_PATTERN, '-', $name)), ' -_'));
+        $_clean =
+            str_replace([' ', '_'], '-',
+                trim(str_replace('--', '-', preg_replace(static::CHARACTER_PATTERN, '-', $name)), ' -_'));
 
         //  Ensure non-admin user instances are prefixed
         if ($isAdmin) {
@@ -610,14 +606,14 @@ class Instance extends EnterpriseModel implements OwnedEntity
         }
 
         if (in_array($_clean, $_unavailableNames)) {
-            Log::error('Attempt to register forbidden instance name: ' . $name . ' => ' . $_clean);
+            \Log::error('Attempt to register forbidden instance name: ' . $name . ' => ' . $_clean);
 
             return false;
         }
 
         //	Check host name
         if (preg_match(static::HOST_NAME_PATTERN, $_clean)) {
-            Log::notice('Non-standard instance name "' . $_clean . '" being provisioned');
+            \Log::notice('Non-standard instance name "' . $_clean . '" being provisioned');
         }
 
         //  Cache it...
@@ -879,15 +875,14 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         $_cluster = static::_lookupCluster($instance->cluster_id);
 
-        $_md = new Metadata(array_merge(static::$metadataTemplate,
-            [
-                'storage-map' => InstanceStorage::buildStorageMap($instance->user->storage_id_text),
-                'env'         => static::buildEnvironmentMetadata($instance, $_cluster, $_key),
-                'db'          => static::buildDatabaseMetadata($instance),
-                'paths'       => static::buildPathMetadata($instance),
-                'audit'       => static::buildAuditMetadata($instance),
-                'limits'      => static::buildLimitsMetadata($instance),
-            ]), $instance->instance_name_text . '.json', $instance->getOwnerPrivateStorageMount());
+        $_md = new Metadata(array_merge(static::$metadataTemplate, [
+            'storage-map' => InstanceStorage::buildStorageMap($instance->user->storage_id_text),
+            'env'         => static::buildEnvironmentMetadata($instance, $_cluster, $_key),
+            'db'          => static::buildDatabaseMetadata($instance),
+            'paths'       => static::buildPathMetadata($instance),
+            'audit'       => static::buildAuditMetadata($instance),
+            'limits'      => static::buildLimitsMetadata($instance),
+        ]), $instance->instance_name_text . '.json', $instance->getOwnerPrivateStorageMount());
 
         return $object ? $_md : $_md->toArray();
     }
@@ -1032,7 +1027,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         config(['database.connections.' . $_id => static::buildConnectionArray($instance)]);
 
-        return DB::connection($_id);
+        return \DB::connection($_id);
     }
 
     /**
@@ -1055,8 +1050,9 @@ class Instance extends EnterpriseModel implements OwnedEntity
     public function generateToken()
     {
         $_md = $this->getMetadata(false, 'env');
-        $_token = hash(config('dfe.signature-method', EnterpriseDefaults::SIGNATURE_METHOD),
-            $_md['cluster-id'] . $_md['instance-id']);
+        $_token =
+            hash(config('dfe.signature-method', EnterpriseDefaults::SIGNATURE_METHOD),
+                $_md['cluster-id'] . $_md['instance-id']);
 
         //logger('generated token "' . $_token . '" for "' . $_hash . '"');
 
@@ -1099,19 +1095,15 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         !$_token && $_token = $this->generateToken();
 
-        $options['headers'] = array_merge(array_get($options, 'headers', []),
-            [
-                EnterpriseDefaults::CONSOLE_X_HEADER => $_token,
-                'Content-Type'                       => 'application/json',
-                'Accept'                             => 'application/json',
-            ]);
+        $options['headers'] = array_merge(array_get($options, 'headers', []), [
+            EnterpriseDefaults::CONSOLE_X_HEADER => $_token,
+            'Content-Type'                       => 'application/json',
+            'Accept'                             => 'application/json',
+        ]);
 
         try {
-            return $this->guzzleAny(Uri::segment([$this->getProvisionedEndpoint(), $uri], false),
-                $payload,
-                $options,
-                $method,
-                $object);
+            return $this->guzzleAny(Uri::segment([$this->getProvisionedEndpoint(), $uri], false), $payload, $options,
+                $method, $object);
         } catch (\Exception $_ex) {
             return false;
         }
