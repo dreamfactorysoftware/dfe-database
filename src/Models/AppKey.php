@@ -81,7 +81,7 @@ class AppKey extends EnterpriseModel implements OwnedEntity
         static::saving(function ($row){
             static::enforceBusinessLogic($row);
 
-            if (null === $row->server_secret) {
+            if (empty($row->server_secret)) {
                 $row->server_secret = config('dfe.security.console-api-key', 'this-value-is-not-set');
             }
         });
@@ -214,8 +214,7 @@ class AppKey extends EnterpriseModel implements OwnedEntity
     protected static function _makeKey($ownerId, $ownerType, $keyClass, $fill = [])
     {
         try {
-            return static::create(array_merge($fill,
-                [
+            return static::create(array_merge($fill, [
                     'owner_id'       => $ownerId,
                     'owner_type_nbr' => $ownerType,
                     'key_class_text' => $keyClass,
