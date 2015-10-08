@@ -246,7 +246,10 @@ class AppKey extends EnterpriseModel implements OwnedEntity
 
         $_ownerId = $entity->id;
 
-        return static::_makeKey($_ownerId, $_type, AppKeyClasses::fromOwnerType($_type));
+        $_key = static::_makeKey($_ownerId, $_type, AppKeyClasses::fromOwnerType($_type));
+        ($entity instanceof User) && $entity->update(['api_token_text' => $_key->client_id]);
+
+        return $_key;
     }
 
     /**
