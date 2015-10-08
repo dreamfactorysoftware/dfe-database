@@ -248,7 +248,8 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
         return Disk::path([
             $this->getOwnerPrivatePath(config('snapshot.storage-path', EnterpriseDefaults::SNAPSHOT_PATH_NAME), false),
             $append,
-        ], true);
+        ],
+            true);
     }
 
     /**
@@ -276,6 +277,9 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
             InstanceStorage::getStorageRootPath(),
             InstanceStorage::getPrivatePathName(),
             $append,
-        ], $create, $mode, $recursive);
+        ],
+            $create,
+            $mode,
+            $recursive);
     }
 }
