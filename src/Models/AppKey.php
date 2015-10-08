@@ -214,7 +214,8 @@ class AppKey extends EnterpriseModel implements OwnedEntity
     protected static function _makeKey($ownerId, $ownerType, $keyClass, $fill = [])
     {
         try {
-            return static::create(array_merge($fill, [
+            return static::create(array_merge($fill,
+                [
                     'owner_id'       => $ownerId,
                     'owner_type_nbr' => $ownerType,
                     'key_class_text' => $keyClass,
@@ -236,7 +237,7 @@ class AppKey extends EnterpriseModel implements OwnedEntity
     {
         $_type = $ownerType ?: static::_getOwnerTypeFromEntity($entity);
 
-        if (empty($_type)) {
+        if (null === $_type) {
             /** @noinspection PhpUndefinedMethodInspection */
             Log::error('Entity "' . get_class($entity) . '" has no associated OWNER TYPE.');
 
