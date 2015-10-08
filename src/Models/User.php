@@ -92,6 +92,10 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     {
         parent::boot();
 
+        static::creating(function (User $model){
+            $model->checkStorageKey();
+        });
+
         static::created(function (User $model){
             AppKey::createKeyForEntity($model, OwnerTypes::USER);
         });
