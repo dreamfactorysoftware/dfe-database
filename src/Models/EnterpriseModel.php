@@ -151,6 +151,11 @@ class EnterpriseModel extends Model
         static::saving(function (EnterpriseModel $row){
             static::enforceBusinessLogic($row);
         });
+
+        static::creating(function (EnterpriseModel $row){
+            //  Make sure the create_date is set
+            $row->{$row->getCreatedAtColumn()} = $row->freshTimestamp();
+        });
     }
 
     /**
@@ -158,6 +163,9 @@ class EnterpriseModel extends Model
      */
     protected static function enforceBusinessLogic($row)
     {
+        //  Make sure the lmod_date is set
+        $row->{$row->getUpdatedAtColumn()} = $row->freshTimestamp();
+
         //  Make sure owner type is set properly
         if (isset($row->owner_id, $row->owner_type_nbr)) {
             if (null !== $row->owner_id && null === $row->owner_type_nbr) {
