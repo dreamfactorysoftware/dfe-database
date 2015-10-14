@@ -138,11 +138,8 @@ class EnterpriseModel extends Model
     //******************************************************************************
     //* Methods
     //******************************************************************************
-    /**
-     * The "booting" method of the model.
-     *
-     * @return void
-     */
+
+    /** @inheritdoc */
     protected static function boot()
     {
         parent::boot();
@@ -151,20 +148,24 @@ class EnterpriseModel extends Model
         static::saving(function (EnterpriseModel $row){
             static::enforceBusinessLogic($row);
         });
-
-        static::creating(function (EnterpriseModel $row){
-            //  Make sure the create_date is set
-            $row->{$row->getCreatedAtColumn()} = $row->freshTimestamp();
-        });
     }
 
     /**
      * @param \DreamFactory\Enterprise\Database\Models\EnterpriseModel|mixed $row
      */
-    protected static function enforceBusinessLogic($row)
+    protected static function enforceBusinessLogic(EnterpriseModel $row)
     {
+        $_time = $row->freshTimestamp();
+
+        //  Make sure the create_date is set
+        if (!$row->exists && !$row->isDirty(static::CREATED_AT)) {
+            $row->setCreatedAt($_time);
+        }
+
         //  Make sure the lmod_date is set
-        $row->{$row->getUpdatedAtColumn()} = $row->freshTimestamp();
+        if ($row->exists && !$row->isDirty(static::CREATED_AT)) {
+            $row->setUpdatedAt($_time);
+        }
 
         //  Make sure owner type is set properly
         if (isset($row->owner_id, $row->owner_type_nbr)) {
