@@ -153,7 +153,7 @@ class EnterpriseModel extends Model
     /**
      * @param \DreamFactory\Enterprise\Database\Models\EnterpriseModel|mixed $row
      */
-    protected static function enforceBusinessLogic(EnterpriseModel $row)
+    protected static function enforceBusinessLogic($row)
     {
         $_time = $row->freshTimestamp();
 
