@@ -1,15 +1,26 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
+use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
+use DreamFactory\Enterprise\Common\Packets\ErrorPacket;
+use DreamFactory\Enterprise\Common\Packets\SuccessPacket;
 use DreamFactory\Enterprise\Common\Utility\UniqueId;
 use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Traits\CheckNickname;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
+use DreamFactory\Enterprise\Storage\Facades\InstanceStorage;
+use DreamFactory\Library\Utility\Disk;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use League\Flysystem\Adapter\Local;
+use League\Flysystem\Filesystem;
 
 /**
  * [20150812-gha] Corrected the property list to reflect the current data model
@@ -44,7 +55,7 @@ use Illuminate\Database\Query\Builder;
  * @property int    $activate_ind
  * @property int    $active_ind
  *
- * @method static \Illuminate\Database\Eloquent\Builder byEmail(string $email)
+ * @method static \Illuminate\Database\Eloquent\Builder byEmail($email)
  */
 class User extends EnterpriseModel implements AuthenticatableContract, CanResetPasswordContract, OwnedEntity
 {
@@ -58,9 +69,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     //* Members
     //******************************************************************************
 
-    /**
-     * @type string The table name
-     */
+    /** @inheritdoc */
     protected $table = 'user_t';
     /**
      * @inheritdoc
@@ -76,6 +85,8 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
         'opt_in_ind'     => 'boolean',
         'agree_ind'      => 'boolean',
     ];
+    /** @inheritdoc */
+    protected $hidden = ['password_text', 'external_password_text', 'remember_token',];
 
     //******************************************************************************
     //* Methods
@@ -88,8 +99,12 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     {
         parent::boot();
 
+        static::creating(function (User $model){
+            $model->checkStorageKey();
+        });
+
         static::created(function (User $model){
-            AppKey::createKeyFromEntity($model);
+            AppKey::createKeyForEntity($model, OwnerTypes::USER);
         });
     }
 
@@ -230,38 +245,146 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
         return 'remember_token';
     }
 
+    /**
+     * @param string|array|null $append
+     *
+     * @return string
+     */
     public function getSnapshotPath($append = null)
     {
-    }
-
-    public function getSnapshotMount()
-    {
-    }
-
-    public function getOwnerPrivatePath($append = null)
-    {
+        return Disk::path([
+            $this->getOwnerPrivatePath(config('snapshot.storage-path', EnterpriseDefaults::SNAPSHOT_PATH_NAME), false),
+            $append,
+        ],
+            true);
     }
 
     /**
-     * Determine a user's storage map
-     *
-     * @return array
+     * @return \League\Flysystem\Filesystem
      */
-    public function getStorageMap()
+    public function getSnapshotMount()
     {
-        static $_map;
+        return new Filesystem(new Local($this->getSnapshotPath()));
+    }
 
-        if (empty($_map)) {
-            $_rootHash = hash(config('dfe.signature-method', EnterpriseDefaults::SIGNATURE_METHOD),
-                $this->storage_id_text);
-            $_partition = substr($_rootHash, 0, 2);
+    /**
+     * @param string|array|null $append
+     * @param bool|true         $create
+     * @param int               $mode
+     * @param bool|true         $recursive
+     *
+     * @return string
+     */
+    public function getOwnerPrivatePath($append = null, $create = true, $mode = 0777, $recursive = true)
+    {
+        InstanceStorage::buildStorageMap($this->storage_id_text);
 
-            $_map = [
-                'partition' => $_partition,
-                'root-hash' => $_rootHash,
-            ];
+        return Disk::path([
+            config('provisioning.storage-root', EnterpriseDefaults::STORAGE_ROOT),
+            InstanceStorage::getStorageRootPath(),
+            InstanceStorage::getPrivatePathName(),
+            $append,
+        ],
+            $create,
+            $mode,
+            $recursive);
+    }
+
+    /**
+     * Standardized user creation method
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param bool                     $validate If false, no validation is done.
+     *
+     * @return \DreamFactory\Enterprise\Common\Packets\ErrorPacket|\DreamFactory\Enterprise\Common\Packets\SuccessPacket
+     */
+    public static function register(Request $request, $validate = true)
+    {
+        $_email = $request->input('email', $request->input('email_addr_text'));
+        $_first = $request->input('firstname', $request->input('first_name_text'));
+        $_last = $request->input('lastname', $request->input('last_name_text'));
+        $_password = $request->input('password', $request->input('password_text'));
+
+        $_nickname = $request->input('nickname', $request->input('nickname_text', $_first));
+        $_company = $request->input('company', $request->input('company_name_text'));
+        $_phone = $request->input('phone', $request->input('phone_text'));
+
+        if ($validate) {
+            if (empty($_email) || empty($_password) || empty($_first) || empty($_last)) {
+                /** @noinspection PhpUndefinedMethodInspection */
+                Log::error('missing required fields from partner post', ['payload' => $request->input()]);
+
+                throw new \InvalidArgumentException('Missing required fields');
+            }
+
+            if (false === filter_var($_email, FILTER_VALIDATE_EMAIL)) {
+                /** @noinspection PhpUndefinedMethodInspection */
+                Log::error('invalid email address "' . $_email . '"', ['payload' => $request->input()]);
+
+                throw new \InvalidArgumentException('Email address invalid');
+            }
         }
 
-        return $_map;
+        //  See if we know this cat...
+        if (null !== ($_user = User::byEmail($_email)->first())) {
+            //  Existing user found, don't add to database...
+            $_values = $_user->toArray();
+            unset($_values['password_text'], $_values['external_password_text']);
+
+            /** @noinspection PhpUndefinedMethodInspection */
+            Log::info('existing user attempting registration through api', ['user' => $_values]);
+
+            return $_user;
+        }
+
+        //  Create a user account
+        try {
+            $_user =
+                \DB::transaction(function () use ($request, $_first, $_last, $_email, $_password, $_nickname, $_phone, $_company){
+                    /** @noinspection PhpUndefinedMethodInspection */
+                    $_user = User::create([
+                        'first_name_text'   => $_first,
+                        'last_name_text'    => $_last,
+                        'email_addr_text'   => $_email,
+                        'nickname_text'     => $_nickname,
+                        'password_text'     => Hash::make($_password),
+                        'phone_text'        => $_phone,
+                        'company_name_text' => $_company,
+                    ]);
+
+                    if (null === ($_appKey = AppKey::mine($_user->id, OwnerTypes::USER))) {
+                        $_appKey = AppKey::create([
+                            'key_class_text' => AppKeyClasses::USER,
+                            'owner_id'       => $_user->id,
+                            'owner_type_nbr' => OwnerTypes::USER,
+                            'server_secret'  => config('dfe.security.console-api-key'),
+                        ]);
+                    }
+
+                    //  Update the user with the key info and activate
+                    $_user->api_token_text = $_appKey->client_id;
+                    $_user->active_ind = 1;
+                    $_user->save();
+
+                    return $_user;
+                });
+
+            $_values = $_user->toArray();
+            unset($_values['password_text'], $_values['external_password_text']);
+
+            /** @noinspection PhpUndefinedMethodInspection */
+            Log::info('new user registered', ['user' => $_values]);
+
+            return $validate ? SuccessPacket::create($_user, Response::HTTP_CREATED) : $_user;
+        } catch (\Exception $_ex) {
+            if (false !== ($_pos = stripos($_message = $_ex->getMessage(), ' (sql: '))) {
+                $_message = substr($_message, 0, $_pos);
+            }
+
+            /** @noinspection PhpUndefinedMethodInspection */
+            Log::error('database error creating user from ops-resource post: ' . $_message);
+
+            return $validate ? ErrorPacket::create(null, Response::HTTP_INTERNAL_SERVER_ERROR, $_message) : null;
+        }
     }
 }

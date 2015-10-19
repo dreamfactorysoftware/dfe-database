@@ -6,6 +6,7 @@ use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use Illuminate\Support\Facades\Event;
 
 /**
  * service_user_t
@@ -60,7 +61,7 @@ class ServiceUser extends EnterpriseModel implements AuthenticatableContract, Ca
         parent::boot();
 
         static::created(function (ServiceUser $model){
-            AppKey::createKeyFromEntity($model);
+            AppKey::createKeyForEntity($model, OwnerTypes::SERVICE_USER);
         });
     }
 

@@ -45,7 +45,7 @@ class GuestLocations extends FactoryEnum
      */
     protected static $tags = [
         self::AMAZON_EC2      => 'amazon',
-        self::DFE_CLUSTER     => 'rave',
+        self::DFE_CLUSTER     => 'dreamfactory',
         self::MICROSOFT_AZURE => 'azure',
         self::RACKSPACE_CLOUD => 'rackspace',
         self::OPENSTACK       => 'openstack',
@@ -57,7 +57,7 @@ class GuestLocations extends FactoryEnum
     //******************************************************************************
 
     /**
-     * Given a guest location id or name (i.e. "rave"), return the associated $tag (string).
+     * Given a guest location id or name (i.e. "dreamfactory"), return the associated $tag (string).
      *
      * @param int  $constant      The constant value
      * @param bool $bidirectional If true, converts numeric constant to string and vice versa

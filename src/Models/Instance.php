@@ -4,7 +4,6 @@ use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Common\Enums\EnterprisePaths;
 use DreamFactory\Enterprise\Common\Enums\OperationalStates;
-use DreamFactory\Enterprise\Common\Facades\InstanceStorage;
 use DreamFactory\Enterprise\Common\Support\Metadata;
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use DreamFactory\Enterprise\Common\Traits\Guzzler;
@@ -18,59 +17,60 @@ use DreamFactory\Enterprise\Database\Exceptions\InstanceNotActivatedException;
 use DreamFactory\Enterprise\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
+use DreamFactory\Enterprise\Storage\Facades\InstanceStorage;
 use DreamFactory\Library\Utility\Uri;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use League\Flysystem\Filesystem;
 
 /**
  * instance_t
  *
- * @property integer $user_id
- * @property integer $cluster_id
- * @property integer $guest_location_nbr
- * @property string  $instance_id_text
- * @property string  $instance_name_text
- * @property array   $instance_data_text
- * @property int     $app_server_id
- * @property int     $db_server_id
- * @property int     $web_server_id
- * @property string  $db_host_text
- * @property int     $db_port_nbr
- * @property string  $db_name_text
- * @property string  $db_user_text
- * @property string  $db_password_text
- * @property string  $storage_id_text
- * @property string  $request_id_text
- * @property string  $request_date
- * @property integer $deprovision_ind
- * @property integer $provision_ind
- * @property integer $trial_instance_ind
- * @property integer $state_nbr
- * @property integer $platform_state_nbr
- * @property integer $ready_state_nbr
- * @property integer $environment_id
- * @property integer $activate_ind
- * @property string  $start_date
- * @property string  $end_date
- * @property string  $terminate_date
+ * @property integer       $user_id
+ * @property integer       $cluster_id
+ * @property integer       $guest_location_nbr
+ * @property string        $instance_id_text
+ * @property string        $instance_name_text
+ * @property array         $instance_data_text
+ * @property int           $app_server_id
+ * @property int           $db_server_id
+ * @property int           $web_server_id
+ * @property string        $db_host_text
+ * @property int           $db_port_nbr
+ * @property string        $db_name_text
+ * @property string        $db_user_text
+ * @property string        $db_password_text
+ * @property string        $storage_id_text
+ * @property string        $request_id_text
+ * @property string        $request_date
+ * @property integer       $deprovision_ind
+ * @property integer       $provision_ind
+ * @property integer       $trial_instance_ind
+ * @property integer       $state_nbr
+ * @property integer       $platform_state_nbr
+ * @property integer       $ready_state_nbr
+ * @property integer       $environment_id
+ * @property integer       $activate_ind
+ * @property string        $start_date
+ * @property string        $end_date
+ * @property string        $terminate_date
  *
  * Relations:
  *
- * @property User    $user
- * @property Server  $appServer
- * @property Server  $dbServer
- * @property Server  $webServer
+ * @property User          $user
+ * @property InstanceGuest $guest
+ * @property Server        $appServer
+ * @property Server        $dbServer
+ * @property Server        $webServer
  *
- * @method static Builder instanceName(string $instanceName)
- * @method static Builder|\Illuminate\Database\Eloquent\Builder byNameOrId(string $instanceNameOrId)
- * @method static Builder userId(int $userId)
- * @method static Builder withDbName(string $dbName)
- * @method static Builder onDbServer(int $dbServerId)
- * @method static Builder byOwner(mixed $ownerId, mixed $ownerType = null)
- * @method static Builder byClusterId(int $clusterId)
+ * @method static Builder|EloquentBuilder instanceName($instanceName)
+ * @method static Builder|EloquentBuilder byNameOrId($instanceNameOrId)
+ * @method static Builder|EloquentBuilder userId($userId)
+ * @method static Builder|EloquentBuilder withDbName($dbName)
+ * @method static Builder|EloquentBuilder onDbServer($dbServerId)
+ * @method static Builder|EloquentBuilder byOwner($ownerId, $ownerType = null)
+ * @method static Builder|EloquentBuilder byClusterId($clusterId)
  */
 class Instance extends EnterpriseModel implements OwnedEntity
 {
@@ -139,6 +139,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         static::creating(function (Instance $instance){
             $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
+            $instance->checkStorageKey();
         });
 
         static::created(function (Instance $instance){
@@ -354,14 +355,14 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
     /**
      * @param Builder $query
-     * @param         $userId
+     * @param int     $userId
      *
      * @return Builder
      */
     public function scopeUserId($query, $userId)
     {
         if (!empty($userId)) {
-            return $query->where('user_id', '=', $userId);
+            return $query->where('user_id', $userId);
         }
 
         return $query;
@@ -608,14 +609,14 @@ class Instance extends EnterpriseModel implements OwnedEntity
         }
 
         if (in_array($_clean, $_unavailableNames)) {
-            Log::error('Attempt to register forbidden instance name: ' . $name . ' => ' . $_clean);
+            \Log::error('Attempt to register forbidden instance name: ' . $name . ' => ' . $_clean);
 
             return false;
         }
 
         //	Check host name
         if (preg_match(static::HOST_NAME_PATTERN, $_clean)) {
-            Log::notice('Non-standard instance name "' . $_clean . '" being provisioned');
+            \Log::notice('Non-standard instance name "' . $_clean . '" being provisioned');
         }
 
         //  Cache it...
@@ -955,16 +956,19 @@ class Instance extends EnterpriseModel implements OwnedEntity
     public static function buildEnvironmentMetadata(Instance $instance, Cluster $cluster, AppKey $key = null)
     {
         return [
-            'cluster-id'       => $cluster->cluster_id_text,
-            'instance-id'      => $instance->instance_name_text,
-            'default-domain'   => $cluster->subdomain_text,
-            'signature-method' => config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
-            'storage-root'     => config('provisioning.storage-root',
+            'cluster-id'           => $cluster->cluster_id_text,
+            'instance-id'          => $instance->instance_name_text,
+            'default-domain'       => $cluster->subdomain_text,
+            'signature-method'     => config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
+            'storage-root'         => config('provisioning.storage-root',
                 EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH),
-            'console-api-url'  => config('dfe.security.console-api-url'),
-            'console-api-key'  => config('dfe.security.console-api-key'),
-            'client-id'        => $key ? $key->client_id : null,
-            'client-secret'    => $key ? $key->client_secret : null,
+            'console-api-url'      => config('dfe.security.console-api-url'),
+            'console-api-key'      => config('dfe.security.console-api-key'),
+            'client-id'            => $key ? $key->client_id : null,
+            'client-secret'        => $key ? $key->client_secret : null,
+            'audit-host'           => config('dfe.audit.host'),
+            'audit-port'           => config('dfe.audit.port'),
+            'audit-message-format' => config('dfe.audit.message-format'),
         ];
     }
 
@@ -978,18 +982,17 @@ class Instance extends EnterpriseModel implements OwnedEntity
     public static function buildLimitsMetadata(Instance $instance)
     {
         /** @type Limit[] $_limits */
-        $_limits = Limit::byClusterInstance($instance->id, $instance->cluster_id)->get();
+        $_limits = Limit::byClusterInstance($instance->cluster_id, $instance->id)->get();
 
         $_api_array = [];
 
         foreach ($_limits as $_limit) {
-            $_api_array[] =
-                [$_limit->limit_key_text => ['limit' => $_limit->value_nbr, 'period' => $_limit->period_nbr]];
+            $_api_array[$_limit->limit_key_text] = ['limit' => $_limit->limit_nbr, 'period' => $_limit->period_nbr];
         }
 
         // In the future, there could be additional keys, such as 'bandwidth' or 'storage'
         return [
-            'api' => $_api_array,
+            'api' => (array)$_api_array,
         ];
     }
 
@@ -1031,7 +1034,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         config(['database.connections.' . $_id => static::buildConnectionArray($instance)]);
 
-        return DB::connection($_id);
+        return \DB::connection($_id);
     }
 
     /**
@@ -1054,9 +1057,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
     public function generateToken()
     {
         $_md = $this->getMetadata(false, 'env');
-        $_token =
-            hash(config('dfe.signature-method', EnterpriseDefaults::SIGNATURE_METHOD),
-                $_md['cluster-id'] . $_md['instance-id']);
+        $_token = hash(config('dfe.signature-method', EnterpriseDefaults::SIGNATURE_METHOD),
+            $_md['cluster-id'] . $_md['instance-id']);
 
         //logger('generated token "' . $_token . '" for "' . $_hash . '"');
 
@@ -1089,10 +1091,11 @@ class Instance extends EnterpriseModel implements OwnedEntity
      * @param array  $payload Any payload to send with request
      * @param array  $options Any options to pass to transport layer
      * @param string $method  The HTTP method. Defaults to "POST"
+     * @param bool   $object  If true, the default, the response is returned as an object. If false, an array is returned.
      *
      * @return array|bool|\stdClass
      */
-    public function call($uri, $payload = [], $options = [], $method = Request::METHOD_POST)
+    public function call($uri, $payload = [], $options = [], $method = Request::METHOD_POST, $object = true)
     {
         static $_token;
 
@@ -1101,14 +1104,19 @@ class Instance extends EnterpriseModel implements OwnedEntity
         $options['headers'] = array_merge(array_get($options, 'headers', []),
             [
                 EnterpriseDefaults::CONSOLE_X_HEADER => $_token,
+                'Content-Type'                       => 'application/json',
+                'Accept'                             => 'application/json',
             ]);
 
-        return $this->guzzleAny(
-            Uri::segment([$this->getProvisionedEndpoint(), $uri], false),
-            $payload,
-            $options,
-            $method
-        );
+        try {
+            return $this->guzzleAny(Uri::segment([$this->getProvisionedEndpoint(), $uri], false),
+                $payload,
+                $options,
+                $method,
+                $object);
+        } catch (\Exception $_ex) {
+            return false;
+        }
     }
 
     /**

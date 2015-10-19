@@ -43,5 +43,4 @@ class ClusterServer extends EnterpriseModel
     {
         return parent::getKey();
     }
-
 }

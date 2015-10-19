@@ -2,11 +2,14 @@
 
 use DreamFactory\Enterprise\Common\Traits\Archivist;
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
+use DreamFactory\Library\Utility\Disk;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Response;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
+use League\Flysystem\ZipArchive\ZipArchiveAdapter;
 
 /**
  * snapshot_t
@@ -19,9 +22,11 @@ use League\Flysystem\Filesystem;
  * @property string $public_url_text
  * @property string $expire_date
  *
- * @method static \Illuminate\Database\Eloquent\Builder byUserId(string $userId)
- * @method static \Illuminate\Database\Eloquent\Builder fromHash(string $hash)
- * @method static \Illuminate\Database\Eloquent\Builder bySnapshotId(string $snapshotId)
+ * @property User   $user
+ *
+ * @method static Builder|EloquentBuilder byUserId(string $userId)
+ * @method static Builder|EloquentBuilder fromHash(string $hash)
+ * @method static Builder|EloquentBuilder bySnapshotId(string $snapshotId)
  */
 class Snapshot extends EnterpriseModel
 {
@@ -52,11 +57,11 @@ class Snapshot extends EnterpriseModel
     //******************************************************************************
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|User
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|User
      */
     public function user()
     {
-        return $this->belongsTo(static::MODEL_NAMESPACE . 'User', 'id', 'user_id');
+        return $this->hasOne(static::MODEL_NAMESPACE . 'User', 'id', 'user_id');
     }
 
     /**
@@ -137,7 +142,9 @@ class Snapshot extends EnterpriseModel
                 try {
                     $_instance = static::_locateInstance($_snapshot->instance_id);
                 } catch (ModelNotFoundException $_ex) {
-                    throw new ModelNotFoundException('Instance not found for snapshot "' . $_snapshot->snapshot_id_text . '"');
+                    throw new ModelNotFoundException('Instance not found for snapshot "' .
+                        $_snapshot->snapshot_id_text .
+                        '"');
                 }
 
                 if (null === ($_fs = $_instance->getSnapshotMount())) {
@@ -150,7 +157,8 @@ class Snapshot extends EnterpriseModel
                 $_tempFile = $_routeHash->actual_path_text;
 
                 //  Delete any file with the same name...
-                file_exists($_workPath . DIRECTORY_SEPARATOR . $_tempFile) && @unlink($_workPath . DIRECTORY_SEPARATOR . $_tempFile);
+                file_exists($_workPath . DIRECTORY_SEPARATOR . $_tempFile) &&
+                @unlink($_workPath . DIRECTORY_SEPARATOR . $_tempFile);
 
                 //  Download the snapshot to local temp
                 static::writeStream($_fsWork, $_fs->readStream($_tempFile), $_tempFile);
@@ -172,4 +180,23 @@ class Snapshot extends EnterpriseModel
         return false;
     }
 
+    /**
+     * Returns the mount to the snapshot itself if it exists here otherwise returns mount to user's snapshot path
+     *
+     * @return \League\Flysystem\Filesystem|null
+     */
+    public function getMount()
+    {
+        if ($this->user) {
+            if (!is_dir($_path = $this->user->getSnapshotPath())) {
+                return $this->user->getSnapshotMount();
+            }
+
+            if (file_exists($_file = Disk::segment([$_path, $this->snapshot_id_text . '.snapshot.zip'], true))) {
+                return new Filesystem(new ZipArchiveAdapter($_file));
+            }
+        }
+
+        return null;
+    }
 }

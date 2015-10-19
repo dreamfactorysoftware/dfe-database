@@ -1,7 +1,6 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Common\Enums\ServerTypes;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder;
 
 /**
@@ -62,10 +61,8 @@ class Server extends EnterpriseModel
      */
     public function cluster()
     {
-        return Cluster::whereRaw(
-            'id IN (SELECT csa.cluster_id FROM cluster_server_asgn_t csa WHERE csa.server_id = :server_id)',
-            [':server_id' => $this->id]
-        )->first();
+        return Cluster::whereRaw('id IN (SELECT csa.cluster_id FROM cluster_server_asgn_t csa WHERE csa.server_id = :server_id)',
+            [':server_id' => $this->id])->first();
     }
 
     /**
@@ -88,10 +85,8 @@ class Server extends EnterpriseModel
         $_cluster = ($clusterId instanceof Cluster) ? $clusterId : $this->_getCluster($clusterId);
 
         if ($this->belongsToCluster($_cluster->id)) {
-            return
-                1 == ClusterServer::where('cluster_id', '=', $_cluster->id)
-                    ->where('server_id', '=', $this->id)
-                    ->delete();
+            return 1 ==
+            ClusterServer::where('cluster_id', '=', $_cluster->id)->where('server_id', '=', $this->id)->delete();
         }
 
         return false;
@@ -133,13 +128,11 @@ class Server extends EnterpriseModel
     {
         $_cluster = $this->_getCluster($clusterId);
 
-        return 0 != ClusterServer::whereRaw(
-            'cluster_id = :cluster_id AND server_id = :server_id',
+        return 0 != ClusterServer::whereRaw('cluster_id = :cluster_id AND server_id = :server_id',
             [
                 ':cluster_id' => $_cluster->id,
                 ':server_id'  => $this->id,
-            ]
-        )->count();
+            ])->count();
     }
 
     /**
@@ -150,10 +143,8 @@ class Server extends EnterpriseModel
      */
     public function scopeByNameOrId($query, $nameOrId)
     {
-        return $query->whereRaw(
-            'server_id_text = :server_id_text OR id = :id',
-            [':server_id_text' => $nameOrId, ':id' => $nameOrId]
-        );
+        return $query->whereRaw('server_id_text = :server_id_text OR id = :id',
+            [':server_id_text' => $nameOrId, ':id' => $nameOrId]);
     }
 
     /**

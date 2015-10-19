@@ -2,15 +2,16 @@
 
 use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
+use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
 use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
 use DreamFactory\Enterprise\Database\Traits\Gatekeeper;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Support\Facades\Log;
 
 /**
  * app_key_t
@@ -26,11 +27,11 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
  * @property string $created_at
  * @property string $updated_at
  *
- * @method static Builder forInstance(int $instanceId)
- * @method static Builder byOwner(int $ownerId, int $ownerType = null)
- * @method static Builder byOwnerType(int $ownerType)
- * @method static Builder byClass(string $keyClass, int $ownerId = null)
- * @method static Builder byClientId(string $clientId)
+ * @method static Builder forInstance($instanceId)
+ * @method static Builder byOwner($ownerId, $ownerType = null)
+ * @method static Builder byOwnerType($ownerType)
+ * @method static Builder byClass($keyClass, $ownerId = null)
+ * @method static Builder byClientId($clientId)
  */
 class AppKey extends EnterpriseModel implements OwnedEntity
 {
@@ -38,7 +39,7 @@ class AppKey extends EnterpriseModel implements OwnedEntity
     //* Traits
     //******************************************************************************
 
-    use Gatekeeper;
+    use Gatekeeper, StaticComponentLookup;
 
     //******************************************************************************
     //* Constants
@@ -77,15 +78,15 @@ class AppKey extends EnterpriseModel implements OwnedEntity
         parent::boot();
 
         //  Fired before creating or updating...
-        static::saving(function ($row) {
+        static::saving(function ($row){
             static::enforceBusinessLogic($row);
 
-            if (null === $row->server_secret) {
+            if (empty($row->server_secret)) {
                 $row->server_secret = config('dfe.security.console-api-key', 'this-value-is-not-set');
             }
         });
 
-        static::creating(function ($row) {
+        static::creating(function ($row){
             if (empty($row->key_class_text)) {
                 $row->key_class_text = AppKeyClasses::OTHER;
             }
@@ -109,6 +110,8 @@ class AppKey extends EnterpriseModel implements OwnedEntity
         return $this->morphTo('owner', 'owner_type_nbr', 'owner_id');
     }
 
+    /** @inheritdoc */
+    /** @noinspection PhpMissingParentCallCommonInspection */
     public function getMorphClass()
     {
         return $this->owner_type_nbr;
@@ -205,41 +208,59 @@ class AppKey extends EnterpriseModel implements OwnedEntity
      * @param string     $keyClass
      * @param array      $fill Any extra attributes to update
      *
-     * @return bool|AppKey False if owner is not authorized or on error, otherwise the created AppKey model is returned
+     * @return bool|\DreamFactory\Enterprise\Database\Models\AppKey False if owner is not authorized or on error, otherwise the created AppKey model is returned
+     * @throws \Exception
      */
     protected static function _makeKey($ownerId, $ownerType, $keyClass, $fill = [])
     {
-        $_model = new static();
-        $_model->fill(array_merge($fill,
-            [
-                'owner_id'       => $ownerId,
-                'owner_type_nbr' => $ownerType,
-                'key_class_text' => $keyClass,
-            ]));
+        try {
+            return static::create(array_merge($fill,
+                [
+                    'owner_id'       => $ownerId,
+                    'owner_type_nbr' => $ownerType,
+                    'key_class_text' => $keyClass,
+                ]));
+        } catch (\Exception $_ex) {
+            \Log::error('Error creating app_key for ownerId ' . $ownerId);
+            throw $_ex;
+        }
+    }
 
-        if (!$_model->save()) {
-            throw new \LogicException('Key creation fail');
+    /**
+     * @param EnterpriseModel $entity
+     * @param int|null        $ownerType
+     *
+     * @return bool|\DreamFactory\Enterprise\Database\Models\AppKey return a new key for the $entity or false if the entity is not recognized
+     * @throws \Exception
+     */
+    public static function createKeyForEntity(EnterpriseModel $entity, $ownerType = null)
+    {
+        $_type = $ownerType ?: static::_getOwnerTypeFromEntity($entity);
+
+        if (null === $_type) {
+            /** @noinspection PhpUndefinedMethodInspection */
+            Log::error('Entity "' . get_class($entity) . '" has no associated OWNER TYPE.');
+
+            return false;
         }
 
-        return $_model;
+        $_ownerId = $entity->id;
+
+        $_key = static::_makeKey($_ownerId, $_type, AppKeyClasses::fromOwnerType($_type));
+        ($entity instanceof User) && $entity->update(['api_token_text' => $_key->client_id]);
+
+        return $_key;
     }
 
     /**
      * @param EnterpriseModel $entity
      *
      * @return bool|AppKey False if entity is not authorized otherwise the created AppKey model is returned
+     * @deprecated All calling code should use static::createKeyForEntity
      */
     public static function createKeyFromEntity(EnterpriseModel $entity)
     {
-        list($_ownerId, $_ownerType) = static::_getOwnerType($entity);
-
-        if (null === $_ownerId && null === $_ownerType) {
-            \Log::debug('authorization key NOT created for new row: ' . $entity->getTable());
-
-            return false;
-        }
-
-        return static::_makeKey($_ownerId, $_ownerType, AppKeyClasses::fromOwnerType($_ownerType));
+        return static::createKeyForEntity($entity);
     }
 
     /**
@@ -270,6 +291,15 @@ class AppKey extends EnterpriseModel implements OwnedEntity
     {
         //  Don't bother with archive or assignment tables
         if (!in_array(substr($entity->getTable(), -7), ['_asgn_t', '_arch_t'])) {
+            //  Try user/service_user first
+            if ($entity instanceof User) {
+                return [$entity->id, OwnerTypes::USER];
+            }
+
+            if ($entity instanceof ServiceUser) {
+                return [$entity->id, OwnerTypes::SERVICE_USER];
+            }
+
             //  Anything with owner and type get tagged
             if (isset($entity->owner_id, $entity->owner_type_nbr)) {
                 //  No owner to speak of...
@@ -308,13 +338,14 @@ class AppKey extends EnterpriseModel implements OwnedEntity
      * @param int $ownerId
      * @param int $ownerType
      *
-     * @return AppKey[]|Collection
+     * @return AppKey
      */
     public static function mine($ownerId, $ownerType)
     {
         return static::byOwner($ownerId, $ownerType)->first();
     }
 
+    /** @noinspection PhpMissingParentCallCommonInspection */
     /** @inheritdoc */
     protected static function enforceBusinessLogic($row)
     {
