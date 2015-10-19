@@ -193,8 +193,10 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public function servers()
     {
-        return $this->hasManyThrough(static::MODEL_NAMESPACE . 'InstanceServer', static::MODEL_NAMESPACE . 'Server',
-            'instance_id', 'server_id');
+        return $this->hasManyThrough(static::MODEL_NAMESPACE . 'InstanceServer',
+            static::MODEL_NAMESPACE . 'Server',
+            'instance_id',
+            'server_id');
     }
 
     /**
@@ -495,8 +497,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         //  Do we belong to a server?
         if ($this->belongsToServer($_server->id)) {
-            return 1 ==
-            InstanceServer::whereRaw('server_id = :server_id AND instance_id = :instance_id',
+            return 1 == InstanceServer::whereRaw('server_id = :server_id AND instance_id = :instance_id',
                 [':server_id' => $_server->id, ':instance_id' => $this->id])->delete();
         }
 
@@ -528,10 +529,11 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         /** @noinspection PhpUndefinedMethodInspection */
 
-        return 0 != InstanceServer::whereRaw('server_id = :server_id AND instance_id = :instance_id', [
-            ':server_id'   => $_server->id,
-            ':instance_id' => $this->id,
-        ])->count();
+        return 0 != InstanceServer::whereRaw('server_id = :server_id AND instance_id = :instance_id',
+            [
+                ':server_id'   => $_server->id,
+                ':instance_id' => $this->id,
+            ])->count();
     }
 
     /**
@@ -583,9 +585,9 @@ class Instance extends EnterpriseModel implements OwnedEntity
         }
 
         //	This replaces any disallowed characters with dashes
-        $_clean =
-            str_replace([' ', '_'], '-',
-                trim(str_replace('--', '-', preg_replace(static::CHARACTER_PATTERN, '-', $name)), ' -_'));
+        $_clean = str_replace([' ', '_'],
+            '-',
+            trim(str_replace('--', '-', preg_replace(static::CHARACTER_PATTERN, '-', $name)), ' -_'));
 
         //  Ensure non-admin user instances are prefixed
         if ($isAdmin) {
@@ -876,14 +878,15 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         $_cluster = static::_lookupCluster($instance->cluster_id);
 
-        $_md = new Metadata(array_merge(static::$metadataTemplate, [
-            'storage-map' => InstanceStorage::buildStorageMap($instance->user->storage_id_text),
-            'env'         => static::buildEnvironmentMetadata($instance, $_cluster, $_key),
-            'db'          => static::buildDatabaseMetadata($instance),
-            'paths'       => static::buildPathMetadata($instance),
-            'audit'       => static::buildAuditMetadata($instance),
-            'limits'      => static::buildLimitsMetadata($instance),
-        ]), $instance->instance_name_text . '.json', $instance->getOwnerPrivateStorageMount());
+        $_md = new Metadata(array_merge(static::$metadataTemplate,
+            [
+                'storage-map' => InstanceStorage::buildStorageMap($instance->user->storage_id_text),
+                'env'         => static::buildEnvironmentMetadata($instance, $_cluster, $_key),
+                'db'          => static::buildDatabaseMetadata($instance),
+                'paths'       => static::buildPathMetadata($instance),
+                'audit'       => static::buildAuditMetadata($instance),
+                'limits'      => static::buildLimitsMetadata($instance),
+            ]), $instance->instance_name_text . '.json', $instance->getOwnerPrivateStorageMount());
 
         return $object ? $_md : $_md->toArray();
     }
@@ -953,16 +956,19 @@ class Instance extends EnterpriseModel implements OwnedEntity
     public static function buildEnvironmentMetadata(Instance $instance, Cluster $cluster, AppKey $key = null)
     {
         return [
-            'cluster-id'       => $cluster->cluster_id_text,
-            'instance-id'      => $instance->instance_name_text,
-            'default-domain'   => $cluster->subdomain_text,
-            'signature-method' => config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
-            'storage-root'     => config('provisioning.storage-root',
+            'cluster-id'           => $cluster->cluster_id_text,
+            'instance-id'          => $instance->instance_name_text,
+            'default-domain'       => $cluster->subdomain_text,
+            'signature-method'     => config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
+            'storage-root'         => config('provisioning.storage-root',
                 EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH),
-            'console-api-url'  => config('dfe.security.console-api-url'),
-            'console-api-key'  => config('dfe.security.console-api-key'),
-            'client-id'        => $key ? $key->client_id : null,
-            'client-secret'    => $key ? $key->client_secret : null,
+            'console-api-url'      => config('dfe.security.console-api-url'),
+            'console-api-key'      => config('dfe.security.console-api-key'),
+            'client-id'            => $key ? $key->client_id : null,
+            'client-secret'        => $key ? $key->client_secret : null,
+            'audit-host'           => config('dfe.audit.host'),
+            'audit-port'           => config('dfe.audit.port'),
+            'audit-message-format' => config('dfe.audit.message-format'),
         ];
     }
 
@@ -1051,9 +1057,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
     public function generateToken()
     {
         $_md = $this->getMetadata(false, 'env');
-        $_token =
-            hash(config('dfe.signature-method', EnterpriseDefaults::SIGNATURE_METHOD),
-                $_md['cluster-id'] . $_md['instance-id']);
+        $_token = hash(config('dfe.signature-method', EnterpriseDefaults::SIGNATURE_METHOD),
+            $_md['cluster-id'] . $_md['instance-id']);
 
         //logger('generated token "' . $_token . '" for "' . $_hash . '"');
 
@@ -1096,15 +1101,19 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         !$_token && $_token = $this->generateToken();
 
-        $options['headers'] = array_merge(array_get($options, 'headers', []), [
-            EnterpriseDefaults::CONSOLE_X_HEADER => $_token,
-            'Content-Type'                       => 'application/json',
-            'Accept'                             => 'application/json',
-        ]);
+        $options['headers'] = array_merge(array_get($options, 'headers', []),
+            [
+                EnterpriseDefaults::CONSOLE_X_HEADER => $_token,
+                'Content-Type'                       => 'application/json',
+                'Accept'                             => 'application/json',
+            ]);
 
         try {
-            return $this->guzzleAny(Uri::segment([$this->getProvisionedEndpoint(), $uri], false), $payload, $options,
-                $method, $object);
+            return $this->guzzleAny(Uri::segment([$this->getProvisionedEndpoint(), $uri], false),
+                $payload,
+                $options,
+                $method,
+                $object);
         } catch (\Exception $_ex) {
             return false;
         }
