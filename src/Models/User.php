@@ -101,6 +101,9 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
 
         static::creating(function (User $model){
             $model->checkStorageKey();
+
+            //  Ensure user is active upon creation
+            $model->active_ind = true;
         });
 
         static::created(function (User $model){
