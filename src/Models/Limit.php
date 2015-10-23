@@ -45,7 +45,7 @@ class Limit extends EnterpriseModel
      */
     public function scopeByClusterInstance($query, $clusterId, $instanceId)
     {
-        return $query->whereRaw('(cluster_id = :cluster_id OR cluster_id IS NULL) AND (instance_id = :instance_id OR instance_id IS NULL)',
+        return $query->whereRaw('(cluster_id = :cluster_id OR cluster_id IS NULL) AND (instance_id = :instance_id OR instance_id IS NULL) AND active_ind = 1',
             [':cluster_id' => $clusterId, ':instance_id' => $instanceId]);
     }
 }
