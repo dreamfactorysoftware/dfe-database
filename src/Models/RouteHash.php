@@ -12,7 +12,7 @@ use Illuminate\Database\Query\Builder;
  * @property string $actual_path_text
  * @property string expireDate
  *
- * @method static \Illuminate\Database\Eloquent\Builder byHash(string $hash)
+ * @method static \Illuminate\Database\Eloquent\Builder byHash($hash)
  */
 class RouteHash extends EnterpriseModel
 {
