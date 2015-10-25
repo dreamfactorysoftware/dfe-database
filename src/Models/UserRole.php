@@ -3,8 +3,8 @@
 /**
  * user_role_asgn_t
  *
- * @property int user_id
- * @property int role_id
+ * @property int $user_id
+ * @property int $role_id
  */
 class UserRole extends EnterpriseModel
 {

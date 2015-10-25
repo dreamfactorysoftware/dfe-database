@@ -3,10 +3,10 @@
 /**
  * role_t
  *
- * @property string role_name_text
- * @property string description_text
- * @property bool   active_ind
- * @property string home_view_text
+ * @property string $role_name_text
+ * @property string $description_text
+ * @property bool   $active_ind
+ * @property string $home_view_text
  */
 class Role extends EnterpriseModel
 {

@@ -9,9 +9,9 @@ use Illuminate\Database\Query\Builder;
 /**
  * mount_t
  *
- * @property int    mount_type_nbr
- * @property string mount_id_text
- * @property string config_text
+ * @property int    $mount_type_nbr
+ * @property string $mount_id_text
+ * @property string $config_text
  *
  * @method static Builder|\Illuminate\Database\Eloquent\Builder byNameOrId(string $mountNameOrId)
  */
@@ -68,10 +68,8 @@ class Mount extends EnterpriseModel
      */
     public function scopeByNameOrId($query, $mountNameOrId)
     {
-        return $query->whereRaw(
-            'mount_id_text = :mount_id_text OR id = :id',
-            [':mount_id_text' => $mountNameOrId, ':id' => $mountNameOrId]
-        );
+        return $query->whereRaw('mount_id_text = :mount_id_text OR id = :id',
+            [':mount_id_text' => $mountNameOrId, ':id' => $mountNameOrId]);
     }
 
     /**
