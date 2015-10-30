@@ -9,11 +9,11 @@ use Illuminate\Database\Query\Builder;
 /**
  * mount_t
  *
- * @property int    $mount_type_nbr
- * @property string $mount_id_text
- * @property string $config_text
+ * @property int    mount_type_nbr
+ * @property string mount_id_text
+ * @property string config_text
  *
- * @method static Builder|\Illuminate\Database\Eloquent\Builder byNameOrId(string $mountNameOrId)
+ * @method static Builder|\Illuminate\Database\Eloquent\Builder byNameOrId($mountNameOrId)
  */
 class Mount extends EnterpriseModel
 {
@@ -91,12 +91,11 @@ class Mount extends EnterpriseModel
      * @param string $path
      * @param string $tag
      * @param array  $options
-     * @param bool   $nameOnly If true, the name of the disk is returned only
      *
      * @return \Illuminate\Contracts\Filesystem\Filesystem|string
      * @throws \DreamFactory\Enterprise\Database\Exceptions\MountException
      */
-    public function getFilesystem($path = null, $tag = null, $options = [], $nameOnly = false)
+    public function getFilesystem($path = null, $tag = null, $options = [])
     {
         $_diskName = null;
         $_mountConfig = $this->config_text;
@@ -106,23 +105,5 @@ class Mount extends EnterpriseModel
         }
 
         return Mounter::mount($_diskName, array_merge($options, ['prefix' => $path, 'tag' => $tag]));
-
-        //@todo Dynamically configured disk is not yet supported because of a config provider issue
-
-//        $_config = $_info;
-//
-//        if (!$_diskName && null === ($_diskName = array_get($_config, 'name'))) {
-//            $_diskName = 'mount-temp-' . microtime(true);
-//        }
-//
-//        !isset($_config['driver']) && $_config['driver'] = 'local';
-//        !isset($_config['path']) && isset($_config['root']) && $_config['path'] = $_config['root'];
-//        unset($_config['root'], $_config['name']);
-//
-//        if ($nameOnly) {
-//            return $_diskName;
-//        }
-//
-//        return Mounter::mount($_diskName, array_merge($_config, $options, ['prefix' => $path, 'tag' => $tag]));
     }
 }

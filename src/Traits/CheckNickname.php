@@ -17,28 +17,24 @@ trait CheckNickname
     public static function bootCheckNickname()
     {
         /** @noinspection PhpUndefinedMethodInspection */
-        static::creating(
-        /**
+        static::creating(/**
          * @var EnterpriseModel $model
          */
-            function ($model) {
+            function ($model){
                 if (isset($model->nickname_text) && empty($model->nickname_text)) {
                     $model->nickname_text = trim($model->first_name_text . ' ' . $model->last_name_text, '- ');
                 }
-            }
-        );
+            });
 
         /** @noinspection PhpUndefinedMethodInspection */
-        static::updating(
-        /**
+        static::updating(/**
          * @var EnterpriseModel $model
          */
-            function ($model) {
+            function ($model){
                 if (isset($model->nickname_text) && empty($model->nickname_text)) {
                     $model->nickname_text = trim($model->first_name_text . ' ' . $model->last_name_text, '- ');
                 }
-            }
-        );
+            });
     }
 
 }

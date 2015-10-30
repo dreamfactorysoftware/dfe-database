@@ -220,13 +220,11 @@ class OwnerTypes extends FactoryEnum
     {
         $_class =
             (false === strpos($class, '\\') && class_exists(static::_DEFAULT_NAMESPACE_ . '\\' . $class, false))
-                ? static::_DEFAULT_NAMESPACE_ . '\\' . $class
-                : $class;
+                ? static::_DEFAULT_NAMESPACE_ . '\\' . $class : $class;
 
         $_assoc =
             (false === strpos($assoc, '\\') && class_exists(static::_DEFAULT_NAMESPACE_ . '\\' . $assoc, false))
-                ? static::_DEFAULT_NAMESPACE_ . '\\' . $assoc
-                : $assoc;
+                ? static::_DEFAULT_NAMESPACE_ . '\\' . $assoc : $assoc;
 
         return [
             'associative-entity' => $_assoc,

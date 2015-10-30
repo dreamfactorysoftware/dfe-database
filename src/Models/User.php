@@ -17,6 +17,7 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use League\Flysystem\Adapter\Local;
@@ -28,32 +29,32 @@ use League\Flysystem\Filesystem;
  *
  * user_t table
  *
- * @property string $email_addr_text
- * @property string $password_text
- * @property string $remember_token
- * @property string $first_name_text
- * @property string $last_name_text
- * @property string $nickname_text
- * @property string $api_token_text
- * @property string $storage_id_text
- * @property string $external_id_text
- * @property string $external_password_text
- * @property int    $owner_id
- * @property int    $owner_type_nbr
- * @property string $company_name_text
- * @property string $title_text
- * @property string $city_text
- * @property string $state_province_text
- * @property string $country_text
- * @property string $postal_code_text
- * @property string $phone_text
- * @property int    $opt_in_ind
- * @property int    $agree_ind
- * @property string $last_login_date
- * @property string $last_login_ip_text
- * @property int    $admin_ind
- * @property int    $activate_ind
- * @property int    $active_ind
+ * @property string email_addr_text
+ * @property string password_text
+ * @property string remember_token
+ * @property string first_name_text
+ * @property string last_name_text
+ * @property string nickname_text
+ * @property string api_token_text
+ * @property string storage_id_text
+ * @property string external_id_text
+ * @property string external_password_text
+ * @property int    owner_id
+ * @property int    owner_type_nbr
+ * @property string company_name_text
+ * @property string title_text
+ * @property string city_text
+ * @property string state_province_text
+ * @property string country_text
+ * @property string postal_code_text
+ * @property string phone_text
+ * @property int    opt_in_ind
+ * @property int    agree_ind
+ * @property string last_login_date
+ * @property string last_login_ip_text
+ * @property int    admin_ind
+ * @property int    activate_ind
+ * @property int    active_ind
  *
  * @method static \Illuminate\Database\Eloquent\Builder byEmail($email)
  */
@@ -342,8 +343,9 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
 
         //  Create a user account
         try {
+            /** @type User $_user */
             $_user =
-                \DB::transaction(function () use ($request, $_first, $_last, $_email, $_password, $_nickname, $_phone, $_company){
+                DB::transaction(function () use ($request, $_first, $_last, $_email, $_password, $_nickname, $_phone, $_company){
                     /** @noinspection PhpUndefinedMethodInspection */
                     $_user = User::create([
                         'first_name_text'   => $_first,

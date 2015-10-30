@@ -1,5 +1,4 @@
-<?php
-namespace DreamFactory\Enterprise\Database\Traits;
+<?php namespace DreamFactory\Enterprise\Database\Traits;
 
 use DreamFactory\Enterprise\Common\Contracts\InstanceAware;
 use DreamFactory\Enterprise\Database\Exceptions\InstanceNotFoundException;

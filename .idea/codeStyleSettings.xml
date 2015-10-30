@@ -8,6 +8,6 @@
         </XML>
       </value>
     </option>
-    <option name="PREFERRED_PROJECT_CODE_STYLE" value="DreamFactory Standard" />
+    <option name="PREFERRED_PROJECT_CODE_STYLE" value="DF PSR-2" />
   </component>
 </project>
