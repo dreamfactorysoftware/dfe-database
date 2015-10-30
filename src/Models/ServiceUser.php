@@ -10,16 +10,17 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 /**
  * service_user_t
  *
- * @property string $first_name_text
- * @property string $last_name_text
- * @property string $nickname_text
- * @property string $email_addr_text
- * @property string $password_text
- * @property int    $owner_id
- * @property int    $owner_type_nbr
- * @property mixed  $last_login_date
- * @property string $last_login_ip_text
- * @property string $remember_token
+ * @property string first_name_text
+ * @property string last_name_text
+ * @property string nickname_text
+ * @property string email_addr_text
+ * @property string password_text
+ * @property string active_ind
+ * @property int    owner_id
+ * @property int    owner_type_nbr
+ * @property mixed  last_login_date
+ * @property string last_login_ip_text
+ * @property string remember_token
  */
 class ServiceUser extends EnterpriseModel implements AuthenticatableContract, CanResetPasswordContract
 {

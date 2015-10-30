@@ -208,7 +208,8 @@ class AppKey extends EnterpriseModel implements OwnedEntity
      * @param string     $keyClass
      * @param array      $fill Any extra attributes to update
      *
-     * @return bool|\DreamFactory\Enterprise\Database\Models\AppKey False if owner is not authorized or on error, otherwise the created AppKey model is returned
+     * @return bool|\DreamFactory\Enterprise\Database\Models\AppKey False if owner is not authorized or on error, otherwise the created AppKey model
+     *                                                              is returned
      * @throws \Exception
      */
     protected static function _makeKey($ownerId, $ownerType, $keyClass, $fill = [])

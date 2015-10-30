@@ -15,14 +15,12 @@ class InstanceNotActivatedException extends InstanceException
      * @param int        $code
      * @param \Exception $previous
      */
-    public function __construct( $instanceId, $message = null, $code = 403, \Exception $previous = null )
+    public function __construct($instanceId, $message = null, $code = 403, \Exception $previous = null)
     {
-        parent::__construct(
-            $instanceId,
+        parent::__construct($instanceId,
             $message ?: 'Instance "' . $instanceId . '" not activated.',
             $code,
-            $previous
-        );
+            $previous);
     }
 
 }

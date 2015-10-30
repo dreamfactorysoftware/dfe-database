@@ -20,13 +20,4 @@ interface OwnedEntity
      * @return BelongsTo|MorphTo|MorphToMany|BelongsToMany|mixed
      */
     public function owner();
-
-//    /**
-//     * @param Builder    $query
-//     * @param string|int $ownerId
-//     * @param string|int $ownerType
-//     *
-//     * @return mixed
-//     */
-//    public function scopeByOwner($query, $ownerId, $ownerType = null);
 }

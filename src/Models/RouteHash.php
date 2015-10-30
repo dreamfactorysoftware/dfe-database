@@ -5,12 +5,13 @@ use Illuminate\Database\Query\Builder;
 /**
  * route_hash_t
  *
- * @property int    $type_nbr
- * @property int    $mount_id
- * @property int    $snapshot_id
- * @property string $hash_text
- * @property string $actual_path_text
- * @property string expireDate
+ * @property int      type_nbr
+ * @property int      mount_id
+ * @property int      snapshot_id
+ * @property string   hash_text
+ * @property string   actual_path_text
+ * @property string   expireDate
+ * @property Snapshot snapshot
  *
  * @method static \Illuminate\Database\Eloquent\Builder byHash($hash)
  */

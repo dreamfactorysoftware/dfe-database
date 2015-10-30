@@ -1,8 +1,8 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
 /**
- * @property string $type_name_text
- * @property string $schema_text
+ * @property string type_name_text
+ * @property string schema_text
  */
 class ServerType extends EnterpriseModel
 {

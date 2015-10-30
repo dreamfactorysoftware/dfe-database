@@ -1,12 +1,10 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
-use Illuminate\Database\Query\Builder;
-
 /**
  * metrics_t
  *
- * @property array   $metrics_data_text
- * @property boolean $sent_ind
+ * @property array   metrics_data_text
+ * @property boolean sent_ind
  */
 class Metrics extends EnterpriseModel
 {

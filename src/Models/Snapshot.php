@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
 use League\Flysystem\ZipArchive\ZipArchiveAdapter;
@@ -14,19 +15,19 @@ use League\Flysystem\ZipArchive\ZipArchiveAdapter;
 /**
  * snapshot_t
  *
- * @property int    $user_id
- * @property int    $instance_id
- * @property int    $route_hash_id
- * @property string $snapshot_id_text
- * @property int    $public_ind
- * @property string $public_url_text
- * @property string $expire_date
+ * @property int    user_id
+ * @property int    instance_id
+ * @property int    route_hash_id
+ * @property string snapshot_id_text
+ * @property int    public_ind
+ * @property string public_url_text
+ * @property string expire_date
  *
- * @property User   $user
+ * @property User   user
  *
- * @method static Builder|EloquentBuilder byUserId(string $userId)
- * @method static Builder|EloquentBuilder fromHash(string $hash)
- * @method static Builder|EloquentBuilder bySnapshotId(string $snapshotId)
+ * @method static Builder|EloquentBuilder byUserId($userId)
+ * @method static Builder|EloquentBuilder fromHash($hash)
+ * @method static Builder|EloquentBuilder bySnapshotId($snapshotId)
  */
 class Snapshot extends EnterpriseModel
 {
@@ -171,7 +172,7 @@ class Snapshot extends EnterpriseModel
 
             throw new ModelNotFoundException();
         } catch (\Exception $_ex) {
-            \Log::error('route hash "' . $hash . '" not found: ' . $_ex->getMessage());
+            Log::error('route hash "' . $hash . '" not found: ' . $_ex->getMessage());
 
             abort(Response::HTTP_NOT_FOUND);
         }

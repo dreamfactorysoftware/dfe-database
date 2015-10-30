@@ -26,11 +26,11 @@ class InstanceException extends \RuntimeException
      * @param int       $code
      * @param Exception $previous
      */
-    public function __construct( $instanceId, $message = null, $code = 0, Exception $previous = null )
+    public function __construct($instanceId, $message = null, $code = 0, Exception $previous = null)
     {
         $this->_instanceId = $instanceId;
 
-        parent::__construct( $message, $code, $previous );
+        parent::__construct($message, $code, $previous);
     }
 
     /**

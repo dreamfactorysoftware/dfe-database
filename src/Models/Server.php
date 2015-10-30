@@ -1,20 +1,21 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Common\Enums\ServerTypes;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder;
 
 /**
  * server_t
  *
- * @property int    $server_type_id
- * @property string $server_id_text
- * @property int    $mount_id
- * @property string $host_text
- * @property array  $config_text
+ * @property int    server_type_id
+ * @property string server_id_text
+ * @property int    mount_id
+ * @property string host_text
+ * @property array  config_text
  *
- * @property Mount  $mount
+ * @property Mount  mount
  *
- * @method static Builder|\Illuminate\Database\Eloquent\Builder byNameOrId(string $nameOrId)
+ * @method static Builder|\Illuminate\Database\Eloquent\Builder byNameOrId($nameOrId)
  */
 class Server extends EnterpriseModel
 {
