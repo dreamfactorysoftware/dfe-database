@@ -30,8 +30,8 @@
   ],
   "minimum-stability": "dev",
   "require":           {
-    "dreamfactory/dfe-common":  "dev-develop as dev-master",
-    "dreamfactory/dfe-storage": "dev-develop as dev-master"
+    "dreamfactory/dfe-common":  "1.0.*",
+    "dreamfactory/dfe-storage": "1.0.*"
   },
   "require-dev":       {
     "phpunit/phpunit": "@stable",
