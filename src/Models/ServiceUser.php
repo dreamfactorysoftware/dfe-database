@@ -1,6 +1,7 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
+use DreamFactory\Enterprise\Database\Traits\CanHashEmailAddress;
 use DreamFactory\Enterprise\Database\Traits\CheckNickname;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use Illuminate\Auth\Authenticatable;
@@ -28,7 +29,7 @@ class ServiceUser extends EnterpriseModel implements AuthenticatableContract, Ca
     //* Traits
     //******************************************************************************
 
-    use Authenticatable, CheckNickname, KeyMaster;
+    use Authenticatable, CanHashEmailAddress, CheckNickname, KeyMaster;
 
     //******************************************************************************
     //* Members

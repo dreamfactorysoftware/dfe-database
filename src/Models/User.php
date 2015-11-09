@@ -7,6 +7,7 @@ use DreamFactory\Enterprise\Common\Packets\SuccessPacket;
 use DreamFactory\Enterprise\Common\Utility\UniqueId;
 use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\OwnerTypes;
+use DreamFactory\Enterprise\Database\Traits\CanHashEmailAddress;
 use DreamFactory\Enterprise\Database\Traits\CheckNickname;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use DreamFactory\Enterprise\Storage\Facades\InstanceStorage;
@@ -64,7 +65,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     //* Traits
     //******************************************************************************
 
-    use Authenticatable, KeyMaster, CheckNickname;
+    use Authenticatable, KeyMaster, CheckNickname, CanHashEmailAddress;
 
     //******************************************************************************
     //* Members
@@ -344,6 +345,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
         //  Create a user account
         try {
             /** @type User $_user */
+            /** @noinspection PhpUndefinedMethodInspection */
             $_user =
                 DB::transaction(function () use ($request, $_first, $_last, $_email, $_password, $_nickname, $_phone, $_company){
                     /** @noinspection PhpUndefinedMethodInspection */
