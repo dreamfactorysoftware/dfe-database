@@ -1097,9 +1097,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public function call($uri, $payload = [], $options = [], $method = Request::METHOD_POST, $object = true)
     {
-        static $_token;
-
-        !$_token && $_token = $this->generateToken();
+        $_token = $this->generateToken();
 
         $options['headers'] = array_merge(array_get($options, 'headers', []),
             [
