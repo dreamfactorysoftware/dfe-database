@@ -1,6 +1,7 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Common\Enums\ServerTypes;
+use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder;
 
@@ -19,6 +20,12 @@ use Illuminate\Database\Query\Builder;
  */
 class Server extends EnterpriseModel
 {
+    //******************************************************************************
+    //* Traits
+    //******************************************************************************
+
+    use EntityLookup;
+
     //******************************************************************************
     //* Members
     //******************************************************************************
@@ -83,11 +90,10 @@ class Server extends EnterpriseModel
      */
     public function removeFromCluster($clusterId)
     {
-        $_cluster = ($clusterId instanceof Cluster) ? $clusterId : $this->_getCluster($clusterId);
+        $_cluster = $this->findCluster($clusterId);
 
         if ($this->belongsToCluster($_cluster->id)) {
-            return 1 ==
-            ClusterServer::where('cluster_id', '=', $_cluster->id)->where('server_id', '=', $this->id)->delete();
+            return 1 == ClusterServer::where('cluster_id', '=', $_cluster->id)->where('server_id', '=', $this->id)->delete();
         }
 
         return false;
@@ -100,38 +106,25 @@ class Server extends EnterpriseModel
      */
     public function addToCluster($clusterId)
     {
-        //  This will fail if $clusterId is bogus
-        $this->removeFromCluster($_cluster = $this->_getCluster($clusterId));
+        $_cluster = $this->findCluster($clusterId);
 
-        return 1 == ClusterServer::insert(['cluster_id' => $_cluster->id, 'server_id' => $this->id]);
-    }
-
-    /**
-     * @param int|string $clusterId
-     *
-     * @return Cluster
-     */
-    protected function _getCluster($clusterId)
-    {
-        if (null === ($_cluster = Cluster::byNameOrId($clusterId)->first())) {
-            throw new \InvalidArgumentException('The cluster id "' . $clusterId . '" is invalid.');
+        if (!$this->belongsToCluster($_cluster->id)) {
+            return 1 == ClusterServer::insert(['cluster_id' => $_cluster->id, 'server_id' => $this->id]);
         }
 
-        return $_cluster;
+        return false;
     }
 
     /**
-     * @param int|string $clusterId
+     * @param int $clusterId
      *
      * @return bool True if this instance
      */
     public function belongsToCluster($clusterId)
     {
-        $_cluster = $this->_getCluster($clusterId);
-
         return 0 != ClusterServer::whereRaw('cluster_id = :cluster_id AND server_id = :server_id',
             [
-                ':cluster_id' => $_cluster->id,
+                ':cluster_id' => $clusterId,
                 ':server_id'  => $this->id,
             ])->count();
     }

@@ -63,6 +63,7 @@ use League\Flysystem\Filesystem;
  * @property Server        $appServer
  * @property Server        $dbServer
  * @property Server        $webServer
+ * @property Cluster       cluster
  *
  * @method static Builder|EloquentBuilder instanceName($instanceName)
  * @method static Builder|EloquentBuilder byNameOrId($instanceNameOrId)
@@ -137,20 +138,20 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         static::buildMetadataTemplate();
 
-        static::creating(function (Instance $instance){
+        static::creating(function (Instance $instance) {
             $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
             $instance->checkStorageKey();
         });
 
-        static::created(function (Instance $instance){
+        static::created(function (Instance $instance) {
             $instance->refreshMetadata();
         });
 
-        static::updating(function (Instance $instance){
+        static::updating(function (Instance $instance) {
             $instance->refreshMetadata();
         });
 
-        static::deleted(function (Instance $instance){
+        static::deleted(function (Instance $instance) {
             AppKey::byOwner($instance->id, OwnerTypes::INSTANCE)->delete();
         });
     }
