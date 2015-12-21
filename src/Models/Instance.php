@@ -987,8 +987,13 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         $_api_array = [];
 
+        // Added label_text so the instance can identify which limit was triggered in the 429 message
+
         foreach ($_limits as $_limit) {
-            $_api_array[$_limit->limit_key_text] = ['limit' => $_limit->limit_nbr, 'period' => $_limit->period_nbr];
+            $_api_array[$_limit->limit_key_text] = [
+                'limit'  => $_limit->limit_nbr,
+                'period' => $_limit->period_nbr,
+                'name'   => $_limit->label_text];
         }
 
         // In the future, there could be additional keys, such as 'bandwidth' or 'storage'
