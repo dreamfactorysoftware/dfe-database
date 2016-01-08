@@ -13,15 +13,14 @@ use DreamFactory\Enterprise\Database\Traits\CheckNickname;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use DreamFactory\Enterprise\Storage\Facades\InstanceStorage;
 use DreamFactory\Library\Utility\Disk;
+use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
 
@@ -316,7 +315,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      * @param \Illuminate\Http\Request $request
      * @param bool                     $validate If false, no validation is done.
      *
-     * @return \DreamFactory\Enterprise\Common\Packets\ErrorPacket|\DreamFactory\Enterprise\Common\Packets\SuccessPacket
+     * @return \DreamFactory\Enterprise\Common\Packets\ErrorPacket|\DreamFactory\Enterprise\Common\Packets\SuccessPacket|static
      */
     public static function register(Request $request, $validate = true)
     {
@@ -335,18 +334,17 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      * @param ConsoleCommand|array $command
      * @param bool                 $validate If false, no validation is done.
      *
-     * @return \DreamFactory\Enterprise\Common\Packets\ErrorPacket|\DreamFactory\Enterprise\Common\Packets\SuccessPacket
-     * @internal param \Illuminate\Http\Request $request
+     * @return static
      */
     public static function artisanRegister($command, $validate = true)
     {
         $_message = null;
 
         if (false === ($_user = static::doRegister(array_merge($command->argument(), $command->option()), $validate, $_message))) {
-            return $validate ? ErrorPacket::create(null, Response::HTTP_INTERNAL_SERVER_ERROR, $_message) : null;
+            throw new \RuntimeException($_message);
         }
 
-        return $validate ? SuccessPacket::create($_user, Response::HTTP_CREATED) : $_user;
+        return $_user;
     }
 
     /**
@@ -357,6 +355,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      * @param string|null $errorMessage Any error message returned
      *
      * @return \DreamFactory\Enterprise\Common\Packets\ErrorPacket|\DreamFactory\Enterprise\Common\Packets\SuccessPacket
+     * @throws \Exception
      */
     protected static function doRegister(array $data, $validate = true, &$errorMessage = null)
     {
@@ -367,18 +366,17 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
         $_nickname = array_get($data, 'nickname', array_get($data, 'nickname_text'));
         $_company = array_get($data, 'company', array_get($data, 'company_name_text'));
         $_phone = array_get($data, 'phone', array_get($data, 'phone_text'));
+        $_active = IfSet::getBool($data, 'active', IfSet::getBool($data, 'active_ind', true));
 
         if ($validate) {
             if (empty($_email) || empty($_password) || empty($_first) || empty($_last)) {
-                /** @noinspection PhpUndefinedMethodInspection */
-                Log::error('missing required fields from partner post', $data);
+                \Log::error('[user.register] incomplete request', $data);
 
                 throw new \InvalidArgumentException('Missing required fields');
             }
 
             if (false === filter_var($_email, FILTER_VALIDATE_EMAIL)) {
-                /** @noinspection PhpUndefinedMethodInspection */
-                Log::error('invalid email address "' . $_email . '"', $data);
+                \Log::error('[user.register] invalid email address', $data);
 
                 throw new \InvalidArgumentException('Email address invalid');
             }
@@ -386,27 +384,27 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
 
         //  See if we know this cat...
         if (null !== ($_user = User::byEmail($_email)->first())) {
-            //  Existing user found, don't add to database...
-            \Log::notice('Existing user registration attempt', $_user->toArray());
+            //  Existing user found!
+            \Log::notice('[user.register] existing user registration attempt', ['request' => $data, 'existing' => $_user->toArray()]);
 
-            return $_user;
+            throw new \InvalidArgumentException('Email address already registered.');
         }
+
+        $_attributes = [
+            'first_name_text'   => $_first,
+            'last_name_text'    => $_last,
+            'email_addr_text'   => $_email,
+            'nickname_text'     => $_nickname,
+            'password_text'     => Hash::make($_password),
+            'phone_text'        => $_phone,
+            'company_name_text' => $_company,
+            'active_ind'        => $_active,
+        ];
 
         //  Create a user account
         try {
-            /** @type User $_user */
-            /** @noinspection PhpUndefinedMethodInspection */
-            $_user = DB::transaction(function() use ($_first, $_last, $_email, $_password, $_nickname, $_phone, $_company) {
-                /** @noinspection PhpUndefinedMethodInspection */
-                $_user = User::create([
-                    'first_name_text'   => $_first,
-                    'last_name_text'    => $_last,
-                    'email_addr_text'   => $_email,
-                    'nickname_text'     => $_nickname,
-                    'password_text'     => Hash::make($_password),
-                    'phone_text'        => $_phone,
-                    'company_name_text' => $_company,
-                ]);
+            $_user = \DB::transaction(function() use ($_attributes) {
+                $_user = User::create($_attributes);
 
                 if (null === ($_appKey = AppKey::mine($_user->id, OwnerTypes::USER))) {
                     $_appKey = AppKey::create([
@@ -425,17 +423,17 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
                 return $_user;
             });
 
-            \Log::info('New user registered', $_user->toArray());
+            \Log::info('[user.register] new registration', $_user->toArray());
 
             return $_user;
         } catch (\Exception $_ex) {
-            if (false !== ($_pos = stripos($_message = $_ex->getMessage(), ' (sql: '))) {
-                $_message = substr($_message, 0, $_pos);
+            if (false !== ($_pos = stripos($errorMessage = $_ex->getMessage(), ' (sql: '))) {
+                $errorMessage = substr($errorMessage, 0, $_pos);
             }
 
-            \Log::error('Database error creating user: ' . $_message, $data);
+            \Log::error('[user.register] database error creating user: ' . $errorMessage, $data);
 
-            return false;
+            throw $_ex;
         }
     }
 }
