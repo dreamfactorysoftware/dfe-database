@@ -20,7 +20,6 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Hash;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
 
@@ -187,10 +186,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      */
     public function scopeByIdOrEmail($query, $emailOrId)
     {
-        return
-            is_numeric($emailOrId)
-                ? $query->where('id', $emailOrId)
-                : $query->where('email_addr_text', $emailOrId);
+        return is_numeric($emailOrId) ? $query->where('id', $emailOrId) : $query->where('email_addr_text', $emailOrId);
     }
 
     /**
@@ -338,9 +334,11 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      */
     public static function artisanRegister($command, $validate = true)
     {
-        $_message = null;
+        $_data = $command instanceof ConsoleCommand
+            ? array_merge($command->argument(), $command->option())
+            : (is_array($command) ? $command : []);
 
-        if (false === ($_user = static::doRegister(array_merge($command->argument(), $command->option()), $validate, $_message))) {
+        if (false === ($_user = static::doRegister($_data, $validate, $_message))) {
             throw new \RuntimeException($_message);
         }
 
@@ -395,7 +393,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
             'last_name_text'    => $_last,
             'email_addr_text'   => $_email,
             'nickname_text'     => $_nickname,
-            'password_text'     => Hash::make($_password),
+            'password_text'     => \Hash::make($_password),
             'phone_text'        => $_phone,
             'company_name_text' => $_company,
             'active_ind'        => $_active,
