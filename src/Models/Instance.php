@@ -22,6 +22,7 @@ use DreamFactory\Library\Utility\Uri;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use League\Flysystem\Filesystem;
 
 /**
@@ -92,7 +93,11 @@ class Instance extends EnterpriseModel implements OwnedEntity
     /**
      * @type string
      */
-    const HOST_NAME_PATTERN = "/^([a-zA-Z0-9])+$/";
+    const HOST_NAME_PATTERN = "/^([a-zA-Z0-9_])+$/";
+    /**
+     * @type int The number of minutes to cache stuff
+     */
+    const DEFAULT_CACHE_TTL = 5;
 
     //******************************************************************************
     //* Members
@@ -138,20 +143,20 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         static::buildMetadataTemplate();
 
-        static::creating(function (Instance $instance) {
+        static::creating(function(Instance $instance) {
             $instance->instance_name_text = $instance->sanitizeName($instance->instance_name_text);
             $instance->checkStorageKey();
         });
 
-        static::created(function (Instance $instance) {
+        static::created(function(Instance $instance) {
             $instance->refreshMetadata();
         });
 
-        static::updating(function (Instance $instance) {
+        static::updating(function(Instance $instance) {
             $instance->refreshMetadata();
         });
 
-        static::deleted(function (Instance $instance) {
+        static::deleted(function(Instance $instance) {
             AppKey::byOwner($instance->id, OwnerTypes::INSTANCE)->delete();
         });
     }
@@ -576,24 +581,19 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public static function sanitizeName($name, $isAdmin = false)
     {
-        static $_sanitized = [];
-        static $_unavailableNames = null;
+        $_sanitized = Cache::get('dfe.instance.sanitized', []);
 
         if (isset($_sanitized[$name])) {
-            //\Log::debug( '>>> sanitize skipped' );
-
             return $_sanitized[$name];
         }
 
         //	This replaces any disallowed characters with dashes
-        $_clean = str_replace([' ', '_'],
-            '-',
-            trim(str_replace('--', '-', preg_replace(static::CHARACTER_PATTERN, '-', $name)), ' -_'));
+        $_clean = str_replace([' ', '_'], '-', trim(str_replace('--', '-', preg_replace(static::CHARACTER_PATTERN, '-', $name)), ' -_'));
 
         //  Ensure non-admin user instances are prefixed
-        if ($isAdmin) {
-            $_prefix = null;
-        } else {
+        $_prefix = null;
+
+        if (!$isAdmin) {
             $_prefix = function_exists('config') ? config('dfe.instance-prefix') : 'dfe-';
 
             if ($_prefix != substr($_clean, 0, strlen($_prefix))) {
@@ -601,31 +601,47 @@ class Instance extends EnterpriseModel implements OwnedEntity
             }
         }
 
-        if (null === $_unavailableNames && function_exists('config')) {
-            $_unavailableNames = config('forbidden-names', []);
-
-            if (!is_array($_unavailableNames) || empty($_unavailableNames)) {
-                $_unavailableNames = [];
-            }
-        }
-
-        if (in_array($_clean, $_unavailableNames)) {
-            \Log::error('Attempt to register forbidden instance name: ' . $name . ' => ' . $_clean);
+        if (static::isVerboten($_clean)) {
+            \Log::error('[sanitizer] forbidden name: ' . $name . ' => ' . $_clean);
 
             return false;
         }
 
         //	Check host name
         if (preg_match(static::HOST_NAME_PATTERN, $_clean)) {
-            \Log::notice('Non-standard instance name "' . $_clean . '" being provisioned');
+            \Log::info('[sanitizer] non-standard name allowed: "' . $_clean . '"');
         }
 
         //  Cache it...
         $_sanitized[$name] = $_clean;
 
-        //\Log::debug( '>>> sanitized "' . $name . '" to "' . $_clean . '"' );
+        Cache::put('dfe.instance.sanitized', $_sanitized, static::DEFAULT_CACHE_TTL);
 
         return $_clean;
+    }
+
+    /**
+     * Tests if an instance name is allowed
+     *
+     * @param string $name
+     *
+     * @return bool
+     */
+    protected static function isVerboten($name)
+    {
+        $_unavailableNames = Cache::get('dfe.instance.forbidden-names', []);
+
+        if (empty($_unavailableNames) && function_exists('config')) {
+            $_unavailableNames = config('forbidden-names', []);
+
+            if (!is_array($_unavailableNames) || empty($_unavailableNames)) {
+                $_unavailableNames = [];
+            }
+
+            Cache::put('dfe.instance.forbidden-names', $_unavailableNames, static::DEFAULT_CACHE_TTL);
+        }
+
+        return in_array($name, $_unavailableNames);
     }
 
     /**
@@ -993,7 +1009,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
             $_api_array[$_limit->limit_key_text] = [
                 'limit'  => $_limit->limit_nbr,
                 'period' => $_limit->period_nbr,
-                'name'   => $_limit->label_text];
+                'name'   => $_limit->label_text,
+            ];
         }
 
         // In the future, there could be additional keys, such as 'bandwidth' or 'storage'
@@ -1010,8 +1027,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     protected static function buildConnectionArray(Instance $instance)
     {
         return [
-            'id'                    => $instance->dbServer ? $instance->dbServer->server_id_text
-                : $instance->db_server_id,
+            'id'                    => $instance->dbServer ? $instance->dbServer->server_id_text : $instance->db_server_id,
             'host'                  => $instance->db_host_text,
             'port'                  => $instance->db_port_nbr,
             'username'              => $instance->db_user_text,
@@ -1022,8 +1038,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
             'charset'               => 'utf8',
             'collation'             => 'utf8_unicode_ci',
             'prefix'                => '',
-            'db-server-id'          => $instance->dbServer ? $instance->dbServer->server_id_text
-                : $instance->db_server_id,
+            'db-server-id'          => $instance->dbServer ? $instance->dbServer->server_id_text : $instance->db_server_id,
         ];
     }
 
@@ -1083,9 +1098,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     {
         static $_prefix;
 
-        !$_prefix &&
-        $_prefix =
-            config('provisioners.hosts.' . GuestLocations::resolve($this->guest_location_nbr) . '.resource-prefix');
+        !$_prefix && $_prefix = config('provisioners.hosts.' . GuestLocations::resolve($this->guest_location_nbr) . '.resource-prefix');
 
         return $this->call(Uri::segment([$_prefix, $resource]), $payload, $options, $method);
     }
