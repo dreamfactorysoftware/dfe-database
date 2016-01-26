@@ -334,9 +334,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      */
     public static function artisanRegister($command, $validate = true)
     {
-        $_data = $command instanceof ConsoleCommand
-            ? array_merge($command->argument(), $command->option())
-            : (is_array($command) ? $command : []);
+        $_data = $command instanceof ConsoleCommand ? array_merge($command->argument(), $command->option()) : (is_array($command) ? $command : []);
 
         if (false === ($_user = static::doRegister($_data, $validate, $_message))) {
             throw new \RuntimeException($_message);

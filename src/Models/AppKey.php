@@ -78,7 +78,7 @@ class AppKey extends EnterpriseModel implements OwnedEntity
         parent::boot();
 
         //  Fired before creating or updating...
-        static::saving(function ($row){
+        static::saving(function($row) {
             static::enforceBusinessLogic($row);
 
             if (empty($row->server_secret)) {
@@ -86,7 +86,7 @@ class AppKey extends EnterpriseModel implements OwnedEntity
             }
         });
 
-        static::creating(function ($row){
+        static::creating(function($row) {
             if (empty($row->key_class_text)) {
                 $row->key_class_text = AppKeyClasses::OTHER;
             }
@@ -111,7 +111,6 @@ class AppKey extends EnterpriseModel implements OwnedEntity
     }
 
     /** @inheritdoc */
-    /** @noinspection PhpMissingParentCallCommonInspection */
     public function getMorphClass()
     {
         return $this->owner_type_nbr;
@@ -222,7 +221,7 @@ class AppKey extends EnterpriseModel implements OwnedEntity
                     'key_class_text' => $keyClass,
                 ]));
         } catch (\Exception $_ex) {
-            \Log::error('Error creating app_key for ownerId ' . $ownerId);
+            Log::error('Error creating app_key for ownerId ' . $ownerId);
             throw $_ex;
         }
     }
@@ -239,7 +238,6 @@ class AppKey extends EnterpriseModel implements OwnedEntity
         $_type = $ownerType ?: static::_getOwnerTypeFromEntity($entity);
 
         if (null === $_type) {
-            /** @noinspection PhpUndefinedMethodInspection */
             Log::error('Entity "' . get_class($entity) . '" has no associated OWNER TYPE.');
 
             return false;

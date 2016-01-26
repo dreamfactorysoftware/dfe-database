@@ -7,6 +7,7 @@ use Illuminate\Database\Query\Builder;
  *
  * @property integer $cluster_id
  * @property integer $instance_id
+ * @property integer $limit_type_nbr
  * @property string  $limit_key_text
  * @property integer $limit_nbr
  * @property integer $period_nbr
@@ -25,11 +26,12 @@ class Limit extends EnterpriseModel
     protected $table = 'limit_t';
     /** @inheritdoc */
     protected $casts = [
-        'cluster_id'  => 'integer',
-        'instance_id' => 'integer',
-        'limit_nbr'   => 'integer',
-        'period_nbr'  => 'integer',
-        'active_ind'  => 'boolean',
+        'cluster_id'     => 'integer',
+        'instance_id'    => 'integer',
+        'limit_type_nbr' => 'integer',
+        'limit_nbr'      => 'integer',
+        'period_nbr'     => 'integer',
+        'active_ind'     => 'boolean',
     ];
 
     //******************************************************************************
