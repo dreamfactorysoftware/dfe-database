@@ -62,11 +62,11 @@ class ServiceUser extends EnterpriseModel implements AuthenticatableContract, Ca
         parent::boot();
 
         //  Ensure user is active upon creation
-        static::creating(function (ServiceUser $model){
+        static::creating(function(ServiceUser $model) {
             $model->active_ind = true;
         });
 
-        static::created(function (ServiceUser $model){
+        static::created(function(ServiceUser $model) {
             AppKey::createKeyForEntity($model, OwnerTypes::SERVICE_USER);
         });
     }

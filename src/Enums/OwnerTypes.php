@@ -1,6 +1,6 @@
 <?php namespace DreamFactory\Enterprise\Database\Enums;
 
-use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
+use DreamFactory\Enterprise\Common\Traits\StaticEntityLookup;
 use DreamFactory\Enterprise\Database\Models\Cluster;
 use DreamFactory\Enterprise\Database\Models\EnterpriseModel;
 use DreamFactory\Enterprise\Database\Models\Instance;
@@ -22,7 +22,7 @@ class OwnerTypes extends FactoryEnum
     //* Traits
     //******************************************************************************
 
-    use StaticComponentLookup;
+    use StaticEntityLookup;
 
     //******************************************************************************
     //* Constants
@@ -98,11 +98,12 @@ class OwnerTypes extends FactoryEnum
      */
     public static function getOwner($ownerId, &$ownerType)
     {
-        $_message = 'The owner id "' . $ownerType . ':' . $ownerId . '" could not be found.';
+        $_message = 'The owner "' . $ownerType . ':' . $ownerId . '" could not be found.';
 
+        //  Force numeric
         if (!is_numeric($ownerType)) {
             try {
-                $ownerType = OwnerTypes::defines(strtoupper($ownerType), true);
+                $ownerType = static::resolve(strtoupper($ownerType));
             } catch (\InvalidArgumentException $_ex) {
                 //  Force a FAIL
                 $ownerId = $ownerType = -1;
@@ -118,26 +119,32 @@ class OwnerTypes extends FactoryEnum
             return $_owner;
         }
 
-        //  And the rest have models
-        //  @todo make more dynamic so new constants don't require new lookup switch cases
+        //  Try a dynamic lookup
+        $_ownerClass = 'find' . str_replace('_', null, title_case(static::toConstant($ownerType)));
+
+        if (method_exists(__CLASS__, $_ownerClass)) {
+            return call_user_func([__CLASS__, $_ownerClass], $ownerId);
+        }
+
+        //  And the rest have built-ins
         switch ($ownerType) {
             case static::USER:
-                return static::_lookupUser($ownerId);
+                return static::findUser($ownerId);
 
             case static::SERVICE_USER:
-                return static::_lookupServiceUser($ownerId);
+                return static::findServiceUser($ownerId);
 
             case static::MOUNT:
-                return static::_lookupMount($ownerId);
+                return static::findMount($ownerId);
 
             case static::INSTANCE:
-                return static::_lookupInstance($ownerId);
+                return static::findInstance($ownerId);
 
             case static::SERVER:
-                return static::_lookupServer($ownerId);
+                return static::findServer($ownerId);
 
             case static::CLUSTER:
-                return static::_lookupCluster($ownerId);
+                return static::findCluster($ownerId);
         }
 
         throw new ModelNotFoundException($_message);
@@ -219,12 +226,12 @@ class OwnerTypes extends FactoryEnum
     protected static function _buildOwnerMapping($type, $class, $classKey, $assoc = false, $foreignKey = false)
     {
         $_class =
-            (false === strpos($class, '\\') && class_exists(static::_DEFAULT_NAMESPACE_ . '\\' . $class, false))
-                ? static::_DEFAULT_NAMESPACE_ . '\\' . $class : $class;
+            (false === strpos($class, '\\') && class_exists(static::_DEFAULT_NAMESPACE_ . '\\' . $class, false)) ? static::_DEFAULT_NAMESPACE_ . '\\' . $class
+                : $class;
 
         $_assoc =
-            (false === strpos($assoc, '\\') && class_exists(static::_DEFAULT_NAMESPACE_ . '\\' . $assoc, false))
-                ? static::_DEFAULT_NAMESPACE_ . '\\' . $assoc : $assoc;
+            (false === strpos($assoc, '\\') && class_exists(static::_DEFAULT_NAMESPACE_ . '\\' . $assoc, false)) ? static::_DEFAULT_NAMESPACE_ . '\\' . $assoc
+                : $assoc;
 
         return [
             'associative-entity' => $_assoc,

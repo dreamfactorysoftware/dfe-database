@@ -1,5 +1,6 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 
 /**
@@ -73,5 +74,16 @@ class Deactivation extends EnterpriseModel
         }
 
         return $query;
+    }
+
+    /**
+     * @param Builder            $query
+     * @param null|string|Carbon $asOfDate
+     *
+     * @return Builder
+     */
+    public static function scopeExpired($query, $asOfDate = null)
+    {
+        return $query->where('activate_by_date', '<', $asOfDate ?: Carbon::now());
     }
 }

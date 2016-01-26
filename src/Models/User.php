@@ -1,5 +1,6 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
+use DreamFactory\Enterprise\Common\Commands\ConsoleCommand;
 use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Common\Packets\ErrorPacket;
@@ -12,15 +13,13 @@ use DreamFactory\Enterprise\Database\Traits\CheckNickname;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use DreamFactory\Enterprise\Storage\Facades\InstanceStorage;
 use DreamFactory\Library\Utility\Disk;
+use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
 
@@ -101,14 +100,14 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     {
         parent::boot();
 
-        static::creating(function (User $model){
+        static::creating(function(User $model) {
             $model->checkStorageKey();
 
             //  Ensure user is active upon creation
             $model->active_ind = true;
         });
 
-        static::created(function (User $model){
+        static::created(function(User $model) {
             AppKey::createKeyForEntity($model, OwnerTypes::USER);
         });
     }
@@ -177,6 +176,17 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     public function scopeByEmail($query, $email)
     {
         return $query->where('email_addr_text', $email);
+    }
+
+    /**
+     * @param Builder $query
+     * @param string  $email
+     *
+     * @return Builder
+     */
+    public function scopeByIdOrEmail($query, $emailOrId)
+    {
+        return is_numeric($emailOrId) ? $query->where('id', $emailOrId) : $query->where('email_addr_text', $emailOrId);
     }
 
     /**
@@ -296,35 +306,73 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     }
 
     /**
-     * Standardized user creation method
+     * Easy registration from Request
      *
      * @param \Illuminate\Http\Request $request
      * @param bool                     $validate If false, no validation is done.
      *
-     * @return \DreamFactory\Enterprise\Common\Packets\ErrorPacket|\DreamFactory\Enterprise\Common\Packets\SuccessPacket
+     * @return \DreamFactory\Enterprise\Common\Packets\ErrorPacket|\DreamFactory\Enterprise\Common\Packets\SuccessPacket|static
      */
     public static function register(Request $request, $validate = true)
     {
-        $_email = $request->input('email', $request->input('email_addr_text'));
-        $_first = $request->input('firstname', $request->input('first_name_text'));
-        $_last = $request->input('lastname', $request->input('last_name_text'));
-        $_password = $request->input('password', $request->input('password_text'));
+        $_message = null;
 
-        $_nickname = $request->input('nickname', $request->input('nickname_text', $_first));
-        $_company = $request->input('company', $request->input('company_name_text'));
-        $_phone = $request->input('phone', $request->input('phone_text'));
+        if (false === ($_user = static::doRegister($request->input(), $validate, $_message))) {
+            return $validate ? ErrorPacket::create(null, Response::HTTP_INTERNAL_SERVER_ERROR, $_message) : null;
+        }
+
+        return $validate ? SuccessPacket::create($_user, Response::HTTP_CREATED) : $_user;
+    }
+
+    /**
+     * Easy registration from Request
+     *
+     * @param ConsoleCommand|array $command
+     * @param bool                 $validate If false, no validation is done.
+     *
+     * @return static
+     */
+    public static function artisanRegister($command, $validate = true)
+    {
+        $_data = $command instanceof ConsoleCommand ? array_merge($command->argument(), $command->option()) : (is_array($command) ? $command : []);
+
+        if (false === ($_user = static::doRegister($_data, $validate, $_message))) {
+            throw new \RuntimeException($_message);
+        }
+
+        return $_user;
+    }
+
+    /**
+     * Standardized user creation method
+     *
+     * @param array       $data
+     * @param bool        $validate     If false, no validation is done.
+     * @param string|null $errorMessage Any error message returned
+     *
+     * @return \DreamFactory\Enterprise\Common\Packets\ErrorPacket|\DreamFactory\Enterprise\Common\Packets\SuccessPacket
+     * @throws \Exception
+     */
+    protected static function doRegister(array $data, $validate = true, &$errorMessage = null)
+    {
+        $_email = array_get($data, 'email', array_get($data, 'email_addr_text'));
+        $_first = array_get($data, 'first-name', array_get($data, 'first_name_text'));
+        $_last = array_get($data, 'last-name', array_get($data, 'last_name_text'));
+        $_password = array_get($data, 'password', array_get($data, 'password_text'));
+        $_nickname = array_get($data, 'nickname', array_get($data, 'nickname_text'));
+        $_company = array_get($data, 'company', array_get($data, 'company_name_text'));
+        $_phone = array_get($data, 'phone', array_get($data, 'phone_text'));
+        $_active = IfSet::getBool($data, 'active', IfSet::getBool($data, 'active_ind', true));
 
         if ($validate) {
             if (empty($_email) || empty($_password) || empty($_first) || empty($_last)) {
-                /** @noinspection PhpUndefinedMethodInspection */
-                Log::error('missing required fields from partner post', ['payload' => $request->input()]);
+                \Log::error('[user.register] incomplete request', $data);
 
                 throw new \InvalidArgumentException('Missing required fields');
             }
 
             if (false === filter_var($_email, FILTER_VALIDATE_EMAIL)) {
-                /** @noinspection PhpUndefinedMethodInspection */
-                Log::error('invalid email address "' . $_email . '"', ['payload' => $request->input()]);
+                \Log::error('[user.register] invalid email address', $data);
 
                 throw new \InvalidArgumentException('Email address invalid');
             }
@@ -332,66 +380,56 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
 
         //  See if we know this cat...
         if (null !== ($_user = User::byEmail($_email)->first())) {
-            //  Existing user found, don't add to database...
-            $_values = $_user->toArray();
-            unset($_values['password_text'], $_values['external_password_text']);
+            //  Existing user found!
+            \Log::notice('[user.register] existing user registration attempt', ['request' => $data, 'existing' => $_user->toArray()]);
 
-            /** @noinspection PhpUndefinedMethodInspection */
-            Log::info('existing user attempting registration through api', ['user' => $_values]);
-
-            return $_user;
+            throw new \InvalidArgumentException('Email address already registered.');
         }
+
+        $_attributes = [
+            'first_name_text'   => $_first,
+            'last_name_text'    => $_last,
+            'email_addr_text'   => $_email,
+            'nickname_text'     => $_nickname,
+            'password_text'     => \Hash::make($_password),
+            'phone_text'        => $_phone,
+            'company_name_text' => $_company,
+            'active_ind'        => $_active,
+        ];
 
         //  Create a user account
         try {
-            /** @type User $_user */
-            /** @noinspection PhpUndefinedMethodInspection */
-            $_user =
-                DB::transaction(function () use ($request, $_first, $_last, $_email, $_password, $_nickname, $_phone, $_company){
-                    /** @noinspection PhpUndefinedMethodInspection */
-                    $_user = User::create([
-                        'first_name_text'   => $_first,
-                        'last_name_text'    => $_last,
-                        'email_addr_text'   => $_email,
-                        'nickname_text'     => $_nickname,
-                        'password_text'     => Hash::make($_password),
-                        'phone_text'        => $_phone,
-                        'company_name_text' => $_company,
+            $_user = \DB::transaction(function() use ($_attributes) {
+                $_user = User::create($_attributes);
+
+                if (null === ($_appKey = AppKey::mine($_user->id, OwnerTypes::USER))) {
+                    $_appKey = AppKey::create([
+                        'key_class_text' => AppKeyClasses::USER,
+                        'owner_id'       => $_user->id,
+                        'owner_type_nbr' => OwnerTypes::USER,
+                        'server_secret'  => config('dfe.security.console-api-key'),
                     ]);
+                }
 
-                    if (null === ($_appKey = AppKey::mine($_user->id, OwnerTypes::USER))) {
-                        $_appKey = AppKey::create([
-                            'key_class_text' => AppKeyClasses::USER,
-                            'owner_id'       => $_user->id,
-                            'owner_type_nbr' => OwnerTypes::USER,
-                            'server_secret'  => config('dfe.security.console-api-key'),
-                        ]);
-                    }
+                //  Update the user with the key info and activate
+                $_user->api_token_text = $_appKey->client_id;
+                $_user->active_ind = 1;
+                $_user->save();
 
-                    //  Update the user with the key info and activate
-                    $_user->api_token_text = $_appKey->client_id;
-                    $_user->active_ind = 1;
-                    $_user->save();
+                return $_user;
+            });
 
-                    return $_user;
-                });
+            \Log::info('[user.register] new registration', $_user->toArray());
 
-            $_values = $_user->toArray();
-            unset($_values['password_text'], $_values['external_password_text']);
-
-            /** @noinspection PhpUndefinedMethodInspection */
-            Log::info('new user registered', ['user' => $_values]);
-
-            return $validate ? SuccessPacket::create($_user, Response::HTTP_CREATED) : $_user;
+            return $_user;
         } catch (\Exception $_ex) {
-            if (false !== ($_pos = stripos($_message = $_ex->getMessage(), ' (sql: '))) {
-                $_message = substr($_message, 0, $_pos);
+            if (false !== ($_pos = stripos($errorMessage = $_ex->getMessage(), ' (sql: '))) {
+                $errorMessage = substr($errorMessage, 0, $_pos);
             }
 
-            /** @noinspection PhpUndefinedMethodInspection */
-            Log::error('database error creating user from ops-resource post: ' . $_message);
+            \Log::error('[user.register] database error creating user: ' . $errorMessage, $data);
 
-            return $validate ? ErrorPacket::create(null, Response::HTTP_INTERNAL_SERVER_ERROR, $_message) : null;
+            throw $_ex;
         }
     }
 }
