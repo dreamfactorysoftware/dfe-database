@@ -588,7 +588,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
         }
 
         //	This replaces any disallowed characters with dashes
-        $_clean = str_replace([' ', '_'], '-', trim(str_replace('--', '-', preg_replace(static::CHARACTER_PATTERN, '-', $name)), ' -_'));
+        $_clean =
+            trim(strtolower(str_replace([' ', '_'], '-', trim(str_replace('--', '-', preg_replace(static::CHARACTER_PATTERN, '-', $name)), ' -_'))), ' -_');
 
         //  Ensure non-admin user instances are prefixed
         $_prefix = null;
