@@ -1,5 +1,6 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
+use Carbon\Carbon;
 use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Common\Enums\EnterprisePaths;
@@ -18,11 +19,11 @@ use DreamFactory\Enterprise\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use DreamFactory\Enterprise\Storage\Facades\InstanceStorage;
+use DreamFactory\Library\Utility\Enums\DateTimeIntervals;
 use DreamFactory\Library\Utility\Uri;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use League\Flysystem\Filesystem;
 
 /**
@@ -44,7 +45,7 @@ use League\Flysystem\Filesystem;
  * @property string        $db_password_text
  * @property string        $storage_id_text
  * @property string        $request_id_text
- * @property string        $request_date
+ * @property Carbon        $request_date
  * @property integer       $deprovision_ind
  * @property integer       $provision_ind
  * @property integer       $trial_instance_ind
@@ -53,9 +54,10 @@ use League\Flysystem\Filesystem;
  * @property integer       $ready_state_nbr
  * @property integer       $environment_id
  * @property integer       $activate_ind
- * @property string        $start_date
- * @property string        $end_date
- * @property string        $terminate_date
+ * @property Carbon        $start_date
+ * @property Carbon        $end_date
+ * @property Carbon        $terminate_date
+ * @property Carbon        $last_state_date
  *
  * Relations:
  *
@@ -342,19 +344,60 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public static function deactivate(array $schemaInfo, $actionReason = DeactivationReasons::NON_USE)
     {
-        if (null === ($_row = Deactivation::instanceId($schemaInfo['instance']->id)->first())) {
-            //  Not found
-            $_row = new Deactivation();
-            $_row->user_id = $schemaInfo['instance']->user_id;
-            $_row->instance_id = $schemaInfo['instance']->id;
+        /** @noinspection PhpUndefinedMethodInspection */
+        return static::byNameOrId($schemaInfo['instance']->id)->firstOrFail()->updateInstanceState(false, true, $actionReason);
+    }
+
+    /**
+     * @param bool $activate To activate or not to activate. That is the boolean.
+     * @param bool $sync     If true, deactivation_t rows are kept in sync
+     * @param int  $reason   Reason for deactivation
+     *
+     * @return bool
+     */
+    public function updateInstanceState($activate = true, $sync = true, $reason = DeactivationReasons::NON_USE)
+    {
+        $this->activate_ind = !!$activate;
+        $this->last_state_date = Carbon::now();
+        $this->platform_state_nbr = $activate ? OperationalStates::ACTIVATED : OperationalStates::NOT_ACTIVATED;
+
+        if (!$this->save()) {
+            \Log::error('[dfe.database.models.instance:updateInstanceState] instance state update failure for instance "' . $this->instance_id_text . '"',
+                $this->toArray());
+
+            return false;
         }
 
-        if (false === $actionReason) {
-            //  Set activation date to 7 days from now.
-            $_row->activate_by_date = date('Y-m-d H-i-s', time() + (7 * 86400));
-        } else {
-            $_row->action_reason_nbr = $actionReason;
+        //  Sync if wanted
+        return $sync ? $this->syncActivation($activate, $reason) : true;
+    }
+
+    /**
+     * @param bool $active       True to activate, false to deactivate
+     * @param int  $actionReason Reason for deactivation
+     *
+     * @return bool
+     */
+    protected function syncActivation($active = true, $actionReason = DeactivationReasons::NON_USE)
+    {
+        //  Find prior or make new
+        if (null === ($_row = Deactivation::instanceId($this->id)->first())) {
+            //  Not found
+            $_row = new Deactivation();
+            $_row->user_id = $this->user_id;
+            $_row->instance_id = $this->id;
         }
+
+        if ($active) {
+            Deactivation::instanceId($this->id)->delete();
+            \Log::debug('[dfe.database.models.instance:syncActivation] deactivation cleared for instance "' . $this->instance_id_text . '"');
+
+            return true;
+        }
+
+        //  Set activation date to 7 days from now.
+        $_row->activate_by_date = date('Y-m-d H-i-s', time() + (7 * DateTimeIntervals::SECONDS_PER_DAY));
+        $_row->action_reason_nbr = $actionReason;
 
         return $_row->save();
     }
@@ -581,7 +624,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public static function sanitizeName($name, $isAdmin = false)
     {
-        $_sanitized = Cache::get('dfe.instance.sanitized', []);
+        $_sanitized = \Cache::get('dfe.instance.sanitized', []);
 
         if (isset($_sanitized[$name])) {
             return $_sanitized[$name];
@@ -616,7 +659,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
         //  Cache it...
         $_sanitized[$name] = $_clean;
 
-        Cache::put('dfe.instance.sanitized', $_sanitized, static::DEFAULT_CACHE_TTL);
+        \Cache::put('dfe.instance.sanitized', $_sanitized, static::DEFAULT_CACHE_TTL);
 
         return $_clean;
     }
@@ -630,7 +673,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     protected static function isVerboten($name)
     {
-        $_unavailableNames = Cache::get('dfe.instance.forbidden-names', []);
+        $_unavailableNames = \Cache::get('dfe.instance.forbidden-names', []);
 
         if (empty($_unavailableNames) && function_exists('config')) {
             $_unavailableNames = config('forbidden-names', []);
@@ -639,7 +682,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
                 $_unavailableNames = [];
             }
 
-            Cache::put('dfe.instance.forbidden-names', $_unavailableNames, static::DEFAULT_CACHE_TTL);
+            \Cache::put('dfe.instance.forbidden-names', $_unavailableNames, static::DEFAULT_CACHE_TTL);
         }
 
         return in_array($name, $_unavailableNames);
