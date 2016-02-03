@@ -363,13 +363,13 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         if (!$this->save()) {
             \Log::error('[dfe.database.models.instance:updateInstanceState] instance state update failure for instance "' . $this->instance_id_text . '"',
-                $this->toArray());
+                ['activate_ind' => $this->activate_ind,]);
 
             return false;
         }
 
         \Log::debug('[dfe.database.models.instance:updateInstanceState] activation status updated for instance "' . $this->instance_id_text . '"',
-            $this->toArray());
+            ['activate_ind' => $this->activate_ind,]);
 
         //  Sync if wanted
         return $sync ? $this->syncActivation($this->activate_ind, $reason) : true;
