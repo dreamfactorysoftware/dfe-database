@@ -357,7 +357,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public function updateInstanceState($activate = true, $sync = true, $reason = DeactivationReasons::NON_USE)
     {
-        $this->activate_ind = !!$activate;
+        $this->activate_ind = $activate;
         $this->last_state_date = Carbon::now();
         $this->platform_state_nbr = $activate ? OperationalStates::ACTIVATED : OperationalStates::NOT_ACTIVATED;
 
@@ -368,8 +368,11 @@ class Instance extends EnterpriseModel implements OwnedEntity
             return false;
         }
 
+        \Log::debug('[dfe.database.models.instance:updateInstanceState] activation status updated for instance "' . $this->instance_id_text . '"',
+            $this->toArray());
+
         //  Sync if wanted
-        return $sync ? $this->syncActivation($activate, $reason) : true;
+        return $sync ? $this->syncActivation($this->activate_ind, $reason) : true;
     }
 
     /**
@@ -388,7 +391,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
             $_row->instance_id = $this->id;
         }
 
-        if ($active) {
+        if (true === $active) {
             Deactivation::instanceId($this->id)->delete();
             \Log::debug('[dfe.database.models.instance:syncActivation] deactivation cleared for instance "' . $this->instance_id_text . '"');
 
