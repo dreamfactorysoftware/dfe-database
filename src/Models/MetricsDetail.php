@@ -25,7 +25,7 @@ class MetricsDetail extends EnterpriseModel
     //******************************************************************************
 
     /** @inheritdoc */
-    protected $table = 'metrics_t';
+    protected $table = 'metrics_detail_t';
     /** @inheritdoc */
     protected $casts = ['user_id' => 'integer', 'instance_id' => 'integer', 'data_text' => 'array',];
 
