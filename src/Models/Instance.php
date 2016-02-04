@@ -289,6 +289,24 @@ class Instance extends EnterpriseModel implements OwnedEntity
     }
 
     /**
+     * Returns any metrics gathered for this instance on a specific date.
+     *
+     * @param Carbon|string $gatherDate The date to check. If not provided, today is used.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection|static[]
+     */
+    public function metrics($gatherDate = null)
+    {
+        $gatherDate = $gatherDate ?: date('Y-m-d');
+
+        return static::where([
+            'instance_id' => $this->id,
+            'user_id'     => $this->user_id,
+            'gather_date' => $gatherDate,
+        ])->orderBy('id')->first();
+    }
+
+    /**
      * Update the operational state of this instance
      *
      * @param int $state
