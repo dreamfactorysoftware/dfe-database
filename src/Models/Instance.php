@@ -299,11 +299,11 @@ class Instance extends EnterpriseModel implements OwnedEntity
     {
         $gatherDate = $gatherDate ?: date('Y-m-d');
 
-        return static::where([
+        return MetricsDetail::where([
             'instance_id' => $this->id,
             'user_id'     => $this->user_id,
             'gather_date' => $gatherDate,
-        ])->orderBy('id')->first();
+        ])->first();
     }
 
     /**
