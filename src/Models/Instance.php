@@ -293,7 +293,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
      *
      * @param Carbon|string $gatherDate The date to check. If not provided, today is used.
      *
-     * @return \Illuminate\Database\Eloquent\Collection|static[]
+     * @return MetricsDetail|null
      */
     public function metrics($gatherDate = null)
     {
