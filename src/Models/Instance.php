@@ -392,8 +392,9 @@ class Instance extends EnterpriseModel implements OwnedEntity
         }
 
         if (true === $active) {
-            Deactivation::instanceId($this->id)->delete();
-            \Log::debug('[dfe.database.models.instance:syncActivation] deactivation cleared for instance "' . $this->instance_id_text . '"');
+            if (0 != Deactivation::instanceId($this->id)->delete()) {
+                \Log::debug('[dfe.database.models.instance:syncActivation] deactivation cleared for instance "' . $this->instance_id_text . '"');
+            }
 
             return true;
         }
