@@ -367,27 +367,32 @@ class Instance extends EnterpriseModel implements OwnedEntity
     }
 
     /**
-     * @param bool $activate To activate or not to activate. That is the boolean.
-     * @param bool $sync     If true, deactivation_t rows are kept in sync
-     * @param int  $reason   Reason for deactivation
+     * @param bool     $activate   To activate or not to activate. That is the boolean.
+     * @param bool     $sync       If true, deactivation_t rows are kept in sync
+     * @param int      $reason     Reason for deactivation
+     * @param int|null $readyState The instance's actual operational/ready state
      *
      * @return bool
      */
-    public function updateInstanceState($activate = true, $sync = true, $reason = DeactivationReasons::NON_USE)
+    public function updateInstanceState($activate = true, $sync = true, $reason = DeactivationReasons::NON_USE, $readyState = null)
     {
         $this->activate_ind = $activate;
         $this->last_state_date = Carbon::now();
         $this->platform_state_nbr = $activate ? OperationalStates::ACTIVATED : OperationalStates::NOT_ACTIVATED;
 
+        if (null !== $readyState) {
+            $this->ready_state_nbr = $readyState;
+        }
+
         if (!$this->save()) {
             \Log::error('[dfe.database.models.instance:updateInstanceState] instance state update failure for instance "' . $this->instance_id_text . '"',
-                ['activate_ind' => $this->activate_ind,]);
+                ['activate_ind' => $this->activate_ind, 'ready_state_nbr' => $this->ready_state_nbr, 'platform_state_nbr' => $this->platform_state_nbr]);
 
             return false;
         }
 
         \Log::debug('[dfe.database.models.instance:updateInstanceState] activation status updated for instance "' . $this->instance_id_text . '"',
-            ['activate_ind' => $this->activate_ind,]);
+            ['activate_ind' => $this->activate_ind, 'ready_state_nbr' => $this->ready_state_nbr, 'platform_state_nbr' => $this->platform_state_nbr]);
 
         //  Sync if wanted
         return $sync ? $this->syncActivation($this->activate_ind, $reason) : true;
