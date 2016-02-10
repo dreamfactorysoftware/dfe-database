@@ -4,7 +4,6 @@ use Carbon\Carbon;
 use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Common\Enums\EnterprisePaths;
-use DreamFactory\Enterprise\Common\Enums\InstanceStates;
 use DreamFactory\Enterprise\Common\Enums\OperationalStates;
 use DreamFactory\Enterprise\Common\Support\Metadata;
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
@@ -380,17 +379,20 @@ class Instance extends EnterpriseModel implements OwnedEntity
         $this->activate_ind = $activate;
         $this->last_state_date = Carbon::now();
         $this->platform_state_nbr = $activate ? OperationalStates::ACTIVATED : OperationalStates::NOT_ACTIVATED;
-        null !== $readyState && InstanceStates::has($readyState) && $this->ready_state_nbr = $readyState;
+
+        if (null !== $readyState) {
+            $this->ready_state_nbr = $readyState;
+        }
 
         if (!$this->save()) {
             \Log::error('[dfe.database.models.instance:updateInstanceState] instance state update failure for instance "' . $this->instance_id_text . '"',
-                ['activate_ind' => $this->activate_ind,]);
+                ['activate_ind' => $this->activate_ind, 'ready_state_nbr' => $this->ready_state_nbr, 'platform_state_nbr' => $this->platform_state_nbr]);
 
             return false;
         }
 
         \Log::debug('[dfe.database.models.instance:updateInstanceState] activation status updated for instance "' . $this->instance_id_text . '"',
-            ['activate_ind' => $this->activate_ind,]);
+            ['activate_ind' => $this->activate_ind, 'ready_state_nbr' => $this->ready_state_nbr, 'platform_state_nbr' => $this->platform_state_nbr]);
 
         //  Sync if wanted
         return $sync ? $this->syncActivation($this->activate_ind, $reason) : true;
