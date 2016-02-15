@@ -311,7 +311,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      * @param \Illuminate\Http\Request $request
      * @param bool                     $validate If false, no validation is done.
      *
-     * @return \DreamFactory\Enterprise\Common\Packets\ErrorPacket|\DreamFactory\Enterprise\Common\Packets\SuccessPacket|static
+     * @return static|array
      */
     public static function register(Request $request, $validate = true)
     {
@@ -350,7 +350,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      * @param bool        $validate     If false, no validation is done.
      * @param string|null $errorMessage Any error message returned
      *
-     * @return \DreamFactory\Enterprise\Common\Packets\ErrorPacket|\DreamFactory\Enterprise\Common\Packets\SuccessPacket
+     * @return static
      * @throws \Exception
      */
     protected static function doRegister(array $data, $validate = true, &$errorMessage = null)

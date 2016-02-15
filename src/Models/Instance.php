@@ -406,27 +406,35 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     protected function syncActivation($active = true, $actionReason = DeactivationReasons::NON_USE)
     {
-        //  Find prior or make new
-        if (null === ($_row = Deactivation::instanceId($this->id)->first())) {
-            //  Not found
-            $_row = new Deactivation();
-            $_row->user_id = $this->user_id;
-            $_row->instance_id = $this->id;
-        }
+        try {
+            //  Find prior or make new
+            /** @type Deactivation $_row */
+            $_row = Deactivation::instanceId($this->id)->firstOrCreate([
+                'user_id'           => $this->user_id,
+                'instance_id'       => $this->id,
+                //  Set activation date to 7 days from now.
+                'activate_by_date'  => date('Y-m-d H-i-s', time() + (7 * DateTimeIntervals::SECONDS_PER_DAY)),
+                'action_reason_nbr' => $actionReason,
+            ]);
 
-        if (true === $active) {
-            if (0 != Deactivation::instanceId($this->id)->delete()) {
-                \Log::debug('[dfe.database.models.instance:syncActivation] deactivation cleared for instance "' . $this->instance_id_text . '"');
+            //  Delete activation row if activated
+            if (true === $active) {
+                if (0 != Deactivation::instanceId($this->id)->delete()) {
+                    \Log::debug('[dfe.database.models.instance:syncActivation] deactivation cleared for instance "' . $this->instance_id_text . '"');
+                }
+
+                return true;
             }
 
-            return true;
+            //  Increment the count
+            $_row->extend_count_nbr++;
+
+            return $_row->save();
+        } catch (\Exception $_ex) {
+            \Log::error('[dfe.database.models.instance:syncActivation] ' . $_ex->getMessage());
         }
 
-        //  Set activation date to 7 days from now.
-        $_row->activate_by_date = date('Y-m-d H-i-s', time() + (7 * DateTimeIntervals::SECONDS_PER_DAY));
-        $_row->action_reason_nbr = $actionReason;
-
-        return $_row->save();
+        return false;
     }
 
     /**
