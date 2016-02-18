@@ -1140,13 +1140,15 @@ class Instance extends EnterpriseModel implements OwnedEntity
     /**
      * Returns the endpoint of a provisioned instance
      *
+     * @param bool $protocol If true, the default, the protocol is prepended creating a full URL. False to return just the host name
+     *
      * @return string
      */
-    public function getProvisionedEndpoint()
+    public function getProvisionedEndpoint($protocol = true)
     {
-        $_proto = config('dfe.default-domain-protocol', EnterpriseDefaults::DEFAULT_DOMAIN_PROTOCOL);
+        $_proto = $protocol ? (config('dfe.default-domain-protocol', EnterpriseDefaults::DEFAULT_DOMAIN_PROTOCOL) . '://') : null;
 
-        return $_proto . '://' . $this->instance_name_text . '.' . trim($this->cluster->subdomain_text, '.');
+        return $_proto . $this->instance_name_text . '.' . trim($this->cluster->subdomain_text, '.');
     }
 
     /**
