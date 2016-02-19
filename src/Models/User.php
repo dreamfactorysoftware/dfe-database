@@ -180,7 +180,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
 
     /**
      * @param Builder $query
-     * @param string  $email
+     * @param string  $emailOrId
      *
      * @return Builder
      */
@@ -311,7 +311,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
      * @param \Illuminate\Http\Request $request
      * @param bool                     $validate If false, no validation is done.
      *
-     * @return static|array
+     * @return array|User
      */
     public static function register(Request $request, $validate = true)
     {
@@ -379,6 +379,7 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
         }
 
         //  See if we know this cat...
+        /** @type User $_user */
         if (null !== ($_user = User::byEmail($_email)->first())) {
             //  Existing user found!
             \Log::notice('[user.register] existing user registration attempt', ['request' => $data, 'existing' => $_user->toArray()]);
