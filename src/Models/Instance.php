@@ -1199,12 +1199,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
     {
         $_token = $this->generateToken();
 
-        $options['headers'] = array_merge(array_get($options, 'headers', []),
-            [
-                EnterpriseDefaults::CONSOLE_X_HEADER => $_token,
-                'Content-Type'                       => 'application/json',
-                'Accept'                             => 'application/json',
-            ]);
+        $options['headers'] = array_merge(array_get($options, 'headers', []), [EnterpriseDefaults::CONSOLE_X_HEADER => $_token,]);
+        $options['headers']['Content-Type'] = array_get($options['headers'], 'Content-Type', 'application/json');
 
         try {
             return $this->guzzleAny(Uri::segment([$this->getProvisionedEndpoint(), $uri], false),
