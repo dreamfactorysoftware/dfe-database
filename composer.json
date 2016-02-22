@@ -34,8 +34,8 @@
         "dreamfactory/dfe-storage": "1.0.*"
     },
     "require-dev":       {
-        "phpunit/phpunit": "@stable",
-        "laravel/laravel": "5.1.*"
+        "phpunit/phpunit":   "@stable",
+        "laravel/framework": "5.1.*"
     },
     "autoload":          {
         "psr-4": {

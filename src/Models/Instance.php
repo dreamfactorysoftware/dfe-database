@@ -406,27 +406,35 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     protected function syncActivation($active = true, $actionReason = DeactivationReasons::NON_USE)
     {
-        //  Find prior or make new
-        if (null === ($_row = Deactivation::instanceId($this->id)->first())) {
-            //  Not found
-            $_row = new Deactivation();
-            $_row->user_id = $this->user_id;
-            $_row->instance_id = $this->id;
-        }
+        try {
+            //  Find prior or make new
+            /** @type Deactivation $_row */
+            $_row = Deactivation::instanceId($this->id)->firstOrCreate([
+                'user_id'           => $this->user_id,
+                'instance_id'       => $this->id,
+                //  Set activation date to 7 days from now.
+                'activate_by_date'  => date('Y-m-d H-i-s', time() + (7 * DateTimeIntervals::SECONDS_PER_DAY)),
+                'action_reason_nbr' => $actionReason,
+            ]);
 
-        if (true === $active) {
-            if (0 != Deactivation::instanceId($this->id)->delete()) {
-                \Log::debug('[dfe.database.models.instance:syncActivation] deactivation cleared for instance "' . $this->instance_id_text . '"');
+            //  Delete activation row if activated
+            if (true === $active) {
+                if (0 != Deactivation::instanceId($this->id)->delete()) {
+                    \Log::debug('[dfe.database.models.instance:syncActivation] deactivation cleared for instance "' . $this->instance_id_text . '"');
+                }
+
+                return true;
             }
 
-            return true;
+            //  Increment the count
+            $_row->extend_count_nbr++;
+
+            return $_row->save();
+        } catch (\Exception $_ex) {
+            \Log::error('[dfe.database.models.instance:syncActivation] ' . $_ex->getMessage());
         }
 
-        //  Set activation date to 7 days from now.
-        $_row->activate_by_date = date('Y-m-d H-i-s', time() + (7 * DateTimeIntervals::SECONDS_PER_DAY));
-        $_row->action_reason_nbr = $actionReason;
-
-        return $_row->save();
+        return false;
     }
 
     /**
@@ -1132,13 +1140,15 @@ class Instance extends EnterpriseModel implements OwnedEntity
     /**
      * Returns the endpoint of a provisioned instance
      *
+     * @param bool $protocol If true, the default, the protocol is prepended creating a full URL. False to return just the host name
+     *
      * @return string
      */
-    public function getProvisionedEndpoint()
+    public function getProvisionedEndpoint($protocol = true)
     {
-        $_proto = config('dfe.default-domain-protocol', EnterpriseDefaults::DEFAULT_DOMAIN_PROTOCOL);
+        $_proto = $protocol ? (config('dfe.default-domain-protocol', EnterpriseDefaults::DEFAULT_DOMAIN_PROTOCOL) . '://') : null;
 
-        return $_proto . '://' . $this->instance_name_text . '.' . trim($this->cluster->subdomain_text, '.');
+        return $_proto . $this->instance_name_text . '.' . trim($this->cluster->subdomain_text, '.');
     }
 
     /**
@@ -1189,12 +1199,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
     {
         $_token = $this->generateToken();
 
-        $options['headers'] = array_merge(array_get($options, 'headers', []),
-            [
-                EnterpriseDefaults::CONSOLE_X_HEADER => $_token,
-                'Content-Type'                       => 'application/json',
-                'Accept'                             => 'application/json',
-            ]);
+        $options['headers'] = array_merge(array_get($options, 'headers', []), [EnterpriseDefaults::CONSOLE_X_HEADER => $_token,]);
+        $options['headers']['Content-Type'] = array_get($options['headers'], 'Content-Type', 'application/json');
 
         try {
             return $this->guzzleAny(Uri::segment([$this->getProvisionedEndpoint(), $uri], false),
