@@ -235,10 +235,10 @@ class AppKey extends EnterpriseModel implements OwnedEntity
      */
     public static function createKeyForEntity(EnterpriseModel $entity, $ownerType = null)
     {
-        $_type = $ownerType ?: static::_getOwnerTypeFromEntity($entity);
+        $_type = $ownerType ?: OwnerTypes::getTypeFromModel($entity);
 
         if (null === $_type) {
-            Log::error('Entity "' . get_class($entity) . '" has no associated OWNER TYPE.');
+            \Log::error('Entity "' . get_class($entity) . '" has no associated OWNER TYPE.');
 
             return false;
         }

@@ -1,10 +1,12 @@
 <?php namespace DreamFactory\Enterprise\Database\Enums;
 
 use DreamFactory\Enterprise\Common\Traits\StaticEntityLookup;
+use DreamFactory\Enterprise\Console\Console\Commands\Mount;
 use DreamFactory\Enterprise\Database\Models\Cluster;
 use DreamFactory\Enterprise\Database\Models\EnterpriseModel;
 use DreamFactory\Enterprise\Database\Models\Instance;
 use DreamFactory\Enterprise\Database\Models\Server;
+use DreamFactory\Enterprise\Database\Models\ServiceUser;
 use DreamFactory\Enterprise\Database\Models\User;
 use DreamFactory\Library\Utility\Enums\FactoryEnum;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -165,30 +167,30 @@ class OwnerTypes extends FactoryEnum
 
             switch ($type) {
                 case static::USER:
-                    $_result[$type][static::USER] = static::_buildOwnerMapping($type, 'User', 'owner_id');
+                    $_result[$type][static::USER] = static::buildOwnerMapping($type, 'User', 'owner_id');
                     break;
 
                 case static::SERVICE_USER:
-                    $_result[$type][static::SERVICE_USER] = static::_buildOwnerMapping($type,
+                    $_result[$type][static::SERVICE_USER] = static::buildOwnerMapping($type,
                         'ServiceUser',
                         'owner_id');
                     break;
 
                 case static::MOUNT:
-                    $_result[$type][static::SERVER] = static::_buildOwnerMapping($type, 'Server', 'mount_id');
+                    $_result[$type][static::SERVER] = static::buildOwnerMapping($type, 'Server', 'mount_id');
                     break;
 
                 case static::INSTANCE:
-                    $_result[$type][static::SERVER] = static::_buildOwnerMapping($type,
+                    $_result[$type][static::SERVER] = static::buildOwnerMapping($type,
                         'Server',
                         'server_id',
                         'InstanceServer',
                         'instance_id');
-                    $_result[$type][static::USER] = static::_buildOwnerMapping($type, 'User', 'user_id');
+                    $_result[$type][static::USER] = static::buildOwnerMapping($type, 'User', 'user_id');
                     break;
 
                 case static::SERVER:
-                    $_result[$type][static::CLUSTER] = static::_buildOwnerMapping($type,
+                    $_result[$type][static::CLUSTER] = static::buildOwnerMapping($type,
                         'Cluster',
                         'server_id',
                         'ClusterServer',
@@ -196,11 +198,11 @@ class OwnerTypes extends FactoryEnum
                     break;
 
                 case static::OWNER_HASH:
-                    $_result[$type][static::USER] = static::_buildOwnerMapping($type, 'User', 'user_id');
+                    $_result[$type][static::USER] = static::buildOwnerMapping($type, 'User', 'user_id');
                     break;
 
                 case static::CLUSTER:
-                    $_result[$type][static::SERVICE_USER] = static::_buildOwnerMapping($type,
+                    $_result[$type][static::SERVICE_USER] = static::buildOwnerMapping($type,
                         'ServiceUser',
                         'owner_id');
                     break;
@@ -223,7 +225,7 @@ class OwnerTypes extends FactoryEnum
      *
      * @return array
      */
-    protected static function _buildOwnerMapping($type, $class, $classKey, $assoc = false, $foreignKey = false)
+    protected static function buildOwnerMapping($type, $class, $classKey, $assoc = false, $foreignKey = false)
     {
         $_class =
             (false === strpos($class, '\\') && class_exists(static::_DEFAULT_NAMESPACE_ . '\\' . $class, false)) ? static::_DEFAULT_NAMESPACE_ . '\\' . $class
@@ -240,5 +242,41 @@ class OwnerTypes extends FactoryEnum
             'owner-class'        => $_class,
             'owner-class-key'    => $classKey,
         ];
+    }
+
+    /**
+     * Given an enterprise model, return the OwnerType associated with the entity
+     *
+     * @param \DreamFactory\Enterprise\Database\Models\EnterpriseModel $model
+     *
+     * @return int|null The OwnerTypes constant value or null if not found
+     */
+    public static function getTypeFromModel(EnterpriseModel $model)
+    {
+        if ($model instanceof User) {
+            return OwnerTypes::USER;
+        }
+
+        if ($model instanceof ServiceUser) {
+            return OwnerTypes::SERVICE_USER;
+        }
+
+        if ($model instanceof Instance) {
+            return OwnerTypes::INSTANCE;
+        }
+
+        if ($model instanceof Server) {
+            return OwnerTypes::SERVER;
+        }
+
+        if ($model instanceof Cluster) {
+            return OwnerTypes::CLUSTER;
+        }
+
+        if ($model instanceof Mount) {
+            return OwnerTypes::MOUNT;
+        }
+
+        return null;
     }
 }
