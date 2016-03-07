@@ -1,7 +1,7 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
 use DreamFactory\Enterprise\Common\Commands\ConsoleCommand;
-use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
+use DreamFactory\Enterprise\Database\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Common\Packets\ErrorPacket;
 use DreamFactory\Enterprise\Common\Packets\SuccessPacket;
@@ -15,9 +15,12 @@ use DreamFactory\Enterprise\Storage\Facades\InstanceStorage;
 use DreamFactory\Library\Utility\Disk;
 use DreamFactory\Library\Utility\IfSet;
 use Illuminate\Auth\Authenticatable;
+use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use \Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use League\Flysystem\Adapter\Local;
@@ -58,13 +61,13 @@ use League\Flysystem\Filesystem;
  *
  * @method static \Illuminate\Database\Eloquent\Builder byEmail($email)
  */
-class User extends EnterpriseModel implements AuthenticatableContract, CanResetPasswordContract, OwnedEntity
+class User extends EnterpriseModel implements AuthorizableContract, AuthenticatableContract, CanResetPasswordContract, OwnedEntity
 {
     //******************************************************************************
     //* Traits
     //******************************************************************************
 
-    use Authenticatable, KeyMaster, CheckNickname, CanHashEmailAddress;
+    use Authorizable, Authenticatable, CanResetPassword, KeyMaster, CheckNickname, CanHashEmailAddress;
 
     //******************************************************************************
     //* Members
@@ -216,16 +219,6 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     {
         return hash(config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
             $this->storage_id_text);
-    }
-
-    /**
-     * Get the unique identifier for the user.
-     *
-     * @return mixed
-     */
-    public function getAuthIdentifier()
-    {
-        return $this->id;
     }
 
     /**
