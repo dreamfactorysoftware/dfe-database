@@ -31,14 +31,14 @@
     "prefer-stable":     false,
     "minimum-stability": "dev",
     "require":           {
-        "dreamfactory/dfe-common":  "dev-feature/l52-upgrade",
-        "dreamfactory/dfe-storage": "dev-feature/l52-upgrade"
+        "dreamfactory/dfe-common": "dev-feature/l52-upgrade"
     },
     "require-dev":       {
-        "laravel/framework":    "5.2.*",
-        "symfony/dom-crawler":  "~3.0",
-        "symfony/css-selector": "~3.0",
-        "phpunit/phpunit":      "@stable"
+        "dreamfactory/dfe-storage": "dev-feature/l52-upgrade",
+        "laravel/framework":        "5.2.*",
+        "symfony/dom-crawler":      "~3.0",
+        "symfony/css-selector":     "~3.0",
+        "phpunit/phpunit":          "@stable"
     },
     "autoload":          {
         "psr-4": {
