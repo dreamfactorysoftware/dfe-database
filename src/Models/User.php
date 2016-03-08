@@ -189,21 +189,13 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
         return is_numeric($emailOrId) ? $query->where('id', $emailOrId) : $query->where('email_addr_text', $emailOrId);
     }
 
-    /**
-     * Get the password for the user.
-     *
-     * @return string
-     */
+    /** @inheritdoc */
     public function getAuthPassword()
     {
         return $this->password_text;
     }
 
-    /**
-     * Get the e-mail address where password reset links are sent.
-     *
-     * @return string
-     */
+    /** @inheritdoc */
     public function getEmailForPasswordReset()
     {
         return $this->email_addr_text;
@@ -216,48 +208,6 @@ class User extends EnterpriseModel implements AuthenticatableContract, CanResetP
     {
         return hash(config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
             $this->storage_id_text);
-    }
-
-    /**
-     * Get the unique identifier for the user.
-     *
-     * @return mixed
-     */
-    public function getAuthIdentifier()
-    {
-        return $this->id;
-    }
-
-    /**
-     * Get the token value for the "remember me" session.
-     *
-     * @return string
-     */
-    public function getRememberToken()
-    {
-        return $this->remember_token;
-    }
-
-    /**
-     * Set the token value for the "remember me" session.
-     *
-     * @param  string $value
-     *
-     * @return void
-     */
-    public function setRememberToken($value)
-    {
-        $this->remember_token = $value;
-    }
-
-    /**
-     * Get the column name for the "remember me" token.
-     *
-     * @return string
-     */
-    public function getRememberTokenName()
-    {
-        return 'remember_token';
     }
 
     /**
