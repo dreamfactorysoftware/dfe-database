@@ -1,6 +1,6 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
-use DreamFactory\Enterprise\Common\Enums\AppKeyClasses;
+use DreamFactory\Enterprise\Database\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
 use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;

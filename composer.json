@@ -1,6 +1,6 @@
 {
     "name":              "dreamfactory/dfe-database",
-    "description":       "DreamFactory Enterprise(tm) Database Library",
+    "description":       "DreamFactory(tm) Enterprise Database Components Package",
     "homepage":          "https://www.dreamfactory.com/",
     "keywords":          [
         "dreamfactory",
@@ -28,14 +28,15 @@
             "url":  "https://github.com/dreamfactorysoftware/dfe-common.git"
         }
     ],
+    "prefer-stable":     true,
     "minimum-stability": "dev",
     "require":           {
-        "dreamfactory/dfe-common":  "1.0.*",
-        "dreamfactory/dfe-storage": "1.0.*"
+        "dreamfactory/dfe-common": "1.0.*"
     },
     "require-dev":       {
-        "phpunit/phpunit":   "@stable",
-        "laravel/framework": "5.1.*"
+        "dreamfactory/dfe-storage": "1.0.*",
+        "laravel/framework":        "5.2.*",
+        "phpunit/phpunit":          "@stable"
     },
     "autoload":          {
         "psr-4": {
