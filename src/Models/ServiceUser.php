@@ -5,8 +5,12 @@ use DreamFactory\Enterprise\Database\Traits\CanHashEmailAddress;
 use DreamFactory\Enterprise\Database\Traits\CheckNickname;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use Illuminate\Auth\Authenticatable;
+use Illuminate\Auth\Passwords\CanResetPassword;
+use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use Illuminate\Foundation\Auth\Access\Authorizable;
+use InvalidArgumentException;
 
 /**
  * service_user_t
@@ -23,13 +27,13 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
  * @property string last_login_ip_text
  * @property string remember_token
  */
-class ServiceUser extends EnterpriseModel implements AuthenticatableContract, CanResetPasswordContract
+class ServiceUser extends EnterpriseModel implements AuthorizableContract, AuthenticatableContract, CanResetPasswordContract
 {
     //******************************************************************************
     //* Traits
     //******************************************************************************
 
-    use Authenticatable, CanHashEmailAddress, CheckNickname, KeyMaster;
+    use Authorizable, Authenticatable, CanResetPassword, CanHashEmailAddress, CheckNickname, KeyMaster;
 
     //******************************************************************************
     //* Members
@@ -144,7 +148,7 @@ class ServiceUser extends EnterpriseModel implements AuthenticatableContract, Ca
     protected function _getRole($roleId)
     {
         if (null === ($_role = Role::find($roleId))) {
-            throw new \InvalidArgumentException('The role id "' . $roleId . '" is invalid.');
+            throw new InvalidArgumentException('The role id "' . $roleId . '" is invalid.');
         }
 
         return $_role;

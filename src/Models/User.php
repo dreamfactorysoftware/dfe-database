@@ -1,5 +1,6 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
+use DB;
 use DreamFactory\Enterprise\Common\Commands\ConsoleCommand;
 use DreamFactory\Enterprise\Database\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
@@ -14,6 +15,8 @@ use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use DreamFactory\Enterprise\Storage\Facades\InstanceStorage;
 use DreamFactory\Library\Utility\Disk;
 use DreamFactory\Library\Utility\IfSet;
+use Exception;
+use Hash;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
@@ -23,8 +26,11 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use InvalidArgumentException;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
+use Log;
+use RuntimeException;
 
 /**
  * [20150812-gha] Corrected the property list to reflect the current data model
@@ -222,38 +228,6 @@ class User extends EnterpriseModel implements AuthorizableContract, Authenticata
     }
 
     /**
-     * Get the token value for the "remember me" session.
-     *
-     * @return string
-     */
-    public function getRememberToken()
-    {
-        return $this->remember_token;
-    }
-
-    /**
-     * Set the token value for the "remember me" session.
-     *
-     * @param  string $value
-     *
-     * @return void
-     */
-    public function setRememberToken($value)
-    {
-        $this->remember_token = $value;
-    }
-
-    /**
-     * Get the column name for the "remember me" token.
-     *
-     * @return string
-     */
-    public function getRememberTokenName()
-    {
-        return 'remember_token';
-    }
-
-    /**
      * @param string|array|null $append
      *
      * @return string
@@ -330,7 +304,7 @@ class User extends EnterpriseModel implements AuthorizableContract, Authenticata
         $_data = $command instanceof ConsoleCommand ? array_merge($command->argument(), $command->option()) : (is_array($command) ? $command : []);
 
         if (false === ($_user = static::doRegister($_data, $validate, $_message))) {
-            throw new \RuntimeException($_message);
+            throw new RuntimeException($_message);
         }
 
         return $_user;
@@ -344,7 +318,7 @@ class User extends EnterpriseModel implements AuthorizableContract, Authenticata
      * @param string|null $errorMessage Any error message returned
      *
      * @return static
-     * @throws \Exception
+     * @throws Exception
      */
     protected static function doRegister(array $data, $validate = true, &$errorMessage = null)
     {
@@ -359,15 +333,15 @@ class User extends EnterpriseModel implements AuthorizableContract, Authenticata
 
         if ($validate) {
             if (empty($_email) || empty($_password) || empty($_first) || empty($_last)) {
-                \Log::error('[user.register] incomplete request', $data);
+                Log::error('[user.register] incomplete request', $data);
 
-                throw new \InvalidArgumentException('Missing required fields');
+                throw new InvalidArgumentException('Missing required fields');
             }
 
             if (false === filter_var($_email, FILTER_VALIDATE_EMAIL)) {
-                \Log::error('[user.register] invalid email address', $data);
+                Log::error('[user.register] invalid email address', $data);
 
-                throw new \InvalidArgumentException('Email address invalid');
+                throw new InvalidArgumentException('Email address invalid');
             }
         }
 
@@ -375,9 +349,9 @@ class User extends EnterpriseModel implements AuthorizableContract, Authenticata
         /** @type User $_user */
         if (null !== ($_user = User::byEmail($_email)->first())) {
             //  Existing user found!
-            \Log::notice('[user.register] existing user registration attempt', ['request' => $data, 'existing' => $_user->toArray()]);
+            Log::notice('[user.register] existing user registration attempt', ['request' => $data, 'existing' => $_user->toArray()]);
 
-            throw new \InvalidArgumentException('Email address already registered.');
+            throw new InvalidArgumentException('Email address already registered.');
         }
 
         $_attributes = [
@@ -385,7 +359,7 @@ class User extends EnterpriseModel implements AuthorizableContract, Authenticata
             'last_name_text'    => $_last,
             'email_addr_text'   => $_email,
             'nickname_text'     => $_nickname,
-            'password_text'     => \Hash::make($_password),
+            'password_text'     => Hash::make($_password),
             'phone_text'        => $_phone,
             'company_name_text' => $_company,
             'active_ind'        => $_active,
@@ -393,7 +367,7 @@ class User extends EnterpriseModel implements AuthorizableContract, Authenticata
 
         //  Create a user account
         try {
-            $_user = \DB::transaction(function() use ($_attributes) {
+            $_user = DB::transaction(function() use ($_attributes) {
                 $_user = User::create($_attributes);
 
                 if (null === ($_appKey = AppKey::mine($_user->id, OwnerTypes::USER))) {
@@ -413,15 +387,15 @@ class User extends EnterpriseModel implements AuthorizableContract, Authenticata
                 return $_user;
             });
 
-            \Log::info('[user.register] new registration', $_user->toArray());
+            Log::info('[user.register] new registration', $_user->toArray());
 
             return $_user;
-        } catch (\Exception $_ex) {
+        } catch (Exception $_ex) {
             if (false !== ($_pos = stripos($errorMessage = $_ex->getMessage(), ' (sql: '))) {
                 $errorMessage = substr($errorMessage, 0, $_pos);
             }
 
-            \Log::error('[user.register] database error creating user: ' . $errorMessage, $data);
+            Log::error('[user.register] database error creating user: ' . $errorMessage, $data);
 
             throw $_ex;
         }
