@@ -28,7 +28,6 @@
             "url":  "https://github.com/dreamfactorysoftware/dfe-common.git"
         }
     ],
-    "prefer-stable":     false,
     "minimum-stability": "dev",
     "require":           {
         "dreamfactory/dfe-common": "1.0.*"
