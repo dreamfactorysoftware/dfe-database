@@ -13,7 +13,8 @@ use Illuminate\Database\Query\Builder;
  * @property int    user_notified_nbr
  * @property int    action_reason_nbr
  *
- * @method static EnterpriseModel|\Illuminate\Database\Eloquent\Builder|Builder instanceId(int $instanceId)
+ * @method static EnterpriseModel|Deactivation|\Illuminate\Database\Eloquent\Builder|Builder instanceId(int $instanceId)
+ * @method static EnterpriseModel|Deactivation|\Illuminate\Database\Eloquent\Builder|Builder userId(int $userId)
  */
 class Deactivation extends EnterpriseModel
 {

@@ -1,6 +1,8 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
+use Cache;
 use Carbon\Carbon;
+use DB;
 use DreamFactory\Enterprise\Database\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Common\Enums\EnterprisePaths;
@@ -8,7 +10,6 @@ use DreamFactory\Enterprise\Common\Enums\OperationalStates;
 use DreamFactory\Enterprise\Common\Support\Metadata;
 use DreamFactory\Enterprise\Common\Traits\EntityLookup;
 use DreamFactory\Enterprise\Common\Traits\Guzzler;
-use DreamFactory\Enterprise\Common\Traits\StaticComponentLookup;
 use DreamFactory\Enterprise\Common\Utility\UniqueId;
 use DreamFactory\Enterprise\Database\Contracts\OwnedEntity;
 use DreamFactory\Enterprise\Database\Enums\DeactivationReasons;
@@ -21,10 +22,14 @@ use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use DreamFactory\Enterprise\Storage\Facades\InstanceStorage;
 use DreamFactory\Library\Utility\Enums\DateTimeIntervals;
 use DreamFactory\Library\Utility\Uri;
+use Exception;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
+use InvalidArgumentException;
 use League\Flysystem\Filesystem;
+use Log;
+use RuntimeException;
 
 /**
  * instance_t
@@ -82,7 +87,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     //* Traits
     //******************************************************************************
 
-    use EntityLookup, AuthorizedEntity, StaticComponentLookup, KeyMaster, Guzzler;
+    use EntityLookup, AuthorizedEntity, KeyMaster, Guzzler;
 
     //******************************************************************************
     //* Constants
@@ -385,13 +390,13 @@ class Instance extends EnterpriseModel implements OwnedEntity
         }
 
         if (!$this->save()) {
-            \Log::error('[dfe.database.models.instance:updateInstanceState] instance state update failure for instance "' . $this->instance_id_text . '"',
+            Log::error('[dfe.database.models.instance:updateInstanceState] instance state update failure for instance "' . $this->instance_id_text . '"',
                 ['activate_ind' => $this->activate_ind, 'ready_state_nbr' => $this->ready_state_nbr, 'platform_state_nbr' => $this->platform_state_nbr]);
 
             return false;
         }
 
-        \Log::debug('[dfe.database.models.instance:updateInstanceState] activation status updated for instance "' . $this->instance_id_text . '"',
+        Log::debug('[dfe.database.models.instance:updateInstanceState] activation status updated for instance "' . $this->instance_id_text . '"',
             ['activate_ind' => $this->activate_ind, 'ready_state_nbr' => $this->ready_state_nbr, 'platform_state_nbr' => $this->platform_state_nbr]);
 
         //  Sync if wanted
@@ -407,20 +412,22 @@ class Instance extends EnterpriseModel implements OwnedEntity
     protected function syncActivation($active = true, $actionReason = DeactivationReasons::NON_USE)
     {
         try {
-            //  Find prior or make new
-            /** @type Deactivation $_row */
-            $_row = Deactivation::instanceId($this->id)->firstOrCreate([
-                'user_id'           => $this->user_id,
-                'instance_id'       => $this->id,
-                //  Set activation date to 7 days from now.
-                'activate_by_date'  => date('Y-m-d H-i-s', time() + (7 * DateTimeIntervals::SECONDS_PER_DAY)),
-                'action_reason_nbr' => $actionReason,
-            ]);
+            if (null === ($_row = Deactivation::instanceId($this->id)->userId($this->user_id)->first())) {
+                //  Find prior or make new
+                /** @type Deactivation $_row */
+                $_row = Deactivation::create([
+                    'user_id'           => $this->user_id,
+                    'instance_id'       => $this->id,
+                    //  Set activation date to 7 days from now.
+                    'activate_by_date'  => date('Y-m-d H-i-s', time() + (7 * DateTimeIntervals::SECONDS_PER_DAY)),
+                    'action_reason_nbr' => $actionReason,
+                ]);
+            }
 
             //  Delete activation row if activated
             if (true === $active) {
                 if (0 != Deactivation::instanceId($this->id)->delete()) {
-                    \Log::debug('[dfe.database.models.instance:syncActivation] deactivation cleared for instance "' . $this->instance_id_text . '"');
+                    Log::debug('[dfe.database.models.instance:syncActivation] deactivation cleared for instance "' . $this->instance_id_text . '"');
                 }
 
                 return true;
@@ -430,8 +437,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
             $_row->extend_count_nbr++;
 
             return $_row->save();
-        } catch (\Exception $_ex) {
-            \Log::error('[dfe.database.models.instance:syncActivation] ' . $_ex->getMessage());
+        } catch (Exception $_ex) {
+            Log::error('[dfe.database.models.instance:syncActivation] ' . $_ex->getMessage());
         }
 
         return false;
@@ -628,7 +635,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     protected function _getServer($serverId)
     {
         if (null === ($_server = Server::byNameOrId($serverId)->first())) {
-            throw new \InvalidArgumentException('The server id "' . $serverId . '" is invalid.');
+            throw new InvalidArgumentException('The server id "' . $serverId . '" is invalid.');
         }
 
         return $_server;
@@ -659,7 +666,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public static function sanitizeName($name, $isAdmin = false)
     {
-        $_sanitized = \Cache::get('dfe.instance.sanitized', []);
+        $_sanitized = Cache::get('dfe.instance.sanitized', []);
 
         if (isset($_sanitized[$name])) {
             return $_sanitized[$name];
@@ -673,7 +680,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
         $_prefix = null;
 
         if (!$isAdmin) {
-            $_prefix = function_exists('config') ? config('dfe.instance-prefix') : 'dfe-';
+            $_prefix = config('dfe.instance-prefix', 'dfe-');
 
             if ($_prefix != substr($_clean, 0, strlen($_prefix))) {
                 $_clean = trim(str_replace('--', '-', $_prefix . $_clean), ' -_');
@@ -681,20 +688,20 @@ class Instance extends EnterpriseModel implements OwnedEntity
         }
 
         if (static::isVerboten($_clean)) {
-            \Log::error('[sanitizer] forbidden name: ' . $name . ' => ' . $_clean);
+            Log::error('[sanitizer] forbidden name: ' . $name . ' => ' . $_clean);
 
             return false;
         }
 
         //	Check host name
         if (preg_match(static::HOST_NAME_PATTERN, $_clean)) {
-            \Log::info('[sanitizer] non-standard name allowed: "' . $_clean . '"');
+            Log::info('[sanitizer] non-standard name allowed: "' . $_clean . '"');
         }
 
         //  Cache it...
         $_sanitized[$name] = $_clean;
 
-        \Cache::put('dfe.instance.sanitized', $_sanitized, static::DEFAULT_CACHE_TTL);
+        Cache::put('dfe.instance.sanitized', $_sanitized, static::DEFAULT_CACHE_TTL);
 
         return $_clean;
     }
@@ -708,7 +715,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     protected static function isVerboten($name)
     {
-        $_unavailableNames = \Cache::get('dfe.instance.forbidden-names', []);
+        $_unavailableNames = Cache::get('dfe.instance.forbidden-names', []);
 
         if (empty($_unavailableNames) && function_exists('config')) {
             $_unavailableNames = config('forbidden-names', []);
@@ -717,7 +724,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
                 $_unavailableNames = [];
             }
 
-            \Cache::put('dfe.instance.forbidden-names', $_unavailableNames, static::DEFAULT_CACHE_TTL);
+            Cache::put('dfe.instance.forbidden-names', $_unavailableNames, static::DEFAULT_CACHE_TTL);
         }
 
         return in_array($name, $_unavailableNames);
@@ -968,11 +975,11 @@ class Instance extends EnterpriseModel implements OwnedEntity
             ]);
 
             if (null === $_key) {
-                throw new \RuntimeException('Instance is unlicensed.');
+                throw new RuntimeException('Instance is unlicensed.');
             }
         }
 
-        $_cluster = static::_lookupCluster($instance->cluster_id);
+        $_cluster = static::findCluster($instance->cluster_id);
 
         $_md = new Metadata(array_merge(static::$metadataTemplate,
             [
@@ -1134,7 +1141,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         config(['database.connections.' . $_id => static::buildConnectionArray($instance)]);
 
-        return \DB::connection($_id);
+        return DB::connection($_id);
     }
 
     /**
@@ -1208,7 +1215,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
                 $options,
                 $method,
                 $object);
-        } catch (\Exception $_ex) {
+        } catch (Exception $_ex) {
             return false;
         }
     }
