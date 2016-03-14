@@ -323,8 +323,8 @@ class User extends EnterpriseModel implements AuthorizableContract, Authenticata
     protected static function doRegister(array $data, $validate = true, &$errorMessage = null)
     {
         $_email = array_get($data, 'email', array_get($data, 'email_addr_text'));
-        $_first = array_get($data, 'first-name', array_get($data, 'first_name_text'));
-        $_last = array_get($data, 'last-name', array_get($data, 'last_name_text'));
+        $_first = array_get($data, 'first-name', array_get($data, 'first_name_text', array_get($data, 'firstname')));
+        $_last = array_get($data, 'last-name', array_get($data, 'last_name_text', array_get($data, 'lastname')));
         $_password = array_get($data, 'password', array_get($data, 'password_text'));
         $_nickname = array_get($data, 'nickname', array_get($data, 'nickname_text'));
         $_company = array_get($data, 'company', array_get($data, 'company_name_text'));
