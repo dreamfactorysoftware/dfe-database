@@ -396,7 +396,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
             return false;
         }
 
-        Log::debug('[dfe.database.models.instance:updateInstanceState] activation status updated for instance "' . $this->instance_id_text . '"',
+        logger('[dfe.database.models.instance:updateInstanceState] activation status updated for instance "' . $this->instance_id_text . '"',
             ['activate_ind' => $this->activate_ind, 'ready_state_nbr' => $this->ready_state_nbr, 'platform_state_nbr' => $this->platform_state_nbr]);
 
         //  Sync if wanted
@@ -427,16 +427,14 @@ class Instance extends EnterpriseModel implements OwnedEntity
             //  Delete activation row if activated
             if (true === $active) {
                 if (0 != Deactivation::instanceId($this->id)->delete()) {
-                    Log::debug('[dfe.database.models.instance:syncActivation] deactivation cleared for instance "' . $this->instance_id_text . '"');
+                    logger('[dfe.database.models.instance:syncActivation] deactivation cleared for instance "' . $this->instance_id_text . '"');
                 }
 
                 return true;
             }
 
             //  Increment the count
-            $_row->extend_count_nbr++;
-
-            return $_row->save();
+            return $_row->update(['extend_count_nbr' => $_row->extend_count_nbr + 1]);
         } catch (Exception $_ex) {
             Log::error('[dfe.database.models.instance:syncActivation] ' . $_ex->getMessage());
         }
