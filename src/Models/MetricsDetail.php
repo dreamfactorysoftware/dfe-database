@@ -17,6 +17,8 @@ use Illuminate\Database\Query\Builder;
  * @property Instance $instance
  *
  * @method static Builder byGatherDate($gatherDate = null)
+ * 
+ * @see EnterpriseModel
  */
 class MetricsDetail extends EnterpriseModel
 {

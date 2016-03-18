@@ -71,6 +71,7 @@ use Illuminate\Database\Query\Builder;
  * @method static EnterpriseModel pluck($column)
  * @method static EnterpriseModel first($columns = ['*'])
  * @method static EnterpriseModel firstOrFail($columns = ['*'])
+ * @method static EnterpriseModel firstOrCreate($attributes = [])
  * @method static Collection get($columns = ['*'])
  * @method static Collection getFresh($columns = ['*'])
  * @method static Collection runSelect()
