@@ -1129,14 +1129,15 @@ class Instance extends EnterpriseModel implements OwnedEntity
     /**
      * Returns a connection to the instance's database
      *
-     * @param \DreamFactory\Enterprise\Database\Models\Instance $instance
+     * @param \DreamFactory\Enterprise\Database\Models\Instance|null $instance The instance to connect, or $this will be used.
      *
      * @return \Illuminate\Database\Connection
      */
-    public function instanceConnection(Instance $instance)
+    public function instanceConnection(Instance $instance = null)
     {
-        $_id = 'database.connections.' . $instance->instance_id_text;
+        $instance = $instance ?: $this;
 
+        $_id = 'database.connections.' . $instance->instance_id_text;
         config(['database.connections.' . $_id => static::buildConnectionArray($instance)]);
 
         return DB::connection($_id);
