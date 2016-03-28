@@ -190,4 +190,14 @@ class Server extends EnterpriseModel
         return $query->where('server_type_id', '=', (int)$typeId);
     }
 
+    /**
+     * @param int $type
+     *
+     * @return bool
+     */
+    public function isServerType($type)
+    {
+        return $type == $this->server_type_id;
+    }
+
 }
