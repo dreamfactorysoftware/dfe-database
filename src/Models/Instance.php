@@ -1,8 +1,6 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
-use Cache;
 use Carbon\Carbon;
-use DB;
 use DreamFactory\Enterprise\Database\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Common\Enums\EnterprisePaths;
@@ -22,14 +20,10 @@ use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use DreamFactory\Enterprise\Storage\Facades\InstanceStorage;
 use DreamFactory\Library\Utility\Enums\DateTimeIntervals;
 use DreamFactory\Library\Utility\Uri;
-use Exception;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
-use InvalidArgumentException;
 use League\Flysystem\Filesystem;
-use Log;
-use RuntimeException;
 
 /**
  * instance_t
@@ -176,6 +170,46 @@ class Instance extends EnterpriseModel implements OwnedEntity
         parent::enforceBusinessLogic($row);
 
         $row->checkStorageKey();
+    }
+
+    /**
+     * @param string|Carbon $days The number of days since creation that an instance is given to activate
+     * @param array|null    $ids  Limit results to this optional list of instance-id's
+     *
+     * @return array
+     */
+    public static function eligibleDeactivations($days, $ids = null)
+    {
+        //  Quote the instance ids and make a list
+        if (!empty($ids)) {
+            foreach ($ids as $_key => $_instanceId) {
+                $ids[$_key] = "'" . $_instanceId . "'";
+            }
+
+            $ids = 'AND i.instance_id_text in (' . implode(',', $ids) . ')';
+        }
+
+        $_sql = <<<MYSQL
+SELECT 
+    d.id, 
+    d.instance_id,
+    d.extend_count_nbr,
+    i.instance_id_text,
+    i.activate_ind,
+    i.platform_state_nbr,
+    i.create_date
+FROM 
+    deactivation_t  d, 
+    instance_t i 
+WHERE 
+    DATEDIFF(CURRENT_DATE, d.create_date) > :days AND 
+    d.instance_id = i.id
+    {$ids}
+ORDER BY 
+    d.instance_id, d.create_date
+MYSQL;
+
+        return \DB::select($_sql, [':days' => $days]);
     }
 
     /** @inheritdoc */
@@ -390,7 +424,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
         }
 
         if (!$this->save()) {
-            Log::error('[dfe.database.models.instance:updateInstanceState] instance state update failure for instance "' . $this->instance_id_text . '"',
+            \Log::error('[dfe.database.models.instance:updateInstanceState] instance state update failure for instance "' . $this->instance_id_text . '"',
                 ['activate_ind' => $this->activate_ind, 'ready_state_nbr' => $this->ready_state_nbr, 'platform_state_nbr' => $this->platform_state_nbr]);
 
             return false;
@@ -435,8 +469,8 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
             //  Increment the count
             return $_row->update(['extend_count_nbr' => $_row->extend_count_nbr + 1]);
-        } catch (Exception $_ex) {
-            Log::error('[dfe.database.models.instance:syncActivation] ' . $_ex->getMessage());
+        } catch (\Exception $_ex) {
+            \Log::error('[dfe.database.models.instance:syncActivation] ' . $_ex->getMessage());
         }
 
         return false;
@@ -582,7 +616,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public function removeFromServer($serverId)
     {
-        $_server = ($serverId instanceof Server) ? $serverId : $this->_getServer($serverId);
+        $_server = $this->findServer($serverId);
 
         //  Do we belong to a server?
         if ($this->belongsToServer($_server->id)) {
@@ -602,7 +636,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
     public function addToServer($serverId)
     {
         //  This will fail if $serverId is bogus
-        $this->removeFromServer($_server = $this->_getServer($serverId));
+        $this->removeFromServer($_server = $this->findServer($serverId));
 
         return 1 == InstanceServer::insert(['server_id' => $_server->id, 'instance_id' => $this->id]);
     }
@@ -614,7 +648,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public function belongsToServer($serverId)
     {
-        $_server = $this->_getServer($serverId);
+        $_server = $this->findServer($serverId);
 
         /** @noinspection PhpUndefinedMethodInspection */
 
@@ -623,20 +657,6 @@ class Instance extends EnterpriseModel implements OwnedEntity
                 ':server_id'   => $_server->id,
                 ':instance_id' => $this->id,
             ])->count();
-    }
-
-    /**
-     * @param int|string $serverId
-     *
-     * @return Server
-     */
-    protected function _getServer($serverId)
-    {
-        if (null === ($_server = Server::byNameOrId($serverId)->first())) {
-            throw new InvalidArgumentException('The server id "' . $serverId . '" is invalid.');
-        }
-
-        return $_server;
     }
 
     /**
@@ -664,7 +684,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public static function sanitizeName($name, $isAdmin = false)
     {
-        $_sanitized = Cache::get('dfe.instance.sanitized', []);
+        $_sanitized = \Cache::get('dfe.instance.sanitized', []);
 
         if (isset($_sanitized[$name])) {
             return $_sanitized[$name];
@@ -686,20 +706,20 @@ class Instance extends EnterpriseModel implements OwnedEntity
         }
 
         if (static::isVerboten($_clean)) {
-            Log::error('[sanitizer] forbidden name: ' . $name . ' => ' . $_clean);
+            \Log::error('[sanitizer] forbidden name: ' . $name . ' => ' . $_clean);
 
             return false;
         }
 
         //	Check host name
         if (preg_match(static::HOST_NAME_PATTERN, $_clean)) {
-            Log::info('[sanitizer] non-standard name allowed: "' . $_clean . '"');
+            \Log::info('[sanitizer] non-standard name allowed: "' . $_clean . '"');
         }
 
         //  Cache it...
         $_sanitized[$name] = $_clean;
 
-        Cache::put('dfe.instance.sanitized', $_sanitized, static::DEFAULT_CACHE_TTL);
+        \Cache::put('dfe.instance.sanitized', $_sanitized, static::DEFAULT_CACHE_TTL);
 
         return $_clean;
     }
@@ -713,7 +733,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     protected static function isVerboten($name)
     {
-        $_unavailableNames = Cache::get('dfe.instance.forbidden-names', []);
+        $_unavailableNames = \Cache::get('dfe.instance.forbidden-names', []);
 
         if (empty($_unavailableNames) && function_exists('config')) {
             $_unavailableNames = config('forbidden-names', []);
@@ -722,7 +742,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
                 $_unavailableNames = [];
             }
 
-            Cache::put('dfe.instance.forbidden-names', $_unavailableNames, static::DEFAULT_CACHE_TTL);
+            \Cache::put('dfe.instance.forbidden-names', $_unavailableNames, static::DEFAULT_CACHE_TTL);
         }
 
         return in_array($name, $_unavailableNames);
@@ -973,7 +993,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
             ]);
 
             if (null === $_key) {
-                throw new RuntimeException('Instance is unlicensed.');
+                throw new \RuntimeException('Instance is unlicensed.');
             }
         }
 
@@ -1140,7 +1160,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
         $_id = 'database.connections.' . $instance->instance_id_text;
         config(['database.connections.' . $_id => static::buildConnectionArray($instance)]);
 
-        return DB::connection($_id);
+        return \DB::connection($_id);
     }
 
     /**
@@ -1214,7 +1234,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
                 $options,
                 $method,
                 $object);
-        } catch (Exception $_ex) {
+        } catch (\Exception $_ex) {
             return false;
         }
     }
