@@ -415,6 +415,11 @@ MYSQL;
      */
     public function updateInstanceState($activate = true, $sync = true, $reason = DeactivationReasons::NON_USE, $readyState = null)
     {
+        //  Don't do anything if the values are the same
+        if ($this->activate_ind == $activate && $this->platform_state_nbr == $reason && (null !== $readyState && $this->ready_state_nbr == $readyState)) {
+            return true;
+        }
+
         $this->activate_ind = $activate;
         $this->last_state_date = Carbon::now();
         $this->platform_state_nbr = $activate ? OperationalStates::ACTIVATED : OperationalStates::NOT_ACTIVATED;
