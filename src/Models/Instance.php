@@ -1,6 +1,7 @@
 <?php namespace DreamFactory\Enterprise\Database\Models;
 
 use Carbon\Carbon;
+use DreamFactory\Enterprise\Common\Enums\InstanceStates;
 use DreamFactory\Enterprise\Database\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Common\Enums\EnterprisePaths;
@@ -406,6 +407,38 @@ MYSQL;
     }
 
     /**
+     * @param bool|null $activate
+     * @param int|null  $readyState
+     * @param int|null  $state
+     */
+    protected function setStates($activate = null, $readyState = null, $state = null)
+    {
+        $activate = $activate ?: $this->activate_ind;
+        $readyState = $readyState ?: $this->ready_state_nbr;
+        $this->platform_state_nbr = $state ?: OperationalStates::NOT_ACTIVATED;
+
+        //  Fully activated
+        if ($activate && InstanceStates::READY == $readyState) {
+            $this->activate_ind = true;
+            $this->ready_state_nbr = $readyState;
+            $this->platform_state_nbr = $state ?: OperationalStates::ACTIVATED;
+
+            return;
+        }
+
+        //  Active, no admin
+        if ($activate && InstanceStates::ADMIN_REQUIRED == $readyState) {
+            $this->activate_ind = false;
+            $this->ready_state_nbr = $readyState;
+
+            return;
+        }
+
+        $this->activate_ind = $activate;
+        $this->ready_state_nbr = $readyState;
+    }
+
+    /**
      * @param bool     $activate   To activate or not to activate. That is the boolean.
      * @param bool     $sync       If true, deactivation_t rows are kept in sync
      * @param int      $reason     Reason for deactivation
@@ -416,10 +449,14 @@ MYSQL;
     public function updateInstanceState($activate = true, $sync = true, $reason = DeactivationReasons::NON_USE, $readyState = null)
     {
         //  Don't do anything if the values are the same
-        if ($this->activate_ind == $activate && $this->platform_state_nbr == $reason && (null !== $readyState && $this->ready_state_nbr == $readyState)) {
+        if ($this->activate_ind == ($activate ? 1 : 0) &&
+            $this->platform_state_nbr == ($activate ? OperationalStates::ACTIVATED : OperationalStates::NOT_ACTIVATED) &&
+            (null !== $readyState && $this->ready_state_nbr == $readyState)
+        ) {
             return true;
         }
 
+        $this->setStates($activate, $readyState);
         $this->activate_ind = $activate;
         $this->last_state_date = Carbon::now();
         $this->platform_state_nbr = $activate ? OperationalStates::ACTIVATED : OperationalStates::NOT_ACTIVATED;
