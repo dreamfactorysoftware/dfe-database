@@ -6,6 +6,8 @@ use Illuminate\Database\Query\Builder;
 /**
  * deactivation_t
  *
+ * Properties
+ *
  * @property int    user_id
  * @property int    instance_id
  * @property string activate_by_date
@@ -13,8 +15,11 @@ use Illuminate\Database\Query\Builder;
  * @property int    user_notified_nbr
  * @property int    action_reason_nbr
  *
+ * Scopes
+ *
  * @method static EnterpriseModel|Deactivation|\Illuminate\Database\Eloquent\Builder|Builder instanceId(int $instanceId)
  * @method static EnterpriseModel|Deactivation|\Illuminate\Database\Eloquent\Builder|Builder userId(int $userId)
+ * @method static EnterpriseModel|Deactivation|\Illuminate\Database\Eloquent\Builder|Builder expired($byDate, int $extends = null)
  */
 class Deactivation extends EnterpriseModel
 {
@@ -79,12 +84,19 @@ class Deactivation extends EnterpriseModel
 
     /**
      * @param Builder            $query
-     * @param null|string|Carbon $asOfDate
+     * @param null|string|Carbon $byDate  Date to activate by. Defaults to today.
+     * @param null               $extends The number of allowed extensions, if any.
      *
-     * @return Builder
+     * @return \Illuminate\Database\Query\Builder
      */
-    public static function scopeExpired($query, $asOfDate = null)
+    public static function scopeExpired($query, $byDate = null, $extends = null)
     {
-        return $query->where('activate_by_date', '<', $asOfDate ?: Carbon::now());
+        $query = $query->where('activate_by_date', '<', $byDate ?: Carbon::now());
+
+        if (!empty($extends)) {
+            $query = $query->where('extend_count_nbr', '>', $extends);
+        }
+
+        return $query;
     }
 }
