@@ -793,12 +793,13 @@ MYSQL;
     /**
      * Retrieves an instances' metadata which is stored in the instance_data_text column, filling in any missing values.
      *
-     * @param bool   $sync If true, the current information will be updated into the instance row
-     * @param string $key  If specified, return only this metadata item, otherwise all
+     * @param bool       $sync    If true, the current information will be updated into the instance row
+     * @param string     $key     If specified, return only this metadata item, otherwise all
+     * @param mixed|null $default The value to return if $key is not found
      *
      * @return array
      */
-    public function getMetadata($sync = false, $key = null)
+    public function getMetadata($sync = false, $key = null, $default = null)
     {
         $_data = $this->instance_data_text;
 
@@ -807,7 +808,7 @@ MYSQL;
             $_data = $this->instance_data_text;
         }
 
-        return $key ? array_get($_data, $key) : $_data;
+        return $key ? data_get($_data, $key, $default) : $_data;
     }
 
     /**
@@ -832,6 +833,22 @@ MYSQL;
         $this->instance_data_text = ($md instanceof Metadata) ? $md->toArray() : $md;
 
         return $this;
+    }
+
+    /**
+     * Sets a single item in the instance metadata array
+     *
+     * @param string     $key
+     * @param mixed|null $value
+     *
+     * @return \DreamFactory\Enterprise\Database\Models\Instance
+     */
+    public function setMetadataItem($key, $value = null)
+    {
+        $_md = $this->getMetadata();
+        array_set($_md, $key, $value);
+
+        return $this->setMetadata($_md);
     }
 
     /**
@@ -1132,6 +1149,8 @@ MYSQL;
             'audit-host'           => config('dfe.audit.host'),
             'audit-port'           => config('dfe.audit.port'),
             'audit-message-format' => config('dfe.audit.message-format'),
+            'packages'             => $instance->getPackages(),
+            'package-path'         => $instance->getPackagePath(),
         ];
     }
 
@@ -1287,5 +1306,43 @@ MYSQL;
     public function getResourceUri()
     {
         return config('provisioners.hosts.' . GuestLocations::resolve($this->guest_location_nbr) . '.resource-uri');
+    }
+
+    /**
+     * @return array
+     */
+    public function getPackages()
+    {
+        return $this->getMetadata(false, 'env.packages', []);
+    }
+
+    /**
+     * @param string|array $packages
+     *
+     * @return \DreamFactory\Enterprise\Database\Models\Instance
+     */
+    public function setPackages($packages)
+    {
+        !is_array($packages) && $packages = [$packages];
+
+        return $this->setMetadataItem('env.packages', $packages);
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getPackagePath()
+    {
+        return $this->getMetadata(false, 'env.package-path');
+    }
+
+    /**
+     * @param string $packagePath
+     *
+     * @return \DreamFactory\Enterprise\Database\Models\Instance
+     */
+    public function setPackagePath($packagePath)
+    {
+        return $this->setMetadataItem('env.package-path', $packagePath);
     }
 }
