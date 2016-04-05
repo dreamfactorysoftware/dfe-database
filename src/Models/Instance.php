@@ -165,7 +165,7 @@ class Instance extends EnterpriseModel implements OwnedEntity
         });
 
         static::saving(function(Instance $instance) {
-            $instance->refreshMetadata();
+            !empty($instance->id) && $instance->refreshMetadata();
         });
 
         static::deleted(function(Instance $instance) {
