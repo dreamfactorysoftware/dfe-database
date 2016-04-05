@@ -164,6 +164,10 @@ class Instance extends EnterpriseModel implements OwnedEntity
             $instance->refreshMetadata();
         });
 
+        static::saving(function(Instance $instance) {
+            $instance->refreshMetadata();
+        });
+
         static::deleted(function(Instance $instance) {
             AppKey::byOwner($instance->id, OwnerTypes::INSTANCE)->delete();
         });
@@ -1168,8 +1172,7 @@ MYSQL;
             'instance-id'          => $instance->instance_name_text,
             'default-domain'       => $cluster->subdomain_text,
             'signature-method'     => config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
-            'storage-root'         => config('provisioning.storage-root',
-                EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH),
+            'storage-root'         => config('provisioning.storage-root', EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH),
             'console-api-url'      => config('dfe.security.console-api-url'),
             'console-api-key'      => config('dfe.security.console-api-key'),
             'client-id'            => $key ? $key->client_id : null,
