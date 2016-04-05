@@ -2,6 +2,7 @@
 
 use Carbon\Carbon;
 use DreamFactory\Enterprise\Common\Enums\InstanceStates;
+use DreamFactory\Enterprise\Common\Utility\Ini;
 use DreamFactory\Enterprise\Database\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Common\Enums\EnterprisePaths;
@@ -19,6 +20,7 @@ use DreamFactory\Enterprise\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use DreamFactory\Enterprise\Storage\Facades\InstanceStorage;
+use DreamFactory\Library\Utility\Disk;
 use DreamFactory\Library\Utility\Enums\DateTimeIntervals;
 use DreamFactory\Library\Utility\Uri;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
@@ -131,6 +133,10 @@ class Instance extends EnterpriseModel implements OwnedEntity
      * @type array The template for metadata stored in
      */
     protected static $metadataTemplate;
+    /**
+     * @type array Packages used during provisioning
+     */
+    protected $packages;
 
     //******************************************************************************
     //* Methods
@@ -801,9 +807,7 @@ MYSQL;
      */
     public function getMetadata($sync = false, $key = null, $default = null)
     {
-        $_data = $this->instance_data_text;
-
-        if (empty($_data)) {
+        if (empty($_data = $this->instance_data_text)) {
             $this->refreshMetadata($sync);
             $_data = $this->instance_data_text;
         }
@@ -845,7 +849,10 @@ MYSQL;
      */
     public function setMetadataItem($key, $value = null)
     {
-        $_md = $this->getMetadata();
+        if (empty($_md = $this->instance_data_text)) {
+            $_md = $this->refreshMetadata(false);
+        }
+
         array_set($_md, $key, $value);
 
         return $this->setMetadata($_md);
@@ -894,6 +901,16 @@ MYSQL;
     public function getPrivatePath()
     {
         return InstanceStorage::getPrivatePath($this);
+    }
+
+    /**
+     * Returns the
+     *
+     * @return string
+     */
+    public function getPackagePath()
+    {
+        return InstanceStorage::getPackagePath($this);
     }
 
     /**
@@ -997,6 +1014,16 @@ MYSQL;
      *
      * @return Filesystem
      */
+    public function getPackageStorageMount($tag = null)
+    {
+        return InstanceStorage::getPackageStorageMount($this, $tag);
+    }
+
+    /**
+     * @param string $tag
+     *
+     * @return Filesystem
+     */
     public function getOwnerPrivateStorageMount($tag = null)
     {
         return InstanceStorage::getOwnerPrivateStorageMount($this, $tag);
@@ -1087,6 +1114,7 @@ MYSQL;
             'owner-private-path' => $instance->getOwnerPrivatePath(),
             'snapshot-path'      => $instance->getSnapshotPath(),
             'trash-path'         => $instance->getTrashPath(),
+            'package-path'       => $instance->getPackagePath(),
         ];
     }
 
@@ -1150,7 +1178,6 @@ MYSQL;
             'audit-port'           => config('dfe.audit.port'),
             'audit-message-format' => config('dfe.audit.message-format'),
             'packages'             => $instance->getPackages(),
-            'package-path'         => $instance->getPackagePath(),
         ];
     }
 
@@ -1309,11 +1336,13 @@ MYSQL;
     }
 
     /**
+     * Returns the packages in the metadata. NON-REFRESHING! Intended to be called late.
+     *
      * @return array
      */
     public function getPackages()
     {
-        return $this->getMetadata(false, 'env.packages', []);
+        return $this->packages ?: [];
     }
 
     /**
@@ -1323,26 +1352,8 @@ MYSQL;
      */
     public function setPackages($packages)
     {
-        !is_array($packages) && $packages = [$packages];
+        $this->packages = Ini::parseDelimitedString($packages);
 
-        return $this->setMetadataItem('env.packages', $packages);
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getPackagePath()
-    {
-        return $this->getMetadata(false, 'env.package-path');
-    }
-
-    /**
-     * @param string $packagePath
-     *
-     * @return \DreamFactory\Enterprise\Database\Models\Instance
-     */
-    public function setPackagePath($packagePath)
-    {
-        return $this->setMetadataItem('env.package-path', $packagePath);
+        return $this;
     }
 }
