@@ -2,6 +2,7 @@
 
 use Carbon\Carbon;
 use DreamFactory\Enterprise\Common\Enums\InstanceStates;
+use DreamFactory\Enterprise\Common\Utility\Ini;
 use DreamFactory\Enterprise\Database\Enums\AppKeyClasses;
 use DreamFactory\Enterprise\Common\Enums\EnterpriseDefaults;
 use DreamFactory\Enterprise\Common\Enums\EnterprisePaths;
@@ -19,6 +20,7 @@ use DreamFactory\Enterprise\Database\Exceptions\InstanceUnlockedException;
 use DreamFactory\Enterprise\Database\Traits\AuthorizedEntity;
 use DreamFactory\Enterprise\Database\Traits\KeyMaster;
 use DreamFactory\Enterprise\Storage\Facades\InstanceStorage;
+use DreamFactory\Library\Utility\Disk;
 use DreamFactory\Library\Utility\Enums\DateTimeIntervals;
 use DreamFactory\Library\Utility\Uri;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
@@ -131,6 +133,10 @@ class Instance extends EnterpriseModel implements OwnedEntity
      * @type array The template for metadata stored in
      */
     protected static $metadataTemplate;
+    /**
+     * @type array Packages used during provisioning
+     */
+    protected $packages;
 
     //******************************************************************************
     //* Methods
@@ -156,6 +162,10 @@ class Instance extends EnterpriseModel implements OwnedEntity
 
         static::updating(function(Instance $instance) {
             $instance->refreshMetadata();
+        });
+
+        static::saving(function(Instance $instance) {
+            !empty($instance->id) && $instance->refreshMetadata();
         });
 
         static::deleted(function(Instance $instance) {
@@ -793,21 +803,20 @@ MYSQL;
     /**
      * Retrieves an instances' metadata which is stored in the instance_data_text column, filling in any missing values.
      *
-     * @param bool   $sync If true, the current information will be updated into the instance row
-     * @param string $key  If specified, return only this metadata item, otherwise all
+     * @param bool       $sync    If true, the current information will be updated into the instance row
+     * @param string     $key     If specified, return only this metadata item, otherwise all
+     * @param mixed|null $default The value to return if $key is not found
      *
      * @return array
      */
-    public function getMetadata($sync = false, $key = null)
+    public function getMetadata($sync = false, $key = null, $default = null)
     {
-        $_data = $this->instance_data_text;
-
-        if (empty($_data)) {
+        if (empty($_data = $this->instance_data_text)) {
             $this->refreshMetadata($sync);
             $_data = $this->instance_data_text;
         }
 
-        return $key ? array_get($_data, $key) : $_data;
+        return $key ? data_get($_data, $key, $default) : $_data;
     }
 
     /**
@@ -832,6 +841,25 @@ MYSQL;
         $this->instance_data_text = ($md instanceof Metadata) ? $md->toArray() : $md;
 
         return $this;
+    }
+
+    /**
+     * Sets a single item in the instance metadata array
+     *
+     * @param string     $key
+     * @param mixed|null $value
+     *
+     * @return \DreamFactory\Enterprise\Database\Models\Instance
+     */
+    public function setMetadataItem($key, $value = null)
+    {
+        if (empty($_md = $this->instance_data_text)) {
+            $_md = $this->refreshMetadata(false);
+        }
+
+        array_set($_md, $key, $value);
+
+        return $this->setMetadata($_md);
     }
 
     /**
@@ -877,6 +905,16 @@ MYSQL;
     public function getPrivatePath()
     {
         return InstanceStorage::getPrivatePath($this);
+    }
+
+    /**
+     * Returns the
+     *
+     * @return string
+     */
+    public function getPackagePath()
+    {
+        return InstanceStorage::getPackagePath($this);
     }
 
     /**
@@ -980,6 +1018,16 @@ MYSQL;
      *
      * @return Filesystem
      */
+    public function getPackageStorageMount($tag = null)
+    {
+        return InstanceStorage::getPackageStorageMount($this, $tag);
+    }
+
+    /**
+     * @param string $tag
+     *
+     * @return Filesystem
+     */
     public function getOwnerPrivateStorageMount($tag = null)
     {
         return InstanceStorage::getOwnerPrivateStorageMount($this, $tag);
@@ -1070,6 +1118,7 @@ MYSQL;
             'owner-private-path' => $instance->getOwnerPrivatePath(),
             'snapshot-path'      => $instance->getSnapshotPath(),
             'trash-path'         => $instance->getTrashPath(),
+            'package-path'       => $instance->getPackagePath(),
         ];
     }
 
@@ -1123,8 +1172,7 @@ MYSQL;
             'instance-id'          => $instance->instance_name_text,
             'default-domain'       => $cluster->subdomain_text,
             'signature-method'     => config('dfe.signature-method', EnterpriseDefaults::DEFAULT_SIGNATURE_METHOD),
-            'storage-root'         => config('provisioning.storage-root',
-                EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH),
+            'storage-root'         => config('provisioning.storage-root', EnterprisePaths::MOUNT_POINT . EnterprisePaths::STORAGE_PATH),
             'console-api-url'      => config('dfe.security.console-api-url'),
             'console-api-key'      => config('dfe.security.console-api-key'),
             'client-id'            => $key ? $key->client_id : null,
@@ -1132,6 +1180,7 @@ MYSQL;
             'audit-host'           => config('dfe.audit.host'),
             'audit-port'           => config('dfe.audit.port'),
             'audit-message-format' => config('dfe.audit.message-format'),
+            'packages'             => $instance->getPackages(),
         ];
     }
 
@@ -1287,5 +1336,27 @@ MYSQL;
     public function getResourceUri()
     {
         return config('provisioners.hosts.' . GuestLocations::resolve($this->guest_location_nbr) . '.resource-uri');
+    }
+
+    /**
+     * Returns the packages in the metadata. NON-REFRESHING! Intended to be called late.
+     *
+     * @return array
+     */
+    public function getPackages()
+    {
+        return $this->packages ?: [];
+    }
+
+    /**
+     * @param string|array $packages
+     *
+     * @return \DreamFactory\Enterprise\Database\Models\Instance
+     */
+    public function setPackages($packages)
+    {
+        $this->packages = Ini::parseDelimitedString($packages);
+
+        return $this;
     }
 }

@@ -15,15 +15,17 @@ use League\Flysystem\ZipArchive\ZipArchiveAdapter;
 /**
  * snapshot_t
  *
- * @property int    user_id
- * @property int    instance_id
- * @property int    route_hash_id
- * @property string snapshot_id_text
- * @property int    public_ind
- * @property string public_url_text
- * @property string expire_date
+ * @property int       $user_id
+ * @property int       $instance_id
+ * @property int       $route_hash_id
+ * @property string    $snapshot_id_text
+ * @property int       $public_ind
+ * @property string    $public_url_text
+ * @property string    $expire_date
  *
- * @property User   user
+ * @property User      $user
+ * @property Instance  $instance
+ * @property RouteHash $routeHash
  *
  * @method static Builder|EloquentBuilder byUserId($userId)
  * @method static Builder|EloquentBuilder fromHash($hash)
