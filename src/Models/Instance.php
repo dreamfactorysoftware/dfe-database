@@ -722,8 +722,7 @@ MYSQL;
         if (false === ($_sanitized = static::sanitizeName($name, $isAdmin))) {
             return false;
         }
-
-        return (0 == static::byNameOrId($_sanitized)->count() ? $_sanitized : false);
+        return (static::byNameOrId($_sanitized)->count() > 0) ? true : false;
     }
 
     /**
