@@ -717,12 +717,9 @@ MYSQL;
      *
      * @return bool|string Returns the sanitized name or FALSE if not available
      */
-    public static function isNameAvailable($name, $isAdmin = false)
+    public static function isNameAvailable($name)
     {
-        if (false === ($_sanitized = static::sanitizeName($name, $isAdmin))) {
-            return false;
-        }
-        return (static::byNameOrId($_sanitized)->count() > 0) ? true : false;
+        return (static::byNameOrId($name)->count() > 0) ? false : true;
     }
 
     /**
