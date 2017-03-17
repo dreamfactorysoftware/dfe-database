@@ -27,6 +27,8 @@ use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use League\Flysystem\Filesystem;
+use DB;
+
 
 /**
  * instance_t
@@ -191,36 +193,44 @@ class Instance extends EnterpriseModel implements OwnedEntity
      */
     public static function eligibleDeactivations($days, $ids = null)
     {
-        //  Quote the instance ids and make a list
-        if (!empty($ids)) {
-            foreach ($ids as $_key => $_instanceId) {
-                $ids[$_key] = "'" . $_instanceId . "'";
-            }
-
-            $ids = 'AND i.instance_id_text in (' . implode(',', $ids) . ')';
-        }
-
         $_sql = <<<MYSQL
 SELECT 
-    d.id, 
-    d.instance_id,
-    d.extend_count_nbr,
+    i.id as `instance_id`,
     i.instance_id_text,
     i.activate_ind,
     i.platform_state_nbr,
     i.create_date
-FROM 
-    deactivation_t  d, 
-    instance_t i 
+FROM instance_t i 
 WHERE 
-    DATEDIFF(CURRENT_DATE, d.create_date) > :days AND 
-    d.instance_id = i.id
-    {$ids}
+    DATEDIFF(CURRENT_DATE, i.create_date) >= :days 
 ORDER BY 
-    d.instance_id, d.create_date
+    i.create_date
 MYSQL;
-
         return \DB::select($_sql, [':days' => $days]);
+    }
+
+    public static function getEligibleReminders($reminderDays){
+        $_sql = <<<MYSQL
+SELECT 
+    i.instance_id_text,
+    i.activate_ind,
+    i.instance_data_text,
+    i.create_date,
+    user_t.first_name_text as `firstname`,
+    user_t.email_addr_text as`email`,
+    user_t.nickname_text as `display_name`
+FROM instance_t i 
+INNER JOIN user_t ON(user_t.id = i.user_id)
+WHERE 
+    DATEDIFF(CURRENT_DATE, i.create_date) = :days
+ORDER BY 
+    i.create_date
+MYSQL;
+        $reminders = DB::select($_sql, [':days' => $reminderDays]);
+        if(isset($reminders[0])){
+            return $reminders[0];
+        }
+        return $reminders;
     }
 
     /** @inheritdoc */
@@ -673,7 +683,7 @@ MYSQL;
         //  Do we belong to a server?
         if ($this->belongsToServer($_server->id)) {
             return 1 == InstanceServer::whereRaw('server_id = :server_id AND instance_id = :instance_id',
-                [':server_id' => $_server->id, ':instance_id' => $this->id])->delete();
+                    [':server_id' => $_server->id, ':instance_id' => $this->id])->delete();
         }
 
         //  Not currently assigned...
@@ -705,10 +715,10 @@ MYSQL;
         /** @noinspection PhpUndefinedMethodInspection */
 
         return 0 != InstanceServer::whereRaw('server_id = :server_id AND instance_id = :instance_id',
-            [
-                ':server_id'   => $_server->id,
-                ':instance_id' => $this->id,
-            ])->count();
+                [
+                    ':server_id'   => $_server->id,
+                    ':instance_id' => $this->id,
+                ])->count();
     }
 
     /**
