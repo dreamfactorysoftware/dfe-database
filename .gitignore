@@ -4,6 +4,7 @@ log/
 vendor/
 tests/vendor/
 tests/log/
+.idea/
 phpunit.xml
 phpdoc.xml
 composer.lock
