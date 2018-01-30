@@ -17,6 +17,7 @@ use DreamFactory\Library\Utility\Disk;
 use DreamFactory\Library\Utility\IfSet;
 use Exception;
 use Hash;
+use Carbon\Carbon;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
@@ -109,14 +110,14 @@ class User extends EnterpriseModel implements AuthorizableContract, Authenticata
     {
         parent::boot();
 
-        static::creating(function(User $model) {
+        static::creating(function (User $model){
             $model->checkStorageKey();
 
             //  Ensure user is active upon creation
             $model->active_ind = true;
         });
 
-        static::created(function(User $model) {
+        static::created(function (User $model){
             AppKey::createKeyForEntity($model, OwnerTypes::USER);
         });
     }
@@ -301,7 +302,9 @@ class User extends EnterpriseModel implements AuthorizableContract, Authenticata
      */
     public static function artisanRegister($command, $validate = true)
     {
-        $_data = $command instanceof ConsoleCommand ? array_merge($command->argument(), $command->option()) : (is_array($command) ? $command : []);
+        $_data =
+            $command instanceof ConsoleCommand ? array_merge($command->argument(), $command->option())
+                : (is_array($command) ? $command : []);
 
         if (false === ($_user = static::doRegister($_data, $validate, $_message))) {
             throw new RuntimeException($_message);
@@ -349,7 +352,8 @@ class User extends EnterpriseModel implements AuthorizableContract, Authenticata
         /** @type User $_user */
         if (null !== ($_user = User::byEmail($_email)->first())) {
             //  Existing user found!
-            Log::notice('[user.register] existing user registration attempt', ['request' => $data, 'existing' => $_user->toArray()]);
+            Log::notice('[user.register] existing user registration attempt',
+                ['request' => $data, 'existing' => $_user->toArray()]);
 
             throw new InvalidArgumentException('Email address already registered.');
         }
@@ -367,7 +371,7 @@ class User extends EnterpriseModel implements AuthorizableContract, Authenticata
 
         //  Create a user account
         try {
-            $_user = DB::transaction(function() use ($_attributes) {
+            $_user = DB::transaction(function () use ($_attributes){
                 $_user = User::create($_attributes);
 
                 if (null === ($_appKey = AppKey::mine($_user->id, OwnerTypes::USER))) {
@@ -399,5 +403,20 @@ class User extends EnterpriseModel implements AuthorizableContract, Authenticata
 
             throw $_ex;
         }
+    }
+
+    public static function eligibleDeactivations($days)
+    {
+
+        $expiredUsers =
+            self::where('active_ind', 1)
+                ->where('admin_ind', 0)
+                ->whereRaw('DATEDIFF(CURRENT_DATE, create_date) >= ?', [$days])
+                ->with('instances')
+                ->get();
+
+
+
+        return $expiredUsers;
     }
 }
